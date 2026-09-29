@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OmniSight Alert Feed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dashboard-body">
+  <aside class="sidebar">
+    <h2 class="sidebar-title">OmniSight</h2>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="dashboard.html">Analytics Dashboard</a></li>
+        <li><a href="alerts.html" class="active">Alert Feed</a></li>
+        <li><a href="reports.html">Market Reports</a></li>
+        <li><a href="profile.html">User Profile</a></li>
+        <li><a href="engines.html">Engine Management</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <h1>AI-Driven Alert Feed</h1>
+      <p>Chronological feed of NexIntel alerts and market predictions.</p>
+    </header>
+
+    <section class="dashboard-section">
+      <h2>Filters</h2>
+      <div class="filter-row">
+        <select class="filter-select">
+          <option>All Engines</option>
+          <option>Govgistics</option>
+          <option>Money Max</option>
+          <option>Coinbase</option>
+          <option>Amazon & eBay</option>
+          <option>Macro</option>
+          <option>On-Chain</option>
+        </select>
+        <select class="filter-select">
+          <option>All Signals</option>
+          <option>Buy</option>
+          <option>Sell</option>
+          <option>Hold</option>
+          <option>Resize</option>
+        </select>
+        <select class="filter-select">
+          <option>All Confidence</option>
+          <option>High (75%+)</option>
+          <option>Medium (50-75%)</option>
+          <option>Low (&lt;50%)</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Recent Alerts</h2>
+
+      <div class="alert-card alert-buy">
+        <div class="alert-meta">
+          <span class="alert-signal-buy">BUY</span>
+          <span class="alert-confidence">78% Confidence</span>
+          <span class="alert-time">2026-09-29 13:15 EDT</span>
+        </div>
+        <h3>BTC Liquidity Boost</h3>
+        <p><strong>Engine:</strong> On-Chain Engine</p>
+        <p><strong>Analysis:</strong> Whale accumulation detected across major exchanges. Liquidity window opening with incoming institutional flows.</p>
+        <p><strong>Action:</strong> Consider accumulation positions in BTC.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+
+      <div class="alert-card alert-rotate">
+        <div class="alert-meta">
+          <span class="alert-signal-rotate">ROTATE IN</span>
+          <span class="alert-confidence">81% Confidence</span>
+          <span class="alert-time">2026-09-29 12:40 EDT</span>
+        </div>
+        <h3>Defense Sector Contract Wave</h3>
+        <p><strong>Engine:</strong> Govgistics Engine</p>
+        <p><strong>Analysis:</strong> Government contract awards spiking in defense sector. Sector rotation signal triggered across market data.</p>
+        <p><strong>Action:</strong> Rotate allocation into defense equities and contractors.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+
+      <div class="alert-card alert-hold">
+        <div class="alert-meta">
+          <span class="alert-signal-hold">HOLD</span>
+          <span class="alert-confidence">72% Confidence</span>
+          <span class="alert-time">2026-09-29 11:22 EDT</span>
+        </div>
+        <h3>Macro Regime Stabilizing</h3>
+        <p><strong>Engine:</strong> Macro Engine</p>
+        <p><strong>Analysis:</strong> Inflation indicators showing softening trends. Rate cut probability increasing for next quarter. Current regime stable for equities.</p>
+        <p><strong>Action:</strong> Hold current positions. Monitor rate-sensitive sectors.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+
+      <div class="alert-card alert-buy">
+        <div class="alert-meta">
+          <span class="alert-signal-buy">BUY</span>
+          <span class="alert-confidence">76% Confidence</span>
+          <span class="alert-time">2026-09-29 10:05 EDT</span>
+        </div>
+        <h3>Consumer Demand Surge - Electronics</h3>
+        <p><strong>Engine:</strong> Amazon & eBay Engines</p>
+        <p><strong>Analysis:</strong> Demand spike detected across consumer electronics SKUs. Inventory pressure building. Prime positioning for related manufacturers.</p>
+        <p><strong>Action:</strong> Buy consumer electronics manufacturers and component suppliers.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+
+      <div class="alert-card alert-resize">
+        <div class="alert-meta">
+          <span class="alert-signal-resize">RESIZE</span>
+          <span class="alert-confidence">68% Confidence</span>
+          <span class="alert-time">2026-09-29 09:33 EDT</span>
+        </div>
+        <h3>Liquidity Window Opening</h3>
+        <p><strong>Engine:</strong> Money Max Engine</p>
+        <p><strong>Analysis:</strong> Corporate liquidity windows improving. Debt refinancing opportunities emerging. Credit spreads tightening.</p>
+        <p><strong>Action:</strong> Resize fixed income positions. Increase allocation to investment-grade bonds.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+
+      <div class="alert-card alert-hold">
+        <div class="alert-meta">
+          <span class="alert-signal-hold">HOLD</span>
+          <span class="alert-confidence">70% Confidence</span>
+          <span class="alert-time">2026-09-29 08:15 EDT</span>
+        </div>
+        <h3>Coinbase Trading Volume Neutral</h3>
+        <p><strong>Engine:</strong> Coinbase Engine</p>
+        <p><strong>Analysis:</strong> Crypto trading volumes at equilibrium. Order book depth stable. No significant directional pressure detected.</p>
+        <p><strong>Action:</strong> Maintain current crypto hedge positions. Await further signals.</p>
+        <a href="#" class="btn primary btn-small">View Full Alert</a>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Alert Preferences</h2>
+      <div class="settings-box">
+        <h3>Notification Settings</h3>
+        <p>
+          <label>
+            <input type="checkbox" checked /> Enable Critical Buy/Sell Alerts
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="checkbox" checked /> Enable High-Confidence Alerts (75%+)
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="checkbox" /> Enable Medium-Confidence Alerts (50-75%)
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="checkbox" /> Enable Low-Confidence Alerts
+          </label>
+        </p>
+        <h3 class="mt-2">Email Notifications</h3>
+        <p>
+          <label>
+            <input type="checkbox" checked /> Email on Critical Alerts
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="checkbox" /> Daily Alert Digest
+          </label>
+        </p>
+        <button class="btn primary">Save Preferences</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
