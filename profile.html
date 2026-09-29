@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OmniSight User Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dashboard-body">
+  <aside class="sidebar">
+    <h2 class="sidebar-title">OmniSight</h2>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="dashboard.html">Analytics Dashboard</a></li>
+        <li><a href="alerts.html">Alert Feed</a></li>
+        <li><a href="reports.html">Market Reports</a></li>
+        <li><a href="profile.html" class="active">User Profile</a></li>
+        <li><a href="engines.html">Engine Management</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <h1>User Profile</h1>
+      <p>Manage your OmniSight account, preferences, and beta participation.</p>
+    </header>
+
+    <section class="dashboard-section">
+      <h2>Account Information</h2>
+      <div class="profile-box">
+        <div class="profile-field">
+          <label>Full Name</label>
+          <p>Alex Morgan</p>
+        </div>
+        <div class="profile-field">
+          <label>Email</label>
+          <p>alex.morgan@example.com</p>
+        </div>
+        <div class="profile-field">
+          <label>Account Type</label>
+          <p><strong class="status-active">Private Beta</strong></p>
+        </div>
+        <div class="profile-field">
+          <label>Join Date</label>
+          <p>2026-08-15</p>
+        </div>
+        <div class="profile-field">
+          <label>Last Login</label>
+          <p>2026-09-29 14:22 EDT</p>
+        </div>
+        <button class="btn primary">Edit Profile</button>
+        <button class="btn secondary">Change Password</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Subscription & Beta Status</h2>
+      <div class="profile-box">
+        <div class="profile-field">
+          <label>Beta Tier</label>
+          <p><strong>Tier 2: Advanced Analytics</strong></p>
+          <p>Full access to all 6 engines, custom report generation, and priority alerts.</p>
+        </div>
+        <div class="profile-field">
+          <label>Current Usage</label>
+          <p>Reports Generated: <strong>47 / 100</strong></p>
+          <p>Alert Notifications: <strong>342 received this month</strong></p>
+          <p>API Calls: <strong>12,450 / 50,000 monthly</strong></p>
+        </div>
+        <div class="profile-field">
+          <label>Next Billing Cycle</label>
+          <p>2026-10-15 (Free during beta)</p>
+        </div>
+        <button class="btn primary">View Billing History</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Engine Preferences</h2>
+      <div class="profile-box">
+        <h3>Enabled Engines</h3>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> Govgistics Engine
+          </label>
+        </div>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> Money Max Engine
+          </label>
+        </div>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> Coinbase Engine
+          </label>
+        </div>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> Amazon & eBay Engines
+          </label>
+        </div>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> Macro Engine
+          </label>
+        </div>
+        <div class="engine-toggle">
+          <label>
+            <input type="checkbox" checked /> On-Chain Engine
+          </label>
+        </div>
+        <button class="btn primary">Save Engine Preferences</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Notification Preferences</h2>
+      <div class="profile-box">
+        <h3>Alert Delivery</h3>
+        <p>
+          <label>
+            <input type="radio" name="alert-delivery" checked /> Real-time in-app notifications
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="radio" name="alert-delivery" /> Email digest (daily)
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="radio" name="alert-delivery" /> Email digest (weekly)
+          </label>
+        </p>
+
+        <h3 class="mt-2">Minimum Confidence Threshold</h3>
+        <p>
+          <label>
+            <input type="radio" name="confidence" /> All alerts (50%+)
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="radio" name="confidence" checked /> High confidence only (75%+)
+          </label>
+        </p>
+        <p>
+          <label>
+            <input type="radio" name="confidence" /> Critical only (90%+)
+          </label>
+        </p>
+
+        <button class="btn primary">Save Notification Settings</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>API Access</h2>
+      <div class="profile-box">
+        <p><strong>API Key:</strong> <code>sk_live_1a2b3c4d5e6f7g8h9i0j</code></p>
+        <p><strong>Rate Limit:</strong> 50,000 calls/month</p>
+        <p><strong>Last Used:</strong> 2026-09-29 13:45 EDT</p>
+        <button class="btn secondary">Regenerate API Key</button>
+        <button class="btn secondary">View API Documentation</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Account Settings</h2>
+      <div class="profile-box">
+        <button class="btn secondary">Download My Data</button>
+        <button class="btn secondary">Privacy Policy</button>
+        <button class="btn danger">Delete Account</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
