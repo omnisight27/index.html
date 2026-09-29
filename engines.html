@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OmniSight Engine Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="dashboard-body">
+  <aside class="sidebar">
+    <h2 class="sidebar-title">OmniSight</h2>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="dashboard.html">Analytics Dashboard</a></li>
+        <li><a href="alerts.html">Alert Feed</a></li>
+        <li><a href="reports.html">Market Reports</a></li>
+        <li><a href="profile.html">User Profile</a></li>
+        <li><a href="engines.html" class="active">Engine Management</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <h1>Engine Management</h1>
+      <p>Toggle engines and set custom thresholds for prediction alerts.</p>
+    </header>
+
+    <section class="dashboard-section">
+      <h2>Engine Toggles</h2>
+      <div class="prediction-box">
+        <label><input type="checkbox" checked /> Govgistics Engine</label><br />
+        <label><input type="checkbox" checked /> Money Max Engine</label><br />
+        <label><input type="checkbox" checked /> Coinbase Engine</label><br />
+        <label><input type="checkbox" checked /> Amazon & eBay Engines</label><br />
+        <label><input type="checkbox" checked /> Macro Engine</label><br />
+        <label><input type="checkbox" checked /> On-Chain Engine</label>
+      </div>
+      <button class="btn primary">Save Engine Preferences</button>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Alert Thresholds</h2>
+      <div class="prediction-box">
+        <label>Minimum Confidence (%)</label>
+        <input type="number" value="70" />
+        <label>Maximum Risk Score</label>
+        <input type="number" value="3" />
+        <button class="btn primary">Save Configuration</button>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>Engine Status</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Govgistics Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Government contracts, awards, sector signals.</p>
+          <p><strong>Last Update:</strong> 2 mins ago</p>
+        </div>
+        <div class="card">
+          <h3>Money Max Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Cash-flow, debt, liquidity windows.</p>
+          <p><strong>Last Update:</strong> 1 min ago</p>
+        </div>
+        <div class="card">
+          <h3>Coinbase Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Crypto flows, order books, pressure.</p>
+          <p><strong>Last Update:</strong> 30 secs ago</p>
+        </div>
+        <div class="card">
+          <h3>Amazon & eBay Engines</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Consumer demand, pricing, scarcity.</p>
+          <p><strong>Last Update:</strong> 45 secs ago</p>
+        </div>
+        <div class="card">
+          <h3>Macro Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>GDP, inflation, war risk, rates.</p>
+          <p><strong>Last Update:</strong> 3 mins ago</p>
+        </div>
+        <div class="card">
+          <h3>On-Chain Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Whale moves, exchange flows, liquidity stress.</p>
+          <p><strong>Last Update:</strong> 15 secs ago</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>System Health</h2>
+      <div class="prediction-box">
+        <p><strong>Overall Status:</strong> Optimal</p>
+        <p><strong>Uptime:</strong> 99.98%</p>
+        <p><strong>Average Response Time:</strong> 127ms</p>
+        <p><strong>Data Sync Status:</strong> All engines synchronized</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
