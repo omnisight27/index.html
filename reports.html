@@ -2,176 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OmniSight Market Reports</title>
+  <title>Reports | OmniSight</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="dashboard-body">
-  <aside class="sidebar">
-    <h2 class="sidebar-title">OmniSight</h2>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="dashboard.html">Analytics Dashboard</a></li>
-        <li><a href="alerts.html">Alert Feed</a></li>
-        <li><a href="reports.html" class="active">Market Reports</a></li>
-        <li><a href="profile.html">User Profile</a></li>
-        <li><a href="engines.html">Engine Management</a></li>
-      </ul>
+<body>
+  <header class="nav">
+    <div class="nav-brand">OmniSight</div>
+    <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="reports.html" class="active">Reports</a>
+      <a href="engines.html">Engines</a>
+      <a href="profile.html">Profile</a>
     </nav>
-  </aside>
+  </header>
 
-  <main class="dashboard-main">
-    <header class="dashboard-header">
-      <h1>Market Reports</h1>
-      <p>Generate, view, and download analytical insights and historical performance.</p>
-    </header>
+  <main class="section">
+    <h2>Reports</h2>
+    <p>Generate historical and real‑time intelligence reports.</p>
 
-    <section class="dashboard-section">
-      <h2>Report Generator</h2>
-      <div class="report-generator">
-        <div class="form-group">
-          <label for="report-type">Report Type</label>
-          <select id="report-type" class="form-select">
-            <option>Daily Market Overview</option>
-            <option>Weekly Liquidity Report</option>
-            <option>Macro Regime Summary</option>
-            <option>Crypto Flow Analysis</option>
-            <option>Sector Rotation Report</option>
-            <option>Risk Assessment Report</option>
-            <option>Performance Attribution</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="start-date">Start Date</label>
-          <input id="start-date" type="date" class="form-input" />
-        </div>
-
-        <div class="form-group">
-          <label for="end-date">End Date</label>
-          <input id="end-date" type="date" class="form-input" />
-        </div>
-
-        <div class="form-group">
-          <label for="engines-filter">Include Engines</label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" checked /> Govgistics</label>
-            <label><input type="checkbox" checked /> Money Max</label>
-            <label><input type="checkbox" checked /> Coinbase</label>
-            <label><input type="checkbox" checked /> Amazon & eBay</label>
-            <label><input type="checkbox" checked /> Macro</label>
-            <label><input type="checkbox" checked /> On-Chain</label>
-          </div>
-        </div>
-
-        <button class="btn primary">Generate Report</button>
-      </div>
-    </section>
-
-    <section class="dashboard-section">
-      <h2>Recent Reports</h2>
-
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Weekly Liquidity Report</h3>
-          <span class="report-date">2026-09-21 to 2026-09-27</span>
-        </div>
-        <p><strong>Type:</strong> Comprehensive liquidity analysis across all engines.</p>
-        <p><strong>Generated:</strong> 2026-09-28 18:30 EDT</p>
-        <p><strong>Pages:</strong> 24</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Market Overview</h3>
+        <p>Daily snapshot of predictions and signals.</p>
+        <button class="btn">Generate</button>
       </div>
 
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Daily Market Overview</h3>
-          <span class="report-date">2026-09-28</span>
-        </div>
-        <p><strong>Type:</strong> Daily snapshot of NexIntel predictions and signals.</p>
-        <p><strong>Generated:</strong> 2026-09-28 16:00 EDT</p>
-        <p><strong>Pages:</strong> 12</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+      <div class="card">
+        <h3>Engine Breakdown</h3>
+        <p>Performance and contribution by engine.</p>
+        <button class="btn">Generate</button>
       </div>
 
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Macro Regime Summary</h3>
-          <span class="report-date">2026-Q3</span>
-        </div>
-        <p><strong>Type:</strong> Quarterly macro analysis with GDP, inflation, employment, and rate forecasts.</p>
-        <p><strong>Generated:</strong> 2026-09-27 12:15 EDT</p>
-        <p><strong>Pages:</strong> 18</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+      <div class="card">
+        <h3>Macro Regime History</h3>
+        <p>Historical regime classifications and transitions.</p>
+        <button class="btn">Generate</button>
       </div>
 
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Crypto Flow Analysis</h3>
-          <span class="report-date">2026-09-21 to 2026-09-27</span>
-        </div>
-        <p><strong>Type:</strong> On-chain whale movements, exchange flows, and liquidity pressure analysis.</p>
-        <p><strong>Generated:</strong> 2026-09-27 09:45 EDT</p>
-        <p><strong>Pages:</strong> 16</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+      <div class="card">
+        <h3>Liquidity Analysis</h3>
+        <p>Cash flows, stress levels, and window history.</p>
+        <button class="btn">Generate</button>
       </div>
 
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Sector Rotation Report</h3>
-          <span class="report-date">2026-09-20 to 2026-09-27</span>
-        </div>
-        <p><strong>Type:</strong> Govgistics signals, government contract awards, and sector rotation insights.</p>
-        <p><strong>Generated:</strong> 2026-09-26 14:30 EDT</p>
-        <p><strong>Pages:</strong> 20</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+      <div class="card">
+        <h3>Risk Assessment</h3>
+        <p>Filter performance and risk control effectiveness.</p>
+        <button class="btn">Generate</button>
       </div>
 
-      <div class="report-card">
-        <div class="report-header">
-          <h3>Risk Assessment Report</h3>
-          <span class="report-date">2026-09-22 to 2026-09-27</span>
-        </div>
-        <p><strong>Type:</strong> Comprehensive risk filter analysis including volatility, macro, and liquidity filters.</p>
-        <p><strong>Generated:</strong> 2026-09-25 11:00 EDT</p>
-        <p><strong>Pages:</strong> 14</p>
-        <div class="report-actions">
-          <a href="#" class="btn primary btn-small">View Report</a>
-          <a href="#" class="btn secondary btn-small">Download PDF</a>
-          <a href="#" class="btn secondary btn-small">Download CSV</a>
-        </div>
+      <div class="card">
+        <h3>Crypto Flow Report</h3>
+        <p>On-chain movements and exchange pressures.</p>
+        <button class="btn">Generate</button>
       </div>
-    </section>
-
-    <section class="dashboard-section">
-      <h2>Report Library</h2>
-      <p>Access all historical reports and archives.</p>
-      <div class="report-library-actions">
-        <a href="#" class="btn primary">View All Reports</a>
-        <a href="#" class="btn secondary">Manage Subscriptions</a>
-        <a href="#" class="btn secondary">Export History</a>
-      </div>
-    </section>
+    </div>
   </main>
+
+  <footer class="footer">
+    <p>© OmniSight — NexIntel AI Engine</p>
+  </footer>
 </body>
 </html>
