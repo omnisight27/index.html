@@ -36,7 +36,7 @@
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
         if (stamp && d.generated) {
-          stamp.textContent = '(updated ' + new Date(d.generated).toLocaleTimeString() + ')';
+          stamp.textContent = '(last ran ' + new Date(d.generated).toLocaleTimeString() + ')';
         }
         if (!all.length) {
           el.innerHTML = '<p class="live-stamp">No intraday signals this hour — market is quiet.</p>';
@@ -106,9 +106,14 @@
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (d) {
         var stamp = document.getElementById('picks-stamp');
+        var swingStamp = document.getElementById('swing-stamp');
         if (stamp) {
           var dt = new Date(d.generated);
-          stamp.textContent = 'Generated ' + dt.toLocaleString() + ' · autonomous NexIntel loop (4x daily)';
+          stamp.innerHTML = '<strong>Swing picks last ran:</strong> ' + dt.toLocaleString();
+        }
+        if (swingStamp) {
+          var dt2 = new Date(d.generated);
+          swingStamp.textContent = '(last ran ' + dt2.toLocaleTimeString() + ')';
         }
         var longs = document.getElementById('picks-longs');
         if (longs) {
@@ -170,6 +175,23 @@
       });
     wireCalculator();
     loadIntraday();
+    // Auto-refresh every 5 minutes for live updates
+    setInterval(function () {
+      loadIntraday();
+      // Re-fetch swing picks silently
+      fetch('data/latest.json', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var stamp = document.getElementById('picks-stamp');
+          var swingStamp = document.getElementById('swing-stamp');
+          if (stamp && d.generated) {
+            stamp.innerHTML = '<strong>Swing picks last ran:</strong> ' + new Date(d.generated).toLocaleString();
+          }
+          if (swingStamp && d.generated) {
+            swingStamp.textContent = '(last ran ' + new Date(d.generated).toLocaleTimeString() + ')';
+          }
+        }).catch(function () {});
+    }, 300000);
     // Longs-only toggle (persisted)
     var loToggle = document.getElementById('longs-only');
     var shortsGrid = document.getElementById('picks-shorts');
