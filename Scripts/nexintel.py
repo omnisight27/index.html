@@ -471,11 +471,38 @@ def think(data, history):
                 'regime': regime}
         (longs if score > 0 else shorts).append(pick)
 
-    # --- Contracts watch (Govgistics): flag mega-awards ---
+    # --- Contracts watch (Govgistics): flag mega-awards with tickers ---
+    # Major government contractors → ticker mapping
+    CONTRACTOR_TICKERS = {
+        'lockheed martin': 'LMT', 'boeing': 'BA', 'raytheon': 'RTX', 'rtx corp': 'RTX',
+        'northrop grumman': 'NOC', 'general dynamics': 'GD', 'l3harris': 'LHX',
+        'huntington ingalls': 'HII', 'leidos': 'LDOS', 'booz allen': 'BAH',
+        'caci': 'CACI', 'saic': 'SAIC', 'parsons': 'PSN', 'kbr': 'KBR',
+        'fluor': 'FLR', 'jacobs': 'J', 'aecom': 'ACM', 'tetra tech': 'TTEK',
+        'palantir': 'PLTR', 'accenture federal': 'ACN', 'deloitte': None,
+        'general electric': 'GE', 'honeywell': 'HON', 'textron': 'TXT',
+        'osha': None, 'amazon web services': 'AMZN', 'aws': 'AMZN',
+        'microsoft': 'MSFT', 'google': 'GOOGL', 'oracle': 'ORCL',
+        'spacex': None, 'blue origin': None,  # private
+    }
+    def recipient_ticker(name):
+        if not name: return None
+        nl = name.lower()
+        for key, ticker in CONTRACTOR_TICKERS.items():
+            if key in nl:
+                return ticker
+        return None
+
     contracts = data.get('contracts', [])
     mega = [c for c in contracts if (c.get('Award Amount') or 0) > 500_000_000]
-    contract_notes = [f"${c['Award Amount']/1e9:.2f}B → {c.get('Recipient Name','?')} ({c.get('Awarding Agency','?')})"
-                      for c in mega[:5]]
+    contract_notes = []
+    for c in mega[:5]:
+        name = c.get('Recipient Name', '?')
+        ticker = recipient_ticker(name)
+        tick_str = f' [{ticker}]' if ticker else ''
+        contract_notes.append(
+            f"${c['Award Amount']/1e9:.2f}B → {name}{tick_str} ({c.get('Awarding Agency','?')})"
+        )
 
     longs.sort(key=lambda p: -p['score'])
     shorts.sort(key=lambda p: p['score'])
