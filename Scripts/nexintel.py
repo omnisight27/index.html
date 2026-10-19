@@ -34,11 +34,29 @@ def ingest():
     print('INGEST: pulling live feeds...')
     d = {}
 
-    # Crypto (CoinGecko)
-    cg = fetch_json('https://api.coingecko.com/api/v3/simple/price'
-        '?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin,avalanche,chainlink'
-        '&vs_currencies=usd&include_24hr_change=true&include_7d_change=true')
-    d['crypto'] = cg or {}
+    # Crypto — top 100 by market cap (CoinGecko, 1 call, no key)
+    d['crypto'] = {}
+    try:
+        mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
+            '?vs_currency=usd&order=market_cap_desc&per_page=100&page=1'
+            '&price_change_percentage=24h,7d')
+        if mkts:
+            for c in mkts:
+                d['crypto'][c['id']] = {
+                    'usd': c['current_price'],
+                    'usd_24h_change': c.get('price_change_percentage_24h') or 0,
+                    'usd_7d_change': c.get('price_change_percentage_7d_in_currency') or 0,
+                    'symbol': (c['symbol'] or '').upper(),
+                    'market_cap': c.get('market_cap') or 0,
+                }
+            print(f"  crypto: {len(d['crypto'])} coins ingested")
+    except Exception as e:
+        print(f'  crypto markets failed: {e}')
+        # Fallback to the simple price endpoint
+        cg = fetch_json('https://api.coingecko.com/api/v3/simple/price'
+            '?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin,avalanche,chainlink'
+            '&vs_currencies=usd&include_24hr_change=true&include_7d_change=true')
+        d['crypto'] = cg or {}
 
     # Coinbase real-time tickers
     d['tickers'] = {}
@@ -385,7 +403,10 @@ def think(data, history):
         chg24 = info.get('usd_24h_change') or 0
         chg7d = (info.get('usd_7d_change') or 0)
         price = info.get('usd') or 0
-        sym = cid.upper()
+        sym = info.get('symbol') or cid.upper()
+        # Skip dust / illiquid (no price or no market cap data)
+        if not price or price <= 0:
+            continue
         feats = extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta)
         score = sum(w * f for w, f in zip(weights, feats))
         # Geometric layer: fastest pattern match via cosine similarity
