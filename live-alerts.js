@@ -97,8 +97,21 @@
   function render(alerts) {
     var feed = document.querySelector('.alert-feed');
     if (!feed) return;
+
+    // Apply engine toggles + confidence threshold from the engines page (Loop 4)
+    var cfg = window.OmniSightConfig ? window.OmniSightConfig.load()
+                                     : { engines: {}, minConfidence: 0 };
+    var visible = alerts.filter(function (a) {
+      if (cfg.engines && cfg.engines[a.engine] === false) return false;
+      return a.confidence >= (cfg.minConfidence || 0);
+    });
+
     feed.innerHTML = '';
-    alerts.forEach(function (a) {
+    if (!visible.length) {
+      feed.innerHTML = '<div class="alert-card alert-hold"><h4>No alerts pass your filters</h4>' +
+        '<p>Loosen the confidence threshold or re-enable engines on the <a href="engines.html" style="color:var(--accent)">Engines</a> page.</p></div>';
+    }
+    visible.forEach(function (a) {
       var card = document.createElement('div');
       card.className = 'alert-card alert-' + a.type;
       card.setAttribute('data-engine', a.engine);
