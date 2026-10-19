@@ -1,0 +1,193 @@
+{
+  "generated": "2026-10-19T14:51:24.102480+00:00",
+  "mode": "intraday",
+  "horizon": "1-4 hours",
+  "longs": [
+    {
+      "asset": "XMR",
+      "score": 11.25,
+      "confidence": 84,
+      "direction": "LONG",
+      "thesis": {
+        "direction": "LONG",
+        "entry": 602.78,
+        "stop_loss": 598.18,
+        "take_profit": 609.68,
+        "entry_time": "14:50 UTC",
+        "exit_by": "16:50 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 1.14,
+        "max_loss_pct": 0.76,
+        "rsi": 52.0,
+        "chg_1h": 1.28,
+        "bull_case": [
+          "+1.3% last hour momentum",
+          "breaking 24h highs"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:50:44.321502+00:00"
+    },
+    {
+      "asset": "DOT",
+      "score": 9.67,
+      "confidence": 79,
+      "direction": "LONG",
+      "thesis": {
+        "direction": "LONG",
+        "entry": 1.1395,
+        "stop_loss": 1.1288,
+        "take_profit": 1.1556,
+        "entry_time": "14:51 UTC",
+        "exit_by": "16:51 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 1.41,
+        "max_loss_pct": 0.94,
+        "rsi": 63.0,
+        "chg_1h": 0.89,
+        "bull_case": [
+          "breaking 24h highs"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:51:24.102452+00:00"
+    },
+    {
+      "asset": "ONDO",
+      "score": 6.83,
+      "confidence": 70,
+      "direction": "LONG",
+      "thesis": {
+        "direction": "LONG",
+        "entry": 0.4372,
+        "stop_loss": 0.4338,
+        "take_profit": 0.4422,
+        "entry_time": "14:51 UTC",
+        "exit_by": "16:51 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 1.15,
+        "max_loss_pct": 0.77,
+        "rsi": 53.0,
+        "chg_1h": 0.78,
+        "bull_case": [
+          "breaking 24h highs"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:51:21.283122+00:00"
+    },
+    {
+      "asset": "BCH",
+      "score": 5.21,
+      "confidence": 66,
+      "direction": "LONG",
+      "thesis": {
+        "direction": "LONG",
+        "entry": 278.68,
+        "stop_loss": 277.04,
+        "take_profit": 281.14,
+        "entry_time": "14:50 UTC",
+        "exit_by": "16:50 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 0.88,
+        "max_loss_pct": 0.59,
+        "rsi": 60.0,
+        "chg_1h": 0.51,
+        "bull_case": [
+          "breaking 24h highs"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:50:53.932869+00:00"
+    },
+    {
+      "asset": "DOGE",
+      "score": 3.49,
+      "confidence": 60,
+      "direction": "LONG",
+      "thesis": {
+        "direction": "LONG",
+        "entry": 0.0795,
+        "stop_loss": 0.0791,
+        "take_profit": 0.0802,
+        "entry_time": "14:50 UTC",
+        "exit_by": "16:50 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 0.84,
+        "max_loss_pct": 0.56,
+        "rsi": 52.0,
+        "chg_1h": 0.55,
+        "bull_case": [
+          "intraday momentum alignment"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:50:43.848145+00:00"
+    }
+  ],
+  "shorts": [
+    {
+      "asset": "BTW",
+      "score": -6.26,
+      "confidence": 69,
+      "direction": "SHORT",
+      "thesis": {
+        "direction": "SHORT",
+        "entry": 1.9198,
+        "stop_loss": 1.9639,
+        "take_profit": 1.8537,
+        "entry_time": "14:51 UTC",
+        "exit_by": "16:51 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 3.44,
+        "max_loss_pct": 2.3,
+        "rsi": 20.0,
+        "chg_1h": -0.13,
+        "bull_case": [
+          "RSI 20 \u2014 oversold bounce setup"
+        ],
+        "bear_case": [
+          "breaking 24h lows"
+        ]
+      },
+      "timestamp": "2026-10-19T14:51:09.801254+00:00"
+    },
+    {
+      "asset": "AAVE",
+      "score": -5.83,
+      "confidence": 67,
+      "direction": "SHORT",
+      "thesis": {
+        "direction": "SHORT",
+        "entry": 148.08,
+        "stop_loss": 149.01,
+        "take_profit": 146.67,
+        "entry_time": "14:51 UTC",
+        "exit_by": "16:51 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 0.95,
+        "max_loss_pct": 0.63,
+        "rsi": 32.0,
+        "chg_1h": -0.72,
+        "bull_case": [
+          "intraday momentum alignment"
+        ],
+        "bear_case": [
+          "intraday momentum divergence"
+        ]
+      },
+      "timestamp": "2026-10-19T14:51:19.027047+00:00"
+    }
+  ],
+  "coins_scanned": 50
+}

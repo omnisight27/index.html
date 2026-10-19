@@ -25,6 +25,41 @@
   }
 
   // Profit calculator — user enters $ amount, shows expected $ gain/loss per pick
+  // Intraday signals (hourly engine)
+  function loadIntraday() {
+    var el = document.getElementById('picks-intraday');
+    var stamp = document.getElementById('intraday-stamp');
+    if (!el) return;
+    fetch('data/intraday.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) {
+        var all = (d.longs || []).concat(d.shorts || []);
+        all.sort(function (a, b) { return b.confidence - a.confidence; });
+        if (stamp && d.generated) {
+          stamp.textContent = '(updated ' + new Date(d.generated).toLocaleTimeString() + ')';
+        }
+        if (!all.length) {
+          el.innerHTML = '<p class="live-stamp">No intraday signals this hour — market is quiet.</p>';
+          return;
+        }
+        el.innerHTML = all.slice(0, 6).map(function (s) {
+          var t = s.thesis || {};
+          var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
+          var arrow = s.direction === 'LONG' ? '▲' : '▼';
+          return '<div class="alert-card ' + cls + '">' +
+            '<h4>' + arrow + ' ' + s.asset + ' <span class="live-stamp">' + s.confidence + '%</span></h4>' +
+            '<p><strong>In:</strong> ' + t.entry_time + ' @ $' + t.entry +
+            ' &nbsp; <strong>Out by:</strong> ' + t.exit_by + '</p>' +
+            '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
+            '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
+            '</div>';
+        }).join('');
+      })
+      .catch(function () {
+        el.innerHTML = '<p class="live-stamp">Intraday engine not yet run — check back after the next hourly cycle.</p>';
+      });
+  }
+
   function wireCalculator() {
     var container = document.querySelector('.container');
     if (!container || document.getElementById('profit-calc')) return;
@@ -134,6 +169,7 @@
         if (stamp) stamp.textContent = 'Picks not yet generated — the NexIntel loop runs every 6 hours.';
       });
     wireCalculator();
+    loadIntraday();
     // Longs-only toggle (persisted)
     var loToggle = document.getElementById('longs-only');
     var shortsGrid = document.getElementById('picks-shorts');
@@ -143,6 +179,10 @@
       try { localStorage.setItem('nx_longs_only', on ? '1' : '0'); } catch (e) {}
       if (shortsGrid) shortsGrid.style.display = on ? 'none' : '';
       if (shortsHeader) shortsHeader.style.display = on ? 'none' : '';
+      // Also filter intraday cards
+      document.querySelectorAll('#picks-intraday .alert-sell').forEach(function (c) {
+        c.style.display = on ? 'none' : '';
+      });
     }
     if (loToggle) {
       try { loToggle.checked = localStorage.getItem('nx_longs_only') === '1'; } catch (e) {}
