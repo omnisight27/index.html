@@ -79,6 +79,38 @@
         })
         .catch(function () { fedEl.innerHTML = '<p class="live-stamp">Feed unavailable.</p>'; });
     }
+
+    // Local weather — Open-Meteo (no key, Boynton Beach FL)
+    var wxEl = document.getElementById('weather-now');
+    if (wxEl) {
+      var codes = {0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Fog',
+        51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',
+        71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Showers',82:'Violent showers',
+        95:'Thunderstorm',96:'Storm + hail',99:'Storm + hail'};
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=26.5253&longitude=-80.0664' +
+        '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m' +
+        '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max' +
+        '&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=3')
+        .then(function (r) { return r.json(); })
+        .then(function (w) {
+          var c = w.current, d = w.daily;
+          var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+          var rows = d.time.map(function (t, i) {
+            var dt = new Date(t + 'T12:00:00');
+            return '<tr><td>' + days[dt.getDay()] + '</td><td>' +
+              Math.round(d.temperature_2m_max[i]) + '°/' + Math.round(d.temperature_2m_min[i]) + '°</td>' +
+              '<td>' + (d.precipitation_probability_max[i] || 0) + '%</td></tr>';
+          }).join('');
+          wxEl.innerHTML =
+            '<p style="font-size:32px;margin:4px 0"><strong>' + Math.round(c.temperature_2m) + '°F</strong> ' +
+            (codes[c.weather_code] || '') + '</p>' +
+            '<p class="live-stamp">Humidity ' + c.relative_humidity_2m + '% · Wind ' +
+            Math.round(c.wind_speed_10m) + ' mph</p>' +
+            '<table class="report-table"><thead><tr><th>Day</th><th>H/L</th><th>Rain</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody></table>';
+        })
+        .catch(function () { wxEl.innerHTML = '<p class="live-stamp">Weather unavailable.</p>'; });
+    }
   }
 
   if (document.readyState === 'loading') {
