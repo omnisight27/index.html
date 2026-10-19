@@ -123,6 +123,9 @@ def build_intraday_thesis(sym, f, score):
 
 def main():
     print('INTRADAY: hourly signals...')
+    # Coins not tradable on major US exchanges (delisted / regulatory)
+    BLOCKED = {'XMR',  # Monero — delisted from Coinbase
+               }
     # Top 50 coins by market cap (1 call)
     mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
         '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1')
@@ -134,6 +137,8 @@ def main():
     for c in mkts:
         cid = c['id']
         sym = (c['symbol'] or '').upper()
+        if sym in BLOCKED:
+            continue
         mcap = c.get('market_cap') or 0
         if mcap < 100_000_000:
             continue

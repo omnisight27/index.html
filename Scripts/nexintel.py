@@ -483,11 +483,14 @@ def think(data, history):
     print(f"  kelly = {kelly:.3f} (win_rate={wr:.2f})")
 
     # --- Score crypto with w·x (ensemble: regression + geometry + regime) ---
+    BLOCKED_SYMBOLS = {'XMR'}  # not tradable on Coinbase (delisted)
     for cid, info in crypto.items():
         chg24 = info.get('usd_24h_change') or 0
         chg7d = (info.get('usd_7d_change') or 0)
         price = info.get('usd') or 0
         sym = info.get('symbol') or cid.upper()
+        if sym in BLOCKED_SYMBOLS:
+            continue
         # Skip dust / illiquid: no price, or market cap under $100M (only liquid, tradable assets)
         if not price or price <= 0:
             continue
