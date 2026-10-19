@@ -58,6 +58,7 @@ def ingest():
                     'usd_24h_change': c.get('price_change_percentage_24h') or 0,
                     'usd_7d_change': c.get('price_change_percentage_7d_in_currency') or 0,
                     'symbol': (c['symbol'] or '').upper(),
+                    'name': c.get('name') or '',
                     'market_cap': c.get('market_cap') or 0,
                 }
         print(f"  crypto: {len(d['crypto'])} coins ingested")
@@ -510,6 +511,8 @@ def think(data, history):
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
         pick = {'asset': sym, 'price': round(price, 2), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
+                'name': info.get('name') or sym,
+                'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
@@ -534,6 +537,21 @@ def think(data, history):
             for p in longs: p['confidence'] = max(40, p['confidence'] - 3)
 
     # --- Stocks (if Finnhub key present) — same feature model ---
+    STOCK_NAMES = {
+        'SPY': 'SPDR S&P 500 ETF', 'QQQ': 'Invesco QQQ (Nasdaq 100)', 'DIA': 'SPDR Dow Jones ETF',
+        'IWM': 'iShares Russell 2000 ETF', 'XLK': 'Technology Select Sector SPDR', 'XLF': 'Financial Select Sector SPDR',
+        'XLE': 'Energy Select Sector SPDR', 'XLV': 'Health Care Select Sector SPDR', 'XLI': 'Industrial Select Sector SPDR',
+        'XLU': 'Utilities Select Sector SPDR', 'XLP': 'Consumer Staples Select Sector SPDR', 'XLY': 'Consumer Discretionary Select Sector SPDR',
+        'XLRE': 'Real Estate Select Sector SPDR', 'XLB': 'Materials Select Sector SPDR', 'XLC': 'Communication Services Select Sector SPDR',
+        'AAPL': 'Apple Inc.', 'MSFT': 'Microsoft Corp.', 'NVDA': 'NVIDIA Corp.', 'AMZN': 'Amazon.com Inc.',
+        'META': 'Meta Platforms Inc.', 'GOOGL': 'Alphabet Inc.', 'TSLA': 'Tesla Inc.', 'AVGO': 'Broadcom Inc.',
+        'JPM': 'JPMorgan Chase & Co.', 'V': 'Visa Inc.', 'MA': 'Mastercard Inc.', 'XOM': 'Exxon Mobil Corp.',
+        'CVX': 'Chevron Corp.', 'UNH': 'UnitedHealth Group Inc.', 'LLY': 'Eli Lilly and Co.', 'COST': 'Costco Wholesale Corp.',
+        'HD': 'Home Depot Inc.', 'PG': 'Procter & Gamble Co.', 'JNJ': 'Johnson & Johnson', 'BAC': 'Bank of America Corp.',
+        'CRM': 'Salesforce Inc.', 'ORCL': 'Oracle Corp.', 'AMD': 'Advanced Micro Devices Inc.', 'NFLX': 'Netflix Inc.',
+        'DIS': 'Walt Disney Co.', 'INTC': 'Intel Corp.', 'COIN': 'Coinbase Global Inc.', 'MSTR': 'MicroStrategy Inc.',
+        'PLTR': 'Palantir Technologies Inc.',
+    }
     for sym, q in data.get('stocks', {}).items():
         dp = q.get('dp') or 0  # day percent change
         c = q.get('c') or 0
@@ -548,6 +566,8 @@ def think(data, history):
         reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Ensemble score {score:+.1f} (w·x + geo + {regime}).'
         pick = {'asset': sym, 'price': round(c, 2), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'equity',
+                'name': STOCK_NAMES.get(sym, sym),
+                'info_url': f'https://finance.yahoo.com/quote/{sym}',
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}

@@ -320,6 +320,36 @@ input[type="radio"] {
   margin-top: 8px;
 }
 
+/* Asset identity line on pick cards */
+.asset-sub {
+  margin-top: -6px !important;
+  font-size: 13px;
+}
+.asset-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.badge-crypto { background: rgba(240, 185, 11, 0.15); color: #f0b90b; }
+.badge-stock { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+.badge-etf { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+.asset-name {
+  color: var(--text-light);
+  font-weight: 600;
+}
+.asset-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 12px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+.asset-link:hover { text-decoration: underline; }
+
 /* Sentiment gauge (Loop 2) */
 .gauge-dial {
   width: 180px;

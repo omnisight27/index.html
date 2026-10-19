@@ -159,6 +159,8 @@ def main():
         signals.append({
             'asset': sym, 'score': round(score, 2), 'confidence': round(conf),
             'direction': thesis['direction'], 'thesis': thesis,
+            'name': c.get('name') or sym,
+            'info_url': f'https://www.coingecko.com/en/coins/{cid}',
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 

@@ -4,14 +4,29 @@
 (function () {
   'use strict';
 
+  function assetBadge(p) {
+    var cls = (p['class'] || '').toLowerCase();
+    if (cls === 'crypto') return '<span class="asset-badge badge-crypto">🪙 Crypto</span>';
+    var nm = (p.name || '').toUpperCase();
+    if (nm.indexOf('ETF') > -1 || nm.indexOf('SPDR') > -1 || nm.indexOf('SELECT SECTOR') > -1) return '<span class="asset-badge badge-etf">📊 ETF</span>';
+    return '<span class="asset-badge badge-stock">📈 Stock</span>';
+  }
+
+  function assetHeader(p, side) {
+    var arrow = side === 'long' ? '▲ LONG' : (side === 'short' ? '▼ SHORT' : (p.direction === 'LONG' ? '▲' : '▼'));
+    var nm = p.name && p.name !== p.asset ? ' <span class="asset-name">' + p.name + '</span>' : '';
+    var link = p.info_url ? ' <a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
+    return '<h4>' + arrow + ' ' + p.asset + '</h4>' +
+      '<p class="asset-sub">' + assetBadge(p) + nm + link + '</p>';
+  }
+
   function pickCard(p, side) {
     var cls = side === 'long' ? 'alert-buy' : 'alert-sell';
-    var arrow = side === 'long' ? '▲ LONG' : '▼ SHORT';
     var t = p.thesis || {};
     var bull = (t.bull_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
     var bear = (t.bear_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
     return '<div class="alert-card ' + cls + '" data-entry="' + p.price + '" data-target="' + (t.take_profit || 0) + '" data-stop="' + (t.stop_loss || 0) + '" data-exp-ret="' + (t.expected_return_pct || 0) + '" data-max-loss="' + (t.max_loss_pct || 0) + '">' +
-      '<h4>' + arrow + ' ' + p.asset + '</h4>' +
+      assetHeader(p, side) +
       '<p><strong>Buy:</strong> ' + (t.entry_date || 'today') + ' @ $' + Number(p.price).toLocaleString() +
       ' &nbsp; <strong>Sell target:</strong> ' + (t.projected_exit || '—') + ' @ $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') + '</p>' +
       '<p><strong>Stop:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') +
@@ -45,9 +60,9 @@
         el.innerHTML = all.slice(0, 6).map(function (s) {
           var t = s.thesis || {};
           var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
-          var arrow = s.direction === 'LONG' ? '▲' : '▼';
+          s.confidence_badge = ' <span class="live-stamp">' + s.confidence + '%</span>';
           return '<div class="alert-card ' + cls + '">' +
-            '<h4>' + arrow + ' ' + s.asset + ' <span class="live-stamp">' + s.confidence + '%</span></h4>' +
+            assetHeader(s).replace('</p>', s.confidence_badge + '</p>') +
             '<p><strong>In:</strong> ' + t.entry_time + ' @ $' + t.entry +
             ' &nbsp; <strong>Out by:</strong> ' + t.exit_by + '</p>' +
             '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
