@@ -134,6 +134,21 @@
         if (stamp) stamp.textContent = 'Picks not yet generated — the NexIntel loop runs every 6 hours.';
       });
     wireCalculator();
+    // Longs-only toggle (persisted)
+    var loToggle = document.getElementById('longs-only');
+    var shortsGrid = document.getElementById('picks-shorts');
+    var shortsHeader = document.getElementById('shorts-header');
+    function applyLongsOnly() {
+      var on = loToggle.checked;
+      try { localStorage.setItem('nx_longs_only', on ? '1' : '0'); } catch (e) {}
+      if (shortsGrid) shortsGrid.style.display = on ? 'none' : '';
+      if (shortsHeader) shortsHeader.style.display = on ? 'none' : '';
+    }
+    if (loToggle) {
+      try { loToggle.checked = localStorage.getItem('nx_longs_only') === '1'; } catch (e) {}
+      loToggle.addEventListener('change', applyLongsOnly);
+      applyLongsOnly();
+    }
   }
 
   if (document.readyState === 'loading') {
