@@ -723,6 +723,8 @@ def publish(data, signals, history):
         'weights': signals.get('weights'),
         'weight_info': signals.get('weight_info'),
         'contracts_watch': signals['contracts_watch'],
+        'opportunities': signals.get('opportunities', []),
+        'fed_commentary': data.get('fed_commentary', []),
         'headlines': signals['headlines'],
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
