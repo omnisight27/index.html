@@ -1,0 +1,25 @@
+name: NexIntel Intraday Loop
+on:
+  schedule:
+    - cron: '15 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  intraday:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run intraday engine
+        run: python3 Scripts/intraday.py
+      - name: Commit data
+        run: |
+          git config user.name "NexIntel Intraday"
+          git config user.email "nexintel@omnisight.local"
+          git add data/intraday.json
+          git diff --cached --quiet || git commit -m "Intraday $(date -u +%Y-%m-%dT%H:%M)"
+          git push
