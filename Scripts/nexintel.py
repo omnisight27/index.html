@@ -75,15 +75,45 @@ def ingest():
     # --- Keyed feeds (graceful if absent) ---
     fred_key = os.environ.get('FRED_API_KEY')
     d['rates'] = {}
+    d['macro'] = {}
     if fred_key:
+        # Rates & curve
         for sid, name in [('DGS10', 'us10y'), ('DGS2', 'us2y'), ('DFEDTARU', 'fedfunds'),
                           ('T10Y2Y', 'curve'), ('DCOILWTICO', 'wti')]:
             r = fetch_json(f'https://api.stlouisfed.org/fred/series/observations'
                            f'?series_id={sid}&api_key={fred_key}&file_type=json&limit=1&sort_order=desc')
             try: d['rates'][name] = r['observations'][0]['value']
             except: pass
+        # Macro dashboard: CPI, GDP, unemployment, consumer sentiment, money supply
+        for sid, name in [('CPIAUCSL', 'cpi'), ('GDP', 'gdp'), ('UNRATE', 'unemployment'),
+                          ('UMCSENT', 'consumer_sentiment'), ('M2SL', 'm2'),
+                          ('DEXUSEU', 'eur_usd'), ('DGS30', 'us30y')]:
+            r = fetch_json(f'https://api.stlouisfed.org/fred/series/observations'
+                           f'?series_id={sid}&api_key={fred_key}&file_type=json&limit=3&sort_order=desc')
+            try:
+                obs = [o for o in r['observations'] if o['value'] != '.']
+                if len(obs) >= 2:
+                    cur, prev = float(obs[0]['value']), float(obs[1]['value'])
+                    d['macro'][name] = {
+                        'value': cur, 'prev': prev,
+                        'change': round(cur - prev, 2),
+                        'change_pct': round((cur - prev) / abs(prev) * 100, 2) if prev else 0,
+                        'date': obs[0]['date'],
+                    }
+                elif obs:
+                    d['macro'][name] = {'value': float(obs[0]['value']), 'date': obs[0]['date']}
+            except: pass
+        # YoY inflation from CPI (12 obs back)
+        try:
+            r = fetch_json(f'https://api.stlouisfed.org/fred/series/observations'
+                           f'?series_id=CPIAUCSL&api_key={fred_key}&file_type=json&limit=13&sort_order=desc')
+            obs = [o for o in r['observations'] if o['value'] != '.']
+            if len(obs) >= 13:
+                yoy = (float(obs[0]['value']) / float(obs[12]['value']) - 1) * 100
+                d['macro']['cpi_yoy'] = {'value': round(yoy, 2), 'date': obs[0]['date']}
+        except: pass
     else:
-        print('  [info] FRED_API_KEY absent — rates feed skipped (add key in GitHub Secrets)')
+        print('  [info] FRED_API_KEY absent — rates/macro feed skipped (add key in GitHub Secrets)')
 
     finnhub_key = os.environ.get('FINNHUB_API_KEY')
     d['stocks'] = {}
@@ -237,6 +267,69 @@ def learn_weights(history):
     return w, {'trained': True, 'samples': len(X),
                'note': f'optimized on {len(X)} scored picks via row echelon form'}
 
+# ---------------------------------------------------------------- REGIME
+def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
+    """Classify market regime: RISK_ON / NEUTRAL / RISK_OFF. Uses sentiment, gold, FX + FRED macro."""
+    macro = macro or {}
+    score = 0
+    reasons = []
+    if fg_now >= 55: score += 1; reasons.append('greed')
+    elif fg_now <= 35: score -= 1; reasons.append('fear')
+    if xau_price and xau_price > 4100: score -= 1; reasons.append('gold bid (risk-off)')
+    if usd_jpy and usd_jpy > 155: score -= 1; reasons.append('strong USD (risk-off)')
+    if usd_jpy and usd_jpy < 145: score += 1; reasons.append('weak USD (risk-on)')
+    # Macro overlays (FRED)
+    cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
+    if cpi_yoy and cpi_yoy > 4: score -= 1; reasons.append(f'inflation hot ({cpi_yoy:.1f}% YoY)')
+    elif cpi_yoy and cpi_yoy < 2: score += 1; reasons.append(f'inflation cool ({cpi_yoy:.1f}% YoY)')
+    if score >= 1: regime = 'RISK_ON'
+    elif score <= -1: regime = 'RISK_OFF'
+    else: regime = 'NEUTRAL'
+    return regime, reasons
+
+def regime_adjustment(regime):
+    return {
+        'RISK_ON':  {'long_boost': 1.2, 'short_damp': 0.7,
+                     'note': 'Risk-on: favor longs, demand stronger short signals'},
+        'RISK_OFF': {'long_boost': 0.7, 'short_damp': 1.2,
+                     'note': 'Risk-off: favor shorts/hedges, demand stronger long signals'},
+        'NEUTRAL':  {'long_boost': 1.0, 'short_damp': 1.0,
+                     'note': 'Neutral: no directional tilt'},
+    }[regime]
+
+# ---------------------------------------------------------------- THESIS
+def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_edge, cls):
+    """Readable investment thesis: bull/bear case, stop/target, risk-reward."""
+    direction = 'LONG' if score > 0 else 'SHORT'
+    vol = max(abs(chg24), 2.0)
+    if direction == 'LONG':
+        stop = price * (1 - vol / 100 * 1.5)
+        target = price * (1 + vol / 100 * 2.0)
+    else:
+        stop = price * (1 + vol / 100 * 1.5)
+        target = price * (1 - vol / 100 * 2.0)
+    rr = abs(target - price) / max(abs(price - stop), 0.01)
+    bull, bear = [], []
+    if chg24 > 3: bull.append(f'strong 24h momentum (+{chg24:.1f}%)')
+    if chg24 < -3: bear.append(f'sharp 24h selloff ({chg24:.1f}%)')
+    if (chg24 > 0) == (chg7d > 0) and abs(chg24) > 1:
+        (bull if chg24 > 0 else bear).append('trend alignment across timeframes')
+    if fg_now <= 25: bull.append('extreme fear — contrarian tailwind')
+    if fg_now >= 75: bear.append('extreme greed — contrarian headwind')
+    if geo_edge > 0.15: bull.append('pattern matches historical winners')
+    if geo_edge < -0.15: bear.append('pattern resembles historical losers')
+    if regime == 'RISK_ON' and direction == 'LONG': bull.append('risk-on regime favors longs')
+    if regime == 'RISK_OFF' and direction == 'SHORT': bear.append('risk-off regime favors shorts')
+    return {
+        'direction': direction,
+        'bull_case': bull or ['no strong bullish factors'],
+        'bear_case': bear or ['no strong bearish factors'],
+        'stop_loss': round(stop, 2),
+        'take_profit': round(target, 2),
+        'risk_reward': round(rr, 2),
+        'time_horizon': '1-5 days (swing)',
+    }
+
 def think(data, history):
     """Generate long/short picks using learned optimal weights + psychology layer."""
     print('THINK: scoring assets (optimization)...')
@@ -262,7 +355,32 @@ def think(data, history):
     explanations.append('Weights: ' + winfo['note'])
     print(f"  weights = {[round(w, 3) for w in weights]} ({winfo['note']})")
 
-    # --- Score crypto with w·x ---
+    # --- Regime detection: different markets need different behavior ---
+    metals = data.get('metals', {})
+    fx = data.get('forex', {})
+    xau = (metals.get('XAU') or {}).get('price')
+    usd_jpy = fx.get('JPY')
+    regime, regime_reasons = detect_regime(fg_now, xau, usd_jpy, data.get('macro'))
+    adj = regime_adjustment(regime)
+    explanations.append(f'Regime: {regime} ({", ".join(regime_reasons) or "mixed signals"}) — {adj["note"]}')
+    print(f"  regime = {regime}")
+
+    # --- Kelly position sizing from track record ---
+    stats = history.get('stats', {})
+    wr = (stats.get('win_rate') or 50) / 100.0
+    # Estimate avg win/loss from scored history
+    wins_r, loss_r = [], []
+    for run in history.get('picks', []):
+        for p in run.get('longs', []) + run.get('shorts', []):
+            r = p.get('return_pct')
+            if r is not None:
+                (wins_r if r > 0 else loss_r).append(abs(r))
+    avg_w = sum(wins_r) / len(wins_r) if wins_r else 5.0
+    avg_l = sum(loss_r) / len(loss_r) if loss_r else 5.0
+    kelly = kelly_fraction(wr, avg_w, avg_l)
+    print(f"  kelly = {kelly:.3f} (win_rate={wr:.2f})")
+
+    # --- Score crypto with w·x (ensemble: regression + geometry + regime) ---
     for cid, info in crypto.items():
         chg24 = info.get('usd_24h_change') or 0
         chg7d = (info.get('usd_7d_change') or 0)
@@ -273,12 +391,18 @@ def think(data, history):
         # Geometric layer: fastest pattern match via cosine similarity
         g_edge, g_info = geometric_edge(feats, history)
         score += g_edge * 10.0
+        # Regime tilt
+        if score > 0: score *= adj['long_boost']
+        else: score *= adj['short_damp']
         conf = clamp(50 + abs(score) * 1.5)
+        thesis = build_thesis(sym, chg24, chg7d, price, score, conf, regime, fg_now, g_edge, 'crypto')
         reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ ${price:,.0f}. '
-                  f'Optimized score {score:+.1f} (w·x + geo {g_edge:+.2f}).')
+                  f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
         pick = {'asset': sym, 'price': round(price, 2), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
-                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3)}
+                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
+                'thesis': thesis, 'position_pct': round(kelly * 100, 1),
+                'regime': regime}
         (longs if score > 0 else shorts).append(pick)
 
     # --- Metals as risk barometer ---
@@ -307,11 +431,16 @@ def think(data, history):
         score = sum(w * f for w, f in zip(weights, feats))
         g_edge, _ = geometric_edge(feats, history)
         score += g_edge * 10.0
+        if score > 0: score *= adj['long_boost']
+        else: score *= adj['short_damp']
         conf = clamp(50 + abs(score) * 2)
-        reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Optimized score {score:+.1f} (w·x + geo).'
+        thesis = build_thesis(sym, dp, dp * 2, c, score, conf, regime, fg_now, g_edge, 'equity')
+        reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Ensemble score {score:+.1f} (w·x + geo + {regime}).'
         pick = {'asset': sym, 'price': round(c, 2), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'equity',
-                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3)}
+                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
+                'thesis': thesis, 'position_pct': round(kelly * 100, 1),
+                'regime': regime}
         (longs if score > 0 else shorts).append(pick)
 
     # --- Contracts watch (Govgistics): flag mega-awards ---
@@ -329,6 +458,8 @@ def think(data, history):
                        'notes': explanations},
         'weights': [round(w, 4) for w in weights],
         'weight_info': winfo,
+        'regime': regime,
+        'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
                       for h in data.get('headlines', [])[:5]],
@@ -417,6 +548,10 @@ def publish(data, signals, history):
         'headlines': signals['headlines'],
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
+        'regime': signals.get('regime'),
+        'kelly_pct': signals.get('kelly_pct'),
+        'macro': data.get('macro', {}),
+        'rates': data.get('rates', {}),
     }
     with open(os.path.join(DATA_DIR, 'latest.json'), 'w') as f:
         json.dump(latest, f, indent=2)

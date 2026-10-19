@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debt Payoff — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="picks.html">Picks</a>
+    <a href="alerts.html">Alerts</a>
+    <a href="reports.html">Reports</a>
+    <a href="engines.html">Engines</a>
+    <a href="debt.html" class="active">Debt Payoff</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>Debt Payoff Optimizer</h1>
+  <p class="subtitle">Enter your debts. We calculate the fastest way out — least interest paid.</p>
+
+  <section class="card">
+    <h2>Your Debts</h2>
+    <div id="debt-list"></div>
+    <button class="btn" id="add-debt">+ Add a debt</button>
+  </section>
+
+  <section class="card">
+    <h2>Monthly Budget</h2>
+    <label>How much can you put toward debt each month? $
+      <input type="number" id="budget" value="500" min="1" step="10">
+    </label>
+    <p class="hint">This is the total across all debts, including minimums.</p>
+  </section>
+
+  <button class="btn btn-primary btn-big" id="calc">Calculate my payoff plan</button>
+
+  <section class="card" id="results" style="display:none">
+    <h2>Your Fastest Path Out</h2>
+    <div id="summary"></div>
+    <h3>Month-by-month plan</h3>
+    <div id="schedule"></div>
+  </section>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice.</p></footer>
+<script src="nav.js"></script>
+<script src="debt.js"></script>
+</body>
+</html>
