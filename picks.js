@@ -114,9 +114,19 @@
 
         var cw = document.getElementById('contracts');
         if (cw) {
-          cw.innerHTML = d.contracts_watch && d.contracts_watch.length
-            ? d.contracts_watch.map(function (c) { return '<p>· ' + c + '</p>'; }).join('')
-            : '<p class="live-stamp">No mega-awards flagged this run.</p>';
+          var html = '';
+          if (d.contracts_watch && d.contracts_watch.length) {
+            html += '<h4>Awarded (USASpending)</h4>' +
+              d.contracts_watch.map(function (c) { return '<p>· ' + c + '</p>'; }).join('');
+          }
+          if (d.opportunities && d.opportunities.length) {
+            html += '<h4>Open solicitations (SAM.gov)</h4>' +
+              d.opportunities.slice(0, 10).map(function (o) {
+                return '<p>· <strong>' + o.title + '</strong><br><span class="live-stamp">' +
+                  o.agency + ' · ' + o.type + ' · due ' + o.deadline + ' · NAICS ' + o.naics + '</span></p>';
+              }).join('');
+          }
+          cw.innerHTML = html || '<p class="live-stamp">No contracts flagged this run.</p>';
         }
       })
       .catch(function () {

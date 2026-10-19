@@ -78,13 +78,40 @@ def ingest():
         m = fetch_json(f'https://api.gold-api.com/price/{sym}')
         if m: d['metals'][sym] = m
 
-    # Federal contracts (USASpending — largest recent awards)
+    # Federal contracts — USASpending (awards) + SAM.gov (opportunities)
     awards = fetch_json('https://api.usaspending.gov/api/v2/search/spending_by_award/',
         method='POST',
         body={'filters': {'award_type_codes': ['A', 'B', 'C', 'D']},
               'fields': ['Award ID', 'Recipient Name', 'Award Amount', 'Awarding Agency'],
               'limit': 10, 'sort': 'Award Amount', 'order': 'desc'})
     d['contracts'] = (awards or {}).get('results', [])
+
+    # SAM.gov contract opportunities (solicitations — what's coming, not just awarded)
+    sam_key = os.environ.get('SAM_GOV_API_KEY')
+    d['opportunities'] = []
+    if sam_key:
+        try:
+            from datetime import timedelta as _td
+            today = datetime.now(timezone.utc).date()
+            posted_from = (today - _td(days=7)).strftime('%m/%d/%Y')
+            posted_to = today.strftime('%m/%d/%Y')
+            sam = fetch_json(
+                f'https://api.sam.gov/opportunities/v2/search?api_key={sam_key}'
+                f'&postedFrom={posted_from}&postedTo={posted_to}&limit=25&ptype=o')
+            opps = (sam or {}).get('opportunitiesData', [])
+            d['opportunities'] = [{
+                'title': o.get('title', '?'),
+                'agency': (o.get('officeAddress') or {}).get('agency', '?'),
+                'type': o.get('type', {}).get('value', '?') if isinstance(o.get('type'), dict) else o.get('type', '?'),
+                'posted': o.get('postedDate', '?'),
+                'deadline': o.get('responseDeadLine', '?'),
+                'naics': o.get('naicsCode', '?'),
+            } for o in opps[:25]]
+            print(f"  SAM.gov: {len(d['opportunities'])} opportunities ingested")
+        except Exception as e:
+            print(f'  SAM.gov failed: {e}')
+    else:
+        print('  [info] SAM_GOV_API_KEY absent — opportunities feed skipped')
 
     # Headlines
     news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
@@ -572,6 +599,7 @@ def think(data, history):
         'regime': regime,
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
+        'opportunities': data.get('opportunities', []),
         'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
                       for h in data.get('headlines', [])[:5]],
         'alerts': alerts,
