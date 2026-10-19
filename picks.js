@@ -135,7 +135,7 @@
         }
         var ps = document.getElementById('psychology');
         if (ps && d.psychology) {
-          ps.innerHTML = '<p><strong>Regime:</strong> ' + (d.regime || '—') + '</p>' +
+          ps.innerHTML = '<p style="font-size:20px"><strong>' + (d.buy_text || d.regime || '—') + '</strong></p>' +
             '<p><strong>Fear &amp; Greed:</strong> ' + d.psychology.fear_greed +
             ' (' + (d.psychology.delta >= 0 ? '+' : '') + d.psychology.delta + ')</p>' +
             '<p><strong>Kelly size:</strong> ' + (d.kelly_pct !== undefined ? d.kelly_pct + '%' : '—') + '</p>' +

@@ -352,7 +352,7 @@ def learn_weights(history):
 
 # ---------------------------------------------------------------- REGIME
 def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
-    """Classify market regime: RISK_ON / NEUTRAL / RISK_OFF. Uses sentiment, gold, FX + FRED macro."""
+    """Classify market regime + buy-conditions percentage (0-100)."""
     macro = macro or {}
     score = 0
     reasons = []
@@ -368,7 +368,15 @@ def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
     if score >= 1: regime = 'RISK_ON'
     elif score <= -1: regime = 'RISK_OFF'
     else: regime = 'NEUTRAL'
-    return regime, reasons
+    # Buy-conditions percentage: 50 = neutral, higher = favors buying
+    buy_pct = max(5, min(95, 50 + score * 12))
+    if buy_pct >= 65:
+        buy_text = f'Conditions favor buying ({buy_pct}%)'
+    elif buy_pct <= 35:
+        buy_text = f'Conditions favor caution ({100 - buy_pct}%)'
+    else:
+        buy_text = f'Mixed conditions ({buy_pct}% buy / {100 - buy_pct}% caution)'
+    return regime, reasons, buy_pct, buy_text
 
 def regime_adjustment(regime):
     return {
@@ -454,10 +462,10 @@ def think(data, history):
     fx = data.get('forex', {})
     xau = (metals.get('XAU') or {}).get('price')
     usd_jpy = fx.get('JPY')
-    regime, regime_reasons = detect_regime(fg_now, xau, usd_jpy, data.get('macro'))
+    regime, regime_reasons, buy_pct, buy_text = detect_regime(fg_now, xau, usd_jpy, data.get('macro'))
     adj = regime_adjustment(regime)
-    explanations.append(f'Regime: {regime} ({", ".join(regime_reasons) or "mixed signals"}) — {adj["note"]}')
-    print(f"  regime = {regime}")
+    explanations.append(f'{buy_text} ({", ".join(regime_reasons) or "mixed signals"}) — {adj["note"]}')
+    print(f"  regime = {regime} | {buy_text}")
 
     # --- Kelly position sizing from track record ---
     stats = history.get('stats', {})
@@ -605,6 +613,27 @@ def think(data, history):
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 
+    # --- Regime FLIP alert: compare to previous run ---
+    prev_regime = None
+    try:
+        picks_hist = history.get('picks', [])
+        if picks_hist:
+            prev_regime = picks_hist[-1].get('regime')
+    except Exception:
+        pass
+    regime_flipped = prev_regime and prev_regime != regime
+    if regime_flipped:
+        flip_dir = 'BULLISH' if regime == 'RISK_ON' else 'BEARISH' if regime == 'RISK_OFF' else 'NEUTRAL'
+        alerts.append({
+            'type': 'REGIME_FLIP',
+            'asset': 'MARKET',
+            'price': 0,
+            'confidence': 85,
+            'reason': f"🔄 REGIME FLIP: {prev_regime} → {regime} ({flip_dir}). {buy_text}.",
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
+        print(f"  REGIME FLIP: {prev_regime} → {regime}")
+
     # --- Long-term outlook (30-90d, macro-driven) ---
     macro = data.get('macro', {})
     cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
@@ -631,6 +660,8 @@ def think(data, history):
         'weights': [round(w, 4) for w in weights],
         'weight_info': winfo,
         'regime': regime,
+        'buy_pct': buy_pct,
+        'buy_text': buy_text,
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
@@ -729,6 +760,8 @@ def publish(data, signals, history):
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
         'regime': signals.get('regime'),
+        'buy_pct': signals.get('buy_pct'),
+        'buy_text': signals.get('buy_text'),
         'kelly_pct': signals.get('kelly_pct'),
         'macro': data.get('macro', {}),
         'rates': data.get('rates', {}),
