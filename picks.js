@@ -10,18 +10,60 @@
     var t = p.thesis || {};
     var bull = (t.bull_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
     var bear = (t.bear_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
-    return '<div class="alert-card ' + cls + '">' +
+    return '<div class="alert-card ' + cls + '" data-entry="' + p.price + '" data-target="' + (t.take_profit || 0) + '" data-stop="' + (t.stop_loss || 0) + '" data-exp-ret="' + (t.expected_return_pct || 0) + '" data-max-loss="' + (t.max_loss_pct || 0) + '">' +
       '<h4>' + arrow + ' ' + p.asset + '</h4>' +
-      '<p><strong>Entry:</strong> $' + Number(p.price).toLocaleString() +
-      ' &nbsp; <strong>Position:</strong> ' + (p.position_pct !== undefined ? p.position_pct + '%' : '—') +
-      ' <span class="live-stamp">(Kelly)</span></p>' +
+      '<p><strong>Buy:</strong> ' + (t.entry_date || 'today') + ' @ $' + Number(p.price).toLocaleString() +
+      ' &nbsp; <strong>Sell target:</strong> ' + (t.projected_exit || '—') + ' @ $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') + '</p>' +
       '<p><strong>Stop:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') +
-      ' &nbsp; <strong>Target:</strong> $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') +
-      ' &nbsp; <strong>R:R</strong> ' + (t.risk_reward || '—') + '</p>' +
-      '<p><strong>Confidence:</strong> ' + p.confidence + '% · <strong>Horizon:</strong> ' + (t.time_horizon || 'swing') + '</p>' +
+      ' &nbsp; <strong>R:R</strong> ' + (t.risk_reward || '—') +
+      ' &nbsp; <strong>Expected:</strong> +' + (t.expected_return_pct || 0) + '%</p>' +
+      '<p><strong>Confidence:</strong> ' + p.confidence + '% · <strong>Position:</strong> ' + (p.position_pct !== undefined ? p.position_pct + '%' : '—') + ' (Kelly)</p>' +
+      '<p class="profit-line" style="display:none"></p>' +
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
       '<p class="live-stamp">' + p.reason + '</p></div>';
+  }
+
+  // Profit calculator — user enters $ amount, shows expected $ gain/loss per pick
+  function wireCalculator() {
+    var container = document.querySelector('.container');
+    if (!container || document.getElementById('profit-calc')) return;
+    var div = document.createElement('div');
+    div.className = 'card';
+    div.id = 'profit-calc';
+    div.innerHTML = '<h3>💰 Profit Calculator</h3>' +
+      '<p>How much would you invest per pick? $' +
+      '<input type="number" id="invest-amt" value="1000" min="1" step="50" style="width:120px;padding:8px;font-size:16px;"> ' +
+      '<button class="btn" id="calc-profit">Calculate</button></p>' +
+      '<div id="profit-results"></div>';
+    var h1 = container.querySelector('h1');
+    if (h1) h1.after(div);
+    document.getElementById('calc-profit').addEventListener('click', function () {
+      var amt = parseFloat(document.getElementById('invest-amt').value) || 0;
+      if (amt <= 0) return;
+      var cards = document.querySelectorAll('.alert-card[data-entry]');
+      var results = [];
+      cards.forEach(function (c) {
+        var expRet = parseFloat(c.dataset.expRet) || 0;
+        var maxLoss = parseFloat(c.dataset.maxLoss) || 0;
+        var asset = c.querySelector('h4').textContent;
+        var gain = amt * expRet / 100;
+        var loss = amt * maxLoss / 100;
+        results.push({ asset: asset, gain: gain, loss: loss, expRet: expRet });
+        var line = c.querySelector('.profit-line');
+        line.style.display = 'block';
+        line.innerHTML = '<strong>If you invest $' + amt.toLocaleString() + ':</strong> ' +
+          'profit <span style="color:var(--success)">+$' + gain.toFixed(0) + '</span> (' + expRet + '%) if target hits · ' +
+          'risk <span style="color:var(--danger)">-$' + loss.toFixed(0) + '</span> if stopped out';
+      });
+      // Rank by expected gain
+      results.sort(function (a, b) { return b.gain - a.gain; });
+      var html = '<h4>Ranked by expected profit:</h4><ol>';
+      results.forEach(function (r, i) {
+        html += '<li><strong>' + r.asset + '</strong> — +$' + r.gain.toFixed(0) + ' (' + r.expRet + '%)</li>';
+      });
+      document.getElementById('profit-results').innerHTML = html + '</ol>';
+    });
   }
 
   function init() {
@@ -81,6 +123,7 @@
         var stamp = document.getElementById('picks-stamp');
         if (stamp) stamp.textContent = 'Picks not yet generated — the NexIntel loop runs every 6 hours.';
       });
+    wireCalculator();
   }
 
   if (document.readyState === 'loading') {

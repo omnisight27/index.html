@@ -12,7 +12,7 @@ If a key is absent, that feed is skipped gracefully — the engine degrades, nev
 """
 
 import json, os, math, urllib.request, urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
@@ -334,6 +334,13 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
         stop = price * (1 + vol / 100 * 1.5)
         target = price * (1 - vol / 100 * 2.0)
     rr = abs(target - price) / max(abs(price - stop), 0.01)
+    # Expected return % if target hits
+    exp_return_pct = abs(target - price) / price * 100 if price else 0
+    # Max loss % if stopped out
+    max_loss_pct = abs(price - stop) / price * 100 if price else 0
+    # Dates: entry today, projected exit in 3 days (midpoint of 1-5d swing)
+    today = datetime.now(timezone.utc).date()
+    exit_date = today + timedelta(days=3)
     bull, bear = [], []
     if chg24 > 3: bull.append(f'strong 24h momentum (+{chg24:.1f}%)')
     if chg24 < -3: bear.append(f'sharp 24h selloff ({chg24:.1f}%)')
@@ -353,6 +360,10 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
         'take_profit': round(target, 2),
         'risk_reward': round(rr, 2),
         'time_horizon': '1-5 days (swing)',
+        'entry_date': today.isoformat(),
+        'projected_exit': exit_date.isoformat(),
+        'expected_return_pct': round(exp_return_pct, 2),
+        'max_loss_pct': round(max_loss_pct, 2),
     }
 
 def think(data, history):
