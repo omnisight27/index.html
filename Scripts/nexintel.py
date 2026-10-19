@@ -43,13 +43,15 @@ def ingest():
     print('INGEST: pulling live feeds...')
     d = {}
 
-    # Crypto — top 100 by market cap (CoinGecko, 1 call, no key)
+    # Crypto — top 1000 by market cap (CoinGecko, 4 paginated calls, no key)
     d['crypto'] = {}
     try:
-        mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
-            '?vs_currency=usd&order=market_cap_desc&per_page=100&page=1'
-            '&price_change_percentage=24h,7d')
-        if mkts:
+        for page in range(1, 5):
+            mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
+                f'?vs_currency=usd&order=market_cap_desc&per_page=250&page={page}'
+                '&price_change_percentage=24h,7d')
+            if not mkts:
+                break
             for c in mkts:
                 d['crypto'][c['id']] = {
                     'usd': c['current_price'],
@@ -58,14 +60,9 @@ def ingest():
                     'symbol': (c['symbol'] or '').upper(),
                     'market_cap': c.get('market_cap') or 0,
                 }
-            print(f"  crypto: {len(d['crypto'])} coins ingested")
+        print(f"  crypto: {len(d['crypto'])} coins ingested")
     except Exception as e:
         print(f'  crypto markets failed: {e}')
-        # Fallback to the simple price endpoint
-        cg = fetch_json('https://api.coingecko.com/api/v3/simple/price'
-            '?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin,avalanche,chainlink'
-            '&vs_currencies=usd&include_24hr_change=true&include_7d_change=true')
-        d['crypto'] = cg or {}
 
     # Coinbase real-time tickers
     d['tickers'] = {}
