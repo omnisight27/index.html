@@ -198,7 +198,7 @@ def ingest():
         symbols = ['SPY', 'QQQ', 'DIA', 'IWM',                      # indices
                    'XLK', 'XLF', 'XLE', 'XLV', 'XLI', 'XLU', 'XLP', 'XLY', 'XLRE', 'XLB', 'XLC',  # sectors
                    'AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'JPM',
-                   'V', 'MA', 'XOM', 'UNH', 'LLY', 'COST', 'HD', 'PG', 'JNJ', 'BAC',
+                   'V', 'MA', 'XOM', 'CVX', 'UNH', 'LLY', 'COST', 'HD', 'PG', 'JNJ', 'BAC',
                    'CRM', 'ORCL', 'AMD', 'NFLX', 'DIS', 'INTC', 'COIN', 'MSTR', 'PLTR']  # mega-caps + crypto-adjacent
         for sym in symbols:
             q = fetch_json(f'https://finnhub.io/api/v1/quote?symbol={sym}&token={finnhub_key}')
