@@ -6,7 +6,8 @@
 
   function assetBadge(p) {
     var cls = (p['class'] || '').toLowerCase();
-    if (cls === 'crypto') return '<span class="asset-badge badge-crypto">🪙 Crypto</span>';
+    // Intraday signals are always crypto (no class field set — detect via CoinGecko link)
+    if (cls === 'crypto' || (!p['class'] && p.info_url && p.info_url.indexOf('coingecko') > -1)) return '<span class="asset-badge badge-crypto">🪙 Crypto</span>';
     var nm = (p.name || '').toUpperCase();
     if (nm.indexOf('ETF') > -1 || nm.indexOf('SPDR') > -1 || nm.indexOf('SELECT SECTOR') > -1) return '<span class="asset-badge badge-etf">📊 ETF</span>';
     return '<span class="asset-badge badge-stock">📈 Stock</span>';
