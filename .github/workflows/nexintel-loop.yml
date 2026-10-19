@@ -1,0 +1,43 @@
+# NexIntel autonomous loop — runs 4x daily, no server.
+# Ingests live feeds, runs the signal engine (row-echelon optimization +
+# calculus/statistics features + geometric matching), scores prior picks,
+# and commits data/latest.json + data/history.json for the static site.
+#
+# SECURITY: API keys live in GitHub Secrets (Settings → Secrets → Actions).
+# Add FRED_API_KEY and/or FINNHUB_API_KEY there — never in code.
+# The workflow only commits data/*.json; keys never touch the repo.
+
+name: NexIntel Loop
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours: 00, 06, 12, 18 UTC
+  workflow_dispatch:          # manual "Run workflow" button
+
+permissions:
+  contents: write
+
+jobs:
+  nexintel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run NexIntel engine
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: python3 Scripts/nexintel.py
+
+      - name: Commit data
+        run: |
+          git config user.name "NexIntel Loop"
+          git config user.email "nexintel@omnisight.local"
+          git add data/
+          git diff --cached --quiet || git commit -m "NexIntel loop $(date -u +%Y-%m-%dT%H:%M)"
+          git push
