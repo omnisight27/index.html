@@ -299,6 +299,27 @@ input[type="radio"] {
   cursor: pointer;
 }
 
+/* Live market data (Loop 1) */
+.card .sym {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+.card .price {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text);
+  margin: 4px 0;
+}
+.card .change { font-weight: 600; }
+.card .change.up { color: var(--primary); }
+.card .change.down { color: var(--danger); }
+.live-stamp {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 8px;
+}
+
 /* Footer */
 .footer {
   text-align: center;
