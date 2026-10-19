@@ -453,6 +453,17 @@ input[type="radio"] {
 .debt-row input { flex: 1; min-width: 100px; padding: 12px; font-size: 16px;
   background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
 .debt-row input::placeholder { color: var(--text-light); opacity: 0.6; }
+.debt-row select { flex: 1; min-width: 120px; padding: 12px; font-size: 16px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+.debt-card { flex-direction: column; background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; }
+.debt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.debt-grid input, .debt-grid select { width: 100%; box-sizing: border-box; }
+.debt-extra { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; margin-top: 8px; }
+.debt-extra input { flex: 1; min-width: 100px; }
+.debt-extra label { display: flex; align-items: center; gap: 8px; font-size: 15px;
+  color: var(--text); cursor: pointer; }
+.debt-extra input[type="checkbox"] { width: 20px; height: 20px; flex: none; }
 .btn-small { padding: 8px 12px; background: none; border: 1px solid var(--border);
   border-radius: 8px; color: var(--text-light); cursor: pointer; font-size: 16px; }
 .btn-big { display: block; width: 100%; padding: 18px; font-size: 18px; margin: 20px 0;
