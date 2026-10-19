@@ -70,6 +70,63 @@
     } catch (e) {}
   }
 
+  // --- Scenarios: named snapshots for what-if simulations ---
+  function getScenarios() {
+    try { return JSON.parse(localStorage.getItem('nx_debt_scenarios') || '{}'); }
+    catch (e) { return {}; }
+  }
+  function setScenarios(s) {
+    try { localStorage.setItem('nx_debt_scenarios', JSON.stringify(s)); } catch (e) {}
+  }
+  function renderScenarios() {
+    var wrap = document.getElementById('scenario-bar');
+    if (!wrap) return;
+    var sc = getScenarios();
+    var names = Object.keys(sc);
+    var html = '<div class="scenario-row">' +
+      '<input type="text" id="scenario-name" placeholder="Scenario name (e.g. Aggressive)">' +
+      '<button class="btn-small" id="scenario-save">💾 Save</button></div>';
+    if (names.length) {
+      html += '<div class="scenario-row"><select id="scenario-load"><option value="">Load scenario…</option>' +
+        names.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }).join('') +
+        '</select><button class="btn-small" id="scenario-delete">🗑️</button></div>';
+    }
+    wrap.innerHTML = html;
+    var sv = document.getElementById('scenario-save');
+    if (sv) sv.addEventListener('click', function () {
+      var name = (document.getElementById('scenario-name').value || '').trim();
+      if (!name) { alert('Name your scenario first.'); return; }
+      save();
+      var sc = getScenarios();
+      sc[name] = { debts: debts, budget: document.getElementById('budget').value,
+                   savedAt: new Date().toISOString() };
+      setScenarios(sc);
+      renderScenarios();
+    });
+    var del = document.getElementById('scenario-delete');
+    if (del) del.addEventListener('click', function () {
+      var sel = document.getElementById('scenario-load');
+      var name = sel.value;
+      if (!name) return;
+      if (!confirm('Delete scenario "' + name + '"?')) return;
+      var sc = getScenarios();
+      delete sc[name];
+      setScenarios(sc);
+      renderScenarios();
+    });
+    var ld = document.getElementById('scenario-load');
+    if (ld) ld.addEventListener('change', function () {
+      var name = ld.value;
+      if (!name) return;
+      var sc = getScenarios()[name];
+      if (!sc) return;
+      debts = sc.debts || [];
+      document.getElementById('budget').value = sc.budget || 500;
+      save();
+      render();
+    });
+  }
+
   // Auto-save on any input change (debounced)
   var saveTimer = null;
   document.getElementById('debt-list').addEventListener('input', function () {
@@ -305,4 +362,5 @@
 
   load();
   render();
+  renderScenarios();
 })();
