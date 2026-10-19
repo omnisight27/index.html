@@ -1,0 +1,187 @@
+{
+  "generated": "2026-10-19T05:50:29.936680+00:00",
+  "fear_greed": 59,
+  "longs": [
+    {
+      "asset": "SOLANA",
+      "price": 105.5,
+      "score": 4.0,
+      "confidence": 48,
+      "reason": "SOLANA +2.1% (24h), +0.0% (7d) @ $106. Optimized score +4.0 (w\u00b7x + geo +0.00).",
+      "class": "crypto",
+      "features": [
+        1.501,
+        0.0,
+        0.0,
+        0.18,
+        0.3,
+        0.214,
+        0.429,
+        0.143,
+        0.991,
+        -1.0,
+        0.715,
+        -1.0,
+        0.268,
+        1.981,
+        0.536,
+        0.357,
+        0.714,
+        0.268,
+        -0.571,
+        0.429,
+        0.0,
+        -0.708
+      ],
+      "geo_edge": 0.0
+    },
+    {
+      "asset": "CHAINLINK",
+      "price": 12.17,
+      "score": 3.6,
+      "confidence": 47,
+      "reason": "CHAINLINK +1.9% (24h), +0.0% (7d) @ $12. Optimized score +3.6 (w\u00b7x + geo +0.00).",
+      "class": "crypto",
+      "features": [
+        1.297,
+        0.0,
+        0.0,
+        0.18,
+        0.3,
+        0.185,
+        0.371,
+        0.124,
+        0.989,
+        -1.0,
+        0.618,
+        -1.0,
+        0.232,
+        1.979,
+        0.463,
+        0.309,
+        0.685,
+        0.232,
+        -0.629,
+        0.371,
+        0.0,
+        -0.612
+      ],
+      "geo_edge": 0.0
+    },
+    {
+      "asset": "RIPPLE",
+      "price": 1.31,
+      "score": 3.1,
+      "confidence": 47,
+      "reason": "RIPPLE +1.5% (24h), +0.0% (7d) @ $1. Optimized score +3.1 (w\u00b7x + geo +0.00).",
+      "class": "crypto",
+      "features": [
+        1.051,
+        0.0,
+        0.0,
+        0.18,
+        0.3,
+        0.15,
+        0.3,
+        0.1,
+        0.987,
+        -1.0,
+        0.501,
+        -1.0,
+        0.188,
+        1.974,
+        0.375,
+        0.25,
+        0.65,
+        0.188,
+        -0.7,
+        0.3,
+        0.0,
+        -0.496
+      ],
+      "geo_edge": 0.0
+    }
+  ],
+  "shorts": [],
+  "psychology": {
+    "fear_greed": 59,
+    "delta": 6,
+    "bias": 0,
+    "notes": [
+      "Weights: warming up (0/22 samples) \u2014 heuristic weights",
+      "Gold $4,185 \u2014 risk-off bid, trimming long confidence",
+      "Strong USD (JPY>155) \u2014 headwind for risk assets"
+    ]
+  },
+  "weights": [
+    1.0,
+    1.0,
+    0.6,
+    8.0,
+    4.0,
+    -0.5,
+    0.8,
+    -1.2,
+    0.3,
+    2.0,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+  ],
+  "weight_info": {
+    "trained": false,
+    "samples": 0,
+    "note": "warming up (0/22 samples) \u2014 heuristic weights"
+  },
+  "contracts_watch": [
+    "$51.27B \u2192 HUMANA GOVERNMENT BUSINESS INC (Department of Defense)",
+    "$48.06B \u2192 LOCKHEED MARTIN CORP (Department of Energy)",
+    "$43.46B \u2192 NATIONAL TECHNOLOGY & ENGINEERING SOLUTIONS OF SANDIA, LLC (Department of Energy)",
+    "$42.67B \u2192 UT-BATTELLE LLC (Department of Energy)",
+    "$41.61B \u2192 LAWRENCE LIVERMORE NATIONAL SECURITY, LLC (Department of Energy)"
+  ],
+  "headlines": [
+    {
+      "title": "CXMT Drops 6.5% as US Chip Rout Hits Asia, Erasing Profit Turnaround Gains",
+      "source": null
+    },
+    {
+      "title": "Stocks showing promise of a rally: Brokerage expects up to 10% return; know target price",
+      "source": null
+    },
+    {
+      "title": "Stocks to watch today: ICICI, HDFC, RailTel and more in focus",
+      "source": null
+    },
+    {
+      "title": "HDFC, ICICI or Axis Bank: Post Q2 results, which stock is showing the highest potential?",
+      "source": null
+    },
+    {
+      "title": "What does the average Australian investor in 2026 look like?",
+      "source": null
+    }
+  ],
+  "track_record": {
+    "wins": 0,
+    "losses": 0,
+    "total": 0,
+    "win_rate": null
+  },
+  "model_error": {
+    "sum_abs_err": 0.0,
+    "n": 0,
+    "within_5pct": 0,
+    "mae": null,
+    "within_5pct_rate": null
+  }
+}
