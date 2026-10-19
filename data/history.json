@@ -2,7 +2,7 @@
   "picks": [
     {
       "date": "2026-10-19T08:08:21.775585+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "ARB",
@@ -55,7 +55,11 @@
             "max_loss_pct": 14.82
           },
           "position_pct": 0.0,
-          "regime": "RISK_OFF"
+          "regime": "RISK_OFF",
+          "exit": 0.2,
+          "return_pct": -1.49,
+          "win": false,
+          "abs_error": 14.41
         },
         {
           "asset": "MORPHO",
@@ -108,7 +112,11 @@
             "max_loss_pct": 5.98
           },
           "position_pct": 0.0,
-          "regime": "RISK_OFF"
+          "regime": "RISK_OFF",
+          "exit": 2.47,
+          "return_pct": -0.8,
+          "win": false,
+          "abs_error": 9.4
         },
         {
           "asset": "VVV",
@@ -160,7 +168,11 @@
             "max_loss_pct": 11.44
           },
           "position_pct": 0.0,
-          "regime": "RISK_OFF"
+          "regime": "RISK_OFF",
+          "exit": 23.92,
+          "return_pct": 0.34,
+          "win": true,
+          "abs_error": 7.76
         }
       ],
       "shorts": [
@@ -215,7 +227,11 @@
             "max_loss_pct": 11.6
           },
           "position_pct": 0.0,
-          "regime": "RISK_OFF"
+          "regime": "RISK_OFF",
+          "exit": 2.17,
+          "return_pct": 3.56,
+          "win": true,
+          "abs_error": 12.74
         },
         {
           "asset": "MSTR",
@@ -327,19 +343,347 @@
         }
       ],
       "fear_greed": 59
+    },
+    {
+      "date": "2026-10-19T10:08:22.313263+00:00",
+      "scored": false,
+      "longs": [
+        {
+          "asset": "ARB",
+          "price": 0.2,
+          "score": 15.1,
+          "confidence": 65,
+          "reason": "ARB +7.4% (24h), +2.0% (7d) @ $0. Ensemble score +15.1 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            11.031,
+            0.0,
+            0.0,
+            0.18,
+            0.3,
+            0.735,
+            1.413,
+            0.49,
+            0.997,
+            1.0,
+            2.356,
+            1.0,
+            0.919,
+            1.995,
+            1.767,
+            1.226,
+            1.235,
+            0.955,
+            0.471,
+            1.471,
+            0.0,
+            -2.427
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "strong 24h momentum (+7.4%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.18,
+            "take_profit": 0.23,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 14.71,
+            "max_loss_pct": 11.03
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        },
+        {
+          "asset": "MORPHO",
+          "price": 2.47,
+          "score": 8.2,
+          "confidence": 54,
+          "reason": "MORPHO +2.7% (24h), +0.5% (7d) @ $2. Ensemble score +8.2 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            3.979,
+            0.0,
+            0.0,
+            0.18,
+            0.3,
+            0.265,
+            0.517,
+            0.177,
+            0.992,
+            1.0,
+            0.862,
+            1.0,
+            0.332,
+            1.985,
+            0.647,
+            0.442,
+            0.765,
+            0.34,
+            -0.469,
+            0.531,
+            0.0,
+            -0.875
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 2.37,
+            "take_profit": 2.6,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 5.31,
+            "max_loss_pct": 3.98
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        },
+        {
+          "asset": "AKE",
+          "price": 0.03,
+          "score": 6.7,
+          "confidence": 52,
+          "reason": "AKE +2.2% (24h), +23.9% (7d) @ $0. Ensemble score +6.7 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            3.352,
+            0.0,
+            0.0,
+            0.18,
+            0.3,
+            0.223,
+            -0.235,
+            0.149,
+            0.991,
+            1.0,
+            -0.392,
+            1.0,
+            0.279,
+            1.982,
+            -0.294,
+            0.372,
+            0.723,
+            0.706,
+            -0.553,
+            0.447,
+            0.0,
+            -0.737
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.03,
+            "take_profit": 0.03,
+            "risk_reward": 0.14,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 4.47,
+            "max_loss_pct": 3.35
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        }
+      ],
+      "shorts": [
+        {
+          "asset": "BTW",
+          "price": 2.17,
+          "score": -15.1,
+          "confidence": 73,
+          "reason": "BTW -11.9% (24h), +27.9% (7d) @ $2. Ensemble score -15.1 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            -8.364,
+            4.78,
+            0.0,
+            0.18,
+            0.3,
+            1.195,
+            -3.188,
+            -0.797,
+            -0.998,
+            -1.0,
+            -3.0,
+            -1.0,
+            -1.494,
+            -1.997,
+            -3.0,
+            -1.991,
+            -0.5,
+            1.992,
+            1.39,
+            -2.39,
+            0.747,
+            -3.0
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-11.9%)",
+              "risk-off regime favors shorts"
+            ],
+            "stop_loss": 2.56,
+            "take_profit": 1.65,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 23.9,
+            "max_loss_pct": 17.92
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        },
+        {
+          "asset": "AERO",
+          "price": 0.8,
+          "score": -9.5,
+          "confidence": 64,
+          "reason": "AERO -5.7% (24h), -14.6% (7d) @ $1. Ensemble score -9.5 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            -8.525,
+            0.0,
+            0.0,
+            0.18,
+            0.3,
+            0.568,
+            -0.718,
+            -0.379,
+            -0.996,
+            1.0,
+            -1.197,
+            1.0,
+            -0.71,
+            -1.993,
+            -0.898,
+            -0.947,
+            -0.068,
+            0.972,
+            0.137,
+            -1.137,
+            0.0,
+            -1.875
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-5.7%)",
+              "trend alignment across timeframes",
+              "risk-off regime favors shorts"
+            ],
+            "stop_loss": 0.86,
+            "take_profit": 0.71,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 11.37,
+            "max_loss_pct": 8.52
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        },
+        {
+          "asset": "HBAR",
+          "price": 0.08,
+          "score": -5.6,
+          "confidence": 58,
+          "reason": "HBAR -4.0% (24h), -10.2% (7d) @ $0. Ensemble score -5.6 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            -6.07,
+            0.0,
+            0.0,
+            0.18,
+            0.3,
+            0.405,
+            -0.519,
+            -0.27,
+            -0.995,
+            1.0,
+            -0.865,
+            1.0,
+            -0.506,
+            -1.99,
+            -0.649,
+            -0.674,
+            0.095,
+            0.687,
+            -0.191,
+            -0.809,
+            0.0,
+            -1.335
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-4.0%)",
+              "trend alignment across timeframes",
+              "risk-off regime favors shorts"
+            ],
+            "stop_loss": 0.09,
+            "take_profit": 0.08,
+            "risk_reward": 0.68,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-19",
+            "projected_exit": "2026-10-22",
+            "expected_return_pct": 8.09,
+            "max_loss_pct": 6.07
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        }
+      ],
+      "fear_greed": 59,
+      "regime": "RISK_OFF"
     }
   ],
   "stats": {
-    "wins": 0,
-    "losses": 0,
-    "total": 0,
-    "win_rate": null
+    "wins": 2,
+    "losses": 2,
+    "total": 4,
+    "win_rate": 50.0
   },
   "error": {
-    "sum_abs_err": 0.0,
-    "n": 0,
+    "sum_abs_err": 44.31916112324015,
+    "n": 4,
     "within_5pct": 0,
-    "mae": null,
-    "within_5pct_rate": null
+    "mae": 11.08,
+    "within_5pct_rate": 0.0
   }
 }

@@ -621,10 +621,11 @@ def remember(data, signals):
     # Error tracking: 5% margin-of-error target — |predicted| vs |realized|
     err = history.setdefault('error', {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0})
 
-    # Current prices for scoring
+    # Current prices for scoring — keyed by SYMBOL to match pick assets
+    # (CoinGecko ids like 'arbitrum' never match pick symbols like 'ARB')
     px = {}
     for cid, info in data.get('crypto', {}).items():
-        if info.get('usd'): px[cid.upper()] = info['usd']
+        if info.get('usd'): px[(info.get('symbol') or cid).upper()] = info['usd']
     for sym, q in data.get('stocks', {}).items():
         if q.get('c'): px[sym] = q['c']
 
