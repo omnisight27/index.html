@@ -64,6 +64,12 @@
             '<p><strong>Kelly size:</strong> ' + (d.kelly_pct !== undefined ? d.kelly_pct + '%' : '—') + '</p>' +
             d.psychology.notes.map(function (n) { return '<p>· ' + n + '</p>'; }).join('');
         }
+        var lt = document.getElementById('long-term');
+        if (lt && d.long_term) {
+          lt.innerHTML = '<p><strong>Horizon:</strong> ' + d.long_term.horizon + '</p>' +
+            d.long_term.thesis.map(function (t) { return '<p>· ' + t + '</p>'; }).join('');
+        }
+
         var cw = document.getElementById('contracts');
         if (cw) {
           cw.innerHTML = d.contracts_watch && d.contracts_watch.length

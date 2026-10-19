@@ -159,8 +159,25 @@
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (j) { return parseInt(j.data[0].value, 10); })
       .catch(function () { return null; });
-    Promise.all([pricesP, greedP]).then(function (res) {
-      render(buildAlerts(res[0], res[1]));
+    // NexIntel model alerts (BUY/SELL from the prediction engine)
+    var modelP = fetch('data/latest.json', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) { return d.alerts || []; })
+      .catch(function () { return []; });
+    Promise.all([pricesP, greedP, modelP]).then(function (res) {
+      var alerts = buildAlerts(res[0], res[1]);
+      // Prepend model alerts (highest priority)
+      res[2].forEach(function (ma) {
+        var type = ma.type === 'BUY' ? 'buy' : ma.type === 'SELL' ? 'sell' : 'hold';
+        alerts.unshift({
+          type: type, engine: 'NexIntel',
+          title: '🤖 ' + ma.type + ': ' + ma.asset,
+          confidence: ma.confidence,
+          body: ma.reason + ' <a href="picks.html" style="color:var(--accent)">See thesis →</a>',
+          time: new Date(ma.timestamp).toLocaleString()
+        });
+      });
+      render(alerts);
     });
   }
 

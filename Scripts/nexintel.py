@@ -452,6 +452,51 @@ def think(data, history):
     longs.sort(key=lambda p: -p['score'])
     shorts.sort(key=lambda p: p['score'])
 
+    # --- Generate buy/sell alerts from high-conviction picks ---
+    alerts = []
+    for p in longs[:3] + shorts[:3]:
+        if p['confidence'] >= 65:
+            action = 'BUY' if p in longs else 'SELL'
+            t = p.get('thesis', {})
+            alerts.append({
+                'type': action,
+                'asset': p['asset'],
+                'price': p['price'],
+                'confidence': p['confidence'],
+                'reason': f"{action} signal: {p['asset']} (confidence {p['confidence']}%). " +
+                          f"Stop ${t.get('stop_loss', '?')}, target ${t.get('take_profit', '?')}.",
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            })
+    # Regime shift alert
+    if regime in ('RISK_ON', 'RISK_OFF'):
+        alerts.append({
+            'type': 'REGIME',
+            'asset': 'MARKET',
+            'price': 0,
+            'confidence': 70,
+            'reason': f"Regime: {regime} — {', '.join(regime_reasons[:3])}.",
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
+
+    # --- Long-term outlook (30-90d, macro-driven) ---
+    macro = data.get('macro', {})
+    cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
+    lt_outlook = {
+        'horizon': '30-90 days',
+        'regime': regime,
+        'thesis': [],
+    }
+    if regime == 'RISK_ON':
+        lt_outlook['thesis'].append('Macro favors risk assets — equities and crypto have tailwinds.')
+    elif regime == 'RISK_OFF':
+        lt_outlook['thesis'].append('Defensive posture — gold, Treasuries, and cash preserve capital.')
+    else:
+        lt_outlook['thesis'].append('Mixed signals — selective positioning, wait for regime clarity.')
+    if cpi_yoy and cpi_yoy > 3:
+        lt_outlook['thesis'].append(f'Inflation at {cpi_yoy:.1f}% YoY erodes cash — real assets preferred.')
+    if cpi_yoy and cpi_yoy < 2.5:
+        lt_outlook['thesis'].append(f'Inflation cool at {cpi_yoy:.1f}% — Fed has room to ease, bullish for duration.')
+
     return {
         'longs': longs[:3], 'shorts': shorts[:3],
         'psychology': {'fear_greed': fg_now, 'delta': fg_delta, 'bias': psych_bias,
@@ -463,6 +508,8 @@ def think(data, history):
         'contracts_watch': contract_notes,
         'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
                       for h in data.get('headlines', [])[:5]],
+        'alerts': alerts,
+        'long_term': lt_outlook,
     }
 
 def load_history():
@@ -552,6 +599,8 @@ def publish(data, signals, history):
         'kelly_pct': signals.get('kelly_pct'),
         'macro': data.get('macro', {}),
         'rates': data.get('rates', {}),
+        'alerts': signals.get('alerts', []),
+        'long_term': signals.get('long_term', {}),
     }
     with open(os.path.join(DATA_DIR, 'latest.json'), 'w') as f:
         json.dump(latest, f, indent=2)

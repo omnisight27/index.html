@@ -48,13 +48,17 @@
     var url = 'https://api.coingecko.com/api/v3/simple/price?ids=' +
       encodeURIComponent(ids) +
       '&vs_currencies=usd&include_24hr_change=true';
-    fetch(url)
-      .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
-      .then(render)
-      .catch(function () {
-        var stamp = document.getElementById('live-stamp');
-        if (stamp) stamp.textContent = 'Live data unavailable — showing last known layout';
-      });
+    function load() {
+      fetch(url)
+        .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
+        .then(render)
+        .catch(function () {
+          var stamp = document.getElementById('live-stamp');
+          if (stamp) stamp.textContent = 'Live data unavailable — showing last known layout';
+        });
+    }
+    load();
+    setInterval(load, 60000); // refresh every 60s
   }
 
   if (document.readyState === 'loading') {
