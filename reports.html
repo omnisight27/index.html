@@ -27,43 +27,46 @@
       <div class="card">
         <h3>Market Overview</h3>
         <p>Daily snapshot of predictions and signals.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="market-overview">Generate</button>
       </div>
 
       <div class="card">
         <h3>Engine Breakdown</h3>
         <p>Performance and contribution by engine.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="engine-breakdown">Generate</button>
       </div>
 
       <div class="card">
         <h3>Macro Regime History</h3>
         <p>Historical regime classifications and transitions.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="macro-regime">Generate</button>
       </div>
 
       <div class="card">
         <h3>Liquidity Analysis</h3>
         <p>Cash flows, stress levels, and window history.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="liquidity">Generate</button>
       </div>
 
       <div class="card">
         <h3>Risk Assessment</h3>
         <p>Filter performance and risk control effectiveness.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="risk">Generate</button>
       </div>
 
       <div class="card">
         <h3>Crypto Flow Report</h3>
         <p>On-chain movements and exchange pressures.</p>
-        <button class="btn">Generate</button>
+        <button class="btn" data-report="crypto-flow">Generate</button>
       </div>
     </div>
+
+    <div id="report-output" style="margin-top: 40px;"></div>
   </main>
 
   <footer class="footer">
     <p>© OmniSight — NexIntel AI Engine</p>
   </footer>
+  <script src="reports.js"></script>
 </body>
 </html>

@@ -370,6 +370,24 @@ input[type="radio"] {
 .card.disabled { opacity: .45; }
 .card.disabled:hover { transform: none; border-color: var(--border); box-shadow: none; }
 
+/* Reports (Loop 5) */
+.card.report h3 { margin-bottom: 4px; }
+.card.report h4 { color: var(--text); margin: 20px 0 6px; }
+.card.report p { margin: 6px 0 12px; }
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 14px;
+}
+.report-table th, .report-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.report-table th { color: var(--text-muted); font-weight: 600; }
+.report-table td { color: var(--text-light); }
+
 /* Footer */
 .footer {
   text-align: center;
