@@ -401,6 +401,30 @@ input[type="radio"] {
 .btn-sm { padding: 4px 10px; font-size: 12px; }
 .btn-sm:disabled { opacity: .3; cursor: default; }
 
+/* Ticker tape (Loop 7) */
+.ticker-tape {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.ticker-track {
+  display: inline-block;
+  animation: ticker-scroll 30s linear infinite;
+}
+.ticker-tape:hover .ticker-track { animation-play-state: paused; }
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item { color: var(--text-light); padding: 0 12px; }
+.ticker-item strong { color: var(--accent); }
+.ticker-item .up { color: var(--primary); }
+.ticker-item .down { color: var(--danger); }
+.ticker-sep { color: var(--text-muted); }
+
 /* Footer */
 .footer {
   text-align: center;
