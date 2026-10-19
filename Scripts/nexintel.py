@@ -480,8 +480,10 @@ def think(data, history):
         chg7d = (info.get('usd_7d_change') or 0)
         price = info.get('usd') or 0
         sym = info.get('symbol') or cid.upper()
-        # Skip dust / illiquid (no price or no market cap data)
+        # Skip dust / illiquid: no price, or market cap under $100M (only liquid, tradable assets)
         if not price or price <= 0:
+            continue
+        if (info.get('market_cap') or 0) < 100_000_000:
             continue
         feats = extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta)
         score = sum(w * f for w, f in zip(weights, feats))
