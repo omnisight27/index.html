@@ -590,6 +590,7 @@ def think(data, history):
                 'asset': p['asset'],
                 'price': p['price'],
                 'confidence': p['confidence'],
+                'asset_class': p.get('class', 'crypto'),
                 'reason': f"{action} signal: {p['asset']} (confidence {p['confidence']}%). " +
                           f"Stop ${t.get('stop_loss', '?')}, target ${t.get('take_profit', '?')}.",
                 'timestamp': datetime.now(timezone.utc).isoformat(),

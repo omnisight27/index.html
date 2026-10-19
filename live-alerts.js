@@ -166,11 +166,14 @@
       .catch(function () { return []; });
     Promise.all([pricesP, greedP, modelP]).then(function (res) {
       var alerts = buildAlerts(res[0], res[1]);
-      // Prepend model alerts (highest priority)
+      // Prepend model alerts (highest priority) — map to engine by asset class
+      var CLASS_TO_ENGINE = { 'crypto': 'Crypto Pulse', 'equity': 'Macro Scope' };
       res[2].forEach(function (ma) {
         var type = ma.type === 'BUY' ? 'buy' : ma.type === 'SELL' ? 'sell' : 'hold';
+        var eng = ma.type === 'REGIME' ? 'Macro Scope'
+          : (CLASS_TO_ENGINE[ma.asset_class] || 'NexIntel');
         alerts.unshift({
-          type: type, engine: 'NexIntel',
+          type: type, engine: eng,
           title: '🤖 ' + ma.type + ': ' + ma.asset,
           confidence: ma.confidence,
           body: ma.reason + ' <a href="picks.html" style="color:var(--accent)">See thesis →</a>',
