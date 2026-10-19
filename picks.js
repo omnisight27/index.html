@@ -13,12 +13,20 @@
     return '<span class="asset-badge badge-stock">📈 Stock</span>';
   }
 
+  function tradableBadge(p) {
+    if ((p['class'] || '').toLowerCase() !== 'crypto' && !(p.info_url && p.info_url.indexOf('coingecko') > -1)) return '';
+    var t = p.tradable || [];
+    if (!t.length) return ' <span class="trade-badge trade-none">⚠️ Not on your exchanges</span>';
+    var labels = t.map(function (x) { return x === 'coinbase' ? 'Coinbase' : 'Crypto.com'; });
+    return ' <span class="trade-badge trade-yes">✅ ' + labels.join(' + ') + '</span>';
+  }
+
   function assetHeader(p, side) {
     var arrow = side === 'long' ? '▲ LONG' : (side === 'short' ? '▼ SHORT' : (p.direction === 'LONG' ? '▲' : '▼'));
     var nm = p.name && p.name !== p.asset ? ' <span class="asset-name">' + p.name + '</span>' : '';
     var link = p.info_url ? ' <a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
     return '<h4>' + arrow + ' ' + p.asset + '</h4>' +
-      '<p class="asset-sub">' + assetBadge(p) + nm + link + '</p>';
+      '<p class="asset-sub">' + assetBadge(p) + nm + link + tradableBadge(p) + '</p>';
   }
 
   function pickCard(p, side) {

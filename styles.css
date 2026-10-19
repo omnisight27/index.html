@@ -349,6 +349,18 @@ input[type="radio"] {
   white-space: nowrap;
 }
 .asset-link:hover { text-decoration: underline; }
+.trade-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.trade-yes { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.trade-none { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 
 /* Sentiment gauge (Loop 2) */
 .gauge-dial {

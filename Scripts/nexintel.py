@@ -71,6 +71,23 @@ def ingest():
         t = fetch_json(f'https://api.exchange.coinbase.com/products/{pair}/ticker')
         if t: d['tickers'][pair] = t
 
+    # Exchange listings — which coins Nic can actually trade (Coinbase + Crypto.com)
+    d['listings'] = {'coinbase': set(), 'cryptocom': set()}
+    try:
+        cb_prods = fetch_json('https://api.exchange.coinbase.com/products') or []
+        d['listings']['coinbase'] = {p['base_currency'] for p in cb_prods
+            if p.get('quote_currency') == 'USD' and p.get('status') == 'online' and p.get('base_currency')}
+        print(f"  listings: Coinbase {len(d['listings']['coinbase'])} coins")
+    except Exception as e:
+        print(f'  coinbase listings failed: {e}')
+    try:
+        cdc = fetch_json('https://api.crypto.com/exchange/v1/public/get-instruments') or {}
+        d['listings']['cryptocom'] = {i['base_ccy'] for i in (cdc.get('result', {}).get('data', []) or [])
+            if i.get('inst_type') == 'CCY_PAIR' and i.get('quote_ccy') in ('USD', 'USDT') and i.get('base_ccy')}
+        print(f"  listings: Crypto.com {len(d['listings']['cryptocom'])} coins")
+    except Exception as e:
+        print(f'  cryptocom listings failed: {e}')
+
     # Sentiment (Fear & Greed)
     fg = fetch_json('https://api.alternative.me/fng/?limit=7')
     d['fear_greed'] = fg['data'] if fg and 'data' in fg else []
@@ -485,6 +502,13 @@ def think(data, history):
 
     # --- Score crypto with w·x (ensemble: regression + geometry + regime) ---
     BLOCKED_SYMBOLS = {'XMR'}  # not tradable on Coinbase (delisted)
+    listings = data.get('listings', {})
+    def tradable_on(sym):
+        """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom']."""
+        out = []
+        if sym in listings.get('coinbase', set()): out.append('coinbase')
+        if sym in listings.get('cryptocom', set()): out.append('cryptocom')
+        return out
     for cid, info in crypto.items():
         chg24 = info.get('usd_24h_change') or 0
         chg7d = (info.get('usd_7d_change') or 0)
@@ -513,6 +537,7 @@ def think(data, history):
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
+                'tradable': tradable_on(sym),
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}

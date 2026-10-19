@@ -126,6 +126,25 @@ def main():
     # Coins not tradable on major US exchanges (delisted / regulatory)
     BLOCKED = {'XMR',  # Monero — delisted from Coinbase
                }
+    # Exchange listings — which coins Nic can actually trade
+    listings_cb, listings_cdc = set(), set()
+    try:
+        cb_prods = fetch_json('https://api.exchange.coinbase.com/products') or []
+        listings_cb = {p['base_currency'] for p in cb_prods
+            if p.get('quote_currency') == 'USD' and p.get('status') == 'online' and p.get('base_currency')}
+    except Exception:
+        pass
+    try:
+        cdc = fetch_json('https://api.crypto.com/exchange/v1/public/get-instruments') or {}
+        listings_cdc = {i['base_ccy'] for i in (cdc.get('result', {}).get('data', []) or [])
+            if i.get('inst_type') == 'CCY_PAIR' and i.get('quote_ccy') in ('USD', 'USDT') and i.get('base_ccy')}
+    except Exception:
+        pass
+    def tradable_on(sym):
+        out = []
+        if sym in listings_cb: out.append('coinbase')
+        if sym in listings_cdc: out.append('cryptocom')
+        return out
     # Top 50 coins by market cap (1 call)
     mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
         '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1')
@@ -161,6 +180,7 @@ def main():
             'direction': thesis['direction'], 'thesis': thesis,
             'name': c.get('name') or sym,
             'info_url': f'https://www.coingecko.com/en/coins/{cid}',
+            'tradable': tradable_on(sym),
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 
