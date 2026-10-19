@@ -59,6 +59,26 @@
     }
     load();
     setInterval(load, 60000); // refresh every 60s
+
+    // Fed commentary from NexIntel
+    var fedEl = document.getElementById('fed-articles');
+    if (fedEl) {
+      fetch('data/latest.json', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          var arts = d && d.fed_commentary;
+          if (arts && arts.length) {
+            fedEl.innerHTML = arts.map(function (a) {
+              var link = a.link ? ' <a href="' + a.link + '" target="_blank" rel="noopener">read →</a>' : '';
+              return '<p>· <strong>' + a.title + '</strong><br><span class="live-stamp">' +
+                a.date + link + '</span></p>';
+            }).join('');
+          } else {
+            fedEl.innerHTML = '<p class="live-stamp">No Fed commentary in this run.</p>';
+          }
+        })
+        .catch(function () { fedEl.innerHTML = '<p class="live-stamp">Feed unavailable.</p>'; });
+    }
   }
 
   if (document.readyState === 'loading') {

@@ -29,6 +29,15 @@ def fetch_json(url, timeout=20, method='GET', body=None, headers=None):
         print(f'  [warn] {url[:60]}... failed: {e}')
         return None
 
+def fetch_text(url, timeout=20):
+    req = urllib.request.Request(url, headers={'User-Agent': 'NexIntel/1.0'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read().decode('utf-8', errors='ignore')
+    except Exception as e:
+        print(f'  [warn] {url[:60]}... failed: {e}')
+        return None
+
 # ---------------------------------------------------------------- INGEST
 def ingest():
     print('INGEST: pulling live feeds...')
@@ -116,6 +125,31 @@ def ingest():
     # Headlines
     news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
     d['headlines'] = (news or {}).get('results', [])[:10]
+
+    # St. Louis Fed "On the Economy" blog — economist commentary feed
+    # (via curl: stlouisfed.org blocks Python urllib)
+    d['fed_commentary'] = []
+    try:
+        import re as _re, subprocess as _sp
+        rss = _sp.run(['curl', '-sL', '--max-time', '25',
+                       'https://www.stlouisfed.org/on-the-economy/rss'],
+                      capture_output=True, text=True, timeout=30).stdout
+        if rss:
+            items = _re.findall(r'<item>(.*?)</item>', rss, _re.DOTALL)[:8]
+            for it in items:
+                tm = _re.search(r'<title>(.*?)</title>', it, _re.DOTALL)
+                lm = _re.search(r'<link>(.*?)</link>', it, _re.DOTALL)
+                dm = _re.search(r'<pubDate>(.*?)</pubDate>', it)
+                if tm:
+                    title = _re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', tm.group(1)).strip()
+                    d['fed_commentary'].append({
+                        'title': title[:120],
+                        'link': lm.group(1).strip() if lm else '',
+                        'date': dm.group(1)[:16] if dm else '',
+                    })
+            print(f"  Fed commentary: {len(d['fed_commentary'])} articles")
+    except Exception as e:
+        print(f'  Fed RSS failed: {e}')
 
     # --- Keyed feeds (graceful if absent) ---
     fred_key = os.environ.get('FRED_API_KEY')
@@ -600,6 +634,7 @@ def think(data, history):
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
+        'fed_commentary': data.get('fed_commentary', []),
         'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
                       for h in data.get('headlines', [])[:5]],
         'alerts': alerts,
