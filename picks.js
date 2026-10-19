@@ -29,6 +29,32 @@
       '<p class="asset-sub">' + assetBadge(p) + nm + link + tradableBadge(p) + '</p>';
   }
 
+  function modelDetails(p) {
+    var t = p.thesis || {};
+    var feats = p.features || [];
+    // Feature names for the 22-model vector (10 base + 12 model features)
+    var featNames = ['Trend', 'Momentum', 'Volatility', 'Mean-reversion', 'Risk', 'MACD proxy', 'MA alignment',
+      'Donchian', 'RSI', 'ROC', 'Stochastic', 'Bollinger %B', 'ATR proxy', 'Vol regime', 'Z-score',
+      'Extreme fade', 'VaR proxy', 'Sentiment bias', 'Regime tilt', 'Geo edge', 'Volume', 'Acceleration'];
+    var featRows = feats.map(function (f, i) {
+      var nm = featNames[i] || ('F' + (i + 1));
+      var bar = f >= 0 ? '📈' : '📉';
+      return '<tr><td>' + nm + '</td><td>' + bar + ' ' + f.toFixed(2) + '</td></tr>';
+    }).join('');
+    var uid = 'md_' + p.asset + '_' + Math.floor(Math.random() * 100000);
+    return '<div class="model-details">' +
+      '<a href="javascript:void(0)" class="details-toggle" onclick="document.getElementById(\'' + uid + '\').style.display = document.getElementById(\'' + uid + '\').style.display === \'none\' ? \'block\' : \'none\'; this.textContent = this.textContent.indexOf(\'▶\') > -1 ? \'▼ Hide model details\' : \'▶ View model details\';">▶ View model details</a>' +
+      '<div id="' + uid + '" class="details-body" style="display:none">' +
+      '<p><strong>Ensemble score:</strong> ' + (p.score !== undefined ? p.score : '—') +
+      ' &nbsp; <strong>Geometric edge:</strong> ' + (p.geo_edge !== undefined ? p.geo_edge : '—') +
+      ' &nbsp; <strong>Regime:</strong> ' + (p.regime || '—') + '</p>' +
+      '<p><strong>Why this score</strong> — top model signals:</p>' +
+      '<table class="feat-table"><tr><th>Signal</th><th>Value</th></tr>' + featRows + '</table>' +
+      '<p class="live-stamp">Positive values push the score up (bullish), negative push it down. ' +
+      'Kelly position is ' + (p.position_pct !== undefined ? p.position_pct : 0) + '% — it stays at 0% until the model has enough scored history to size positions.</p>' +
+      '</div></div>';
+  }
+
   function pickCard(p, side) {
     var cls = side === 'long' ? 'alert-buy' : 'alert-sell';
     var t = p.thesis || {};
@@ -45,7 +71,8 @@
       '<p class="profit-line" style="display:none"></p>' +
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
-      '<p class="live-stamp">' + p.reason + '</p></div>';
+      '<p class="live-stamp">' + p.reason + '</p>' +
+      modelDetails(p) + '</div>';
   }
 
   // Profit calculator — user enters $ amount, shows expected $ gain/loss per pick
