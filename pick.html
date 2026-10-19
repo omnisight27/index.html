@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pick Detail — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="nav-brand">OmniSight</a>
+      <button class="nav-toggle">☰</button>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="reports.html">Reports</a>
+      <a href="engines.html">Engines</a>
+      <a href="debt.html">Debt Payoff</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <main class="section">
+    <p><a href="picks.html" class="asset-link">← Back to Picks</a></p>
+    <div id="pick-detail"><p class="live-stamp">Loading pick detail…</p></div>
+  </main>
+
+  <script src="nav.js"></script>
+  <script>
+  (function () {
+    'use strict';
+    var params = new URLSearchParams(window.location.search);
+    var asset = (params.get('asset') || '').toUpperCase();
+    var type = params.get('type') || 'swing'; // swing | intraday
+    var side = params.get('side') || 'long';
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+    function badge(cls, name) {
+      if ((cls || '').toLowerCase() === 'crypto') return '<span class="asset-badge badge-crypto">🪙 Crypto</span>';
+      var nm = (name || '').toUpperCase();
+      if (nm.indexOf('ETF') > -1 || nm.indexOf('SPDR') > -1) return '<span class="asset-badge badge-etf">📊 ETF</span>';
+      return '<span class="asset-badge badge-stock">📈 Stock</span>';
+    }
+
+    function tradableLine(p) {
+      var t = p.tradable || [];
+      if (!t.length) return '<p><span class="trade-badge trade-none">⚠️ Not on your exchanges (Coinbase / Crypto.com)</span></p>';
+      var labels = t.map(function (x) { return x === 'coinbase' ? 'Coinbase' : 'Crypto.com'; });
+      return '<p><span class="trade-badge trade-yes">✅ Tradable on ' + labels.join(' + ') + '</span></p>';
+    }
+
+    function renderSwing(p) {
+      var t = p.thesis || {};
+      var bull = (t.bull_case || []).map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('');
+      var bear = (t.bear_case || []).map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('');
+      var dir = (t.direction || side).toUpperCase();
+      var arrow = dir === 'LONG' ? '▲' : '▼';
+      var featNames = ['Trend', 'Momentum', 'Volatility', 'Mean-reversion', 'Risk', 'MACD proxy', 'MA alignment',
+        'Donchian', 'RSI', 'ROC', 'Stochastic', 'Bollinger %B', 'ATR proxy', 'Vol regime', 'Z-score',
+        'Extreme fade', 'VaR proxy', 'Sentiment bias', 'Regime tilt', 'Geo edge', 'Volume', 'Acceleration'];
+      var feats = (p.features || []).map(function (f, i) {
+        return '<tr><td>' + (featNames[i] || ('F' + (i + 1))) + '</td><td>' + (f >= 0 ? '📈' : '📉') + ' ' + Number(f).toFixed(2) + '</td></tr>';
+      }).join('');
+      return '<div class="card"><h2>' + arrow + ' ' + esc(p.asset) + ' <span class="asset-name">' + esc(p.name || '') + '</span></h2>' +
+        '<p>' + badge(p.class, p.name) + '</p>' + tradableLine(p) +
+        '<h3>The Trade</h3>' +
+        '<p><strong>Direction:</strong> ' + dir + ' &nbsp; <strong>Confidence:</strong> ' + p.confidence + '%</p>' +
+        '<p><strong>Entry:</strong> ' + esc(t.entry_date || 'today') + ' @ $' + Number(p.price).toLocaleString() + '</p>' +
+        '<p><strong>Target:</strong> ' + esc(t.projected_exit || '—') + ' @ $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') + ' (+' + (t.expected_return_pct || 0) + '%)</p>' +
+        '<p><strong>Stop loss:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') + ' (−' + (t.max_loss_pct || 0) + '%)</p>' +
+        '<p><strong>Risk/reward:</strong> ' + (t.risk_reward || '—') + ' &nbsp; <strong>Horizon:</strong> ' + esc(t.time_horizon || '—') + '</p>' +
+        '<p><strong>Kelly position size:</strong> ' + (p.position_pct !== undefined ? p.position_pct : 0) + '%</p>' +
+        '<h3>Why — Bull Case</h3><ul class="thesis-list">' + bull + '</ul>' +
+        '<h3>Why Not — Bear Case</h3><ul class="thesis-list">' + bear + '</ul>' +
+        '<h3>How the Model Got Here</h3>' +
+        '<p><strong>Ensemble score:</strong> ' + (p.score !== undefined ? p.score : '—') +
+        ' &nbsp; <strong>Geometric edge:</strong> ' + (p.geo_edge !== undefined ? p.geo_edge : '—') +
+        ' &nbsp; <strong>Regime:</strong> ' + esc(p.regime || '—') + '</p>' +
+        '<table class="feat-table"><tr><th>Model signal</th><th>Value</th></tr>' + feats + '</table>' +
+        '<p class="live-stamp">Positive values push bullish, negative push bearish. Scores combine trend, momentum, volatility, mean-reversion, and risk models with geometric pattern matching.</p>' +
+        (p.info_url ? '<p><a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">Research ' + esc(p.asset) + ' externally ↗</a></p>' : '') +
+        '<p class="live-stamp">' + esc(p.reason || '') + '</p></div>';
+    }
+
+    function renderIntraday(s) {
+      var t = s.thesis || {};
+      var arrow = s.direction === 'LONG' ? '▲' : '▼';
+      return '<div class="card"><h2>' + arrow + ' ' + esc(s.asset) + ' <span class="asset-name">' + esc(s.name || '') + '</span></h2>' +
+        '<p><span class="asset-badge badge-crypto">🪙 Crypto</span> <span class="live-stamp">Intraday signal</span></p>' + tradableLine(s) +
+        '<h3>The Trade</h3>' +
+        '<p><strong>Direction:</strong> ' + s.direction + ' &nbsp; <strong>Confidence:</strong> ' + s.confidence + '%</p>' +
+        '<p><strong>In:</strong> ' + esc(t.entry_time || '—') + ' @ $' + t.entry + '</p>' +
+        '<p><strong>Out by:</strong> ' + esc(t.exit_by || '—') + '</p>' +
+        '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
+        '<p><strong>1h change:</strong> ' + t.chg_1h + '% &nbsp; <strong>RSI:</strong> ' + t.rsi + '</p>' +
+        '<p><strong>Horizon:</strong> 1–4 hours</p>' +
+        (s.info_url ? '<p><a class="asset-link" href="' + s.info_url + '" target="_blank" rel="noopener">Research ' + esc(s.asset) + ' externally ↗</a></p>' : '') + '</div>';
+    }
+
+    function load() {
+      var url = type === 'intraday' ? 'data/intraday.json' : 'data/latest.json';
+      fetch(url, { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function (d) {
+          var found = null, isIntra = false;
+          if (type === 'intraday') {
+            var all = (d.longs || []).concat(d.shorts || []);
+            found = all.find(function (s) { return (s.asset || '').toUpperCase() === asset; });
+            isIntra = true;
+          } else {
+            var picks = (d.longs || []).concat(d.shorts || []);
+            found = picks.find(function (p) { return (p.asset || '').toUpperCase() === asset; });
+          }
+          var el = document.getElementById('pick-detail');
+          if (!found) {
+            el.innerHTML = '<div class="card"><h3>Pick not found</h3><p class="live-stamp">' + esc(asset) + ' is not in the current ' + esc(type) + ' picks. It may have rotated out — check the Picks page for the latest.</p></div>';
+            return;
+          }
+          el.innerHTML = isIntra ? renderIntraday(found) : renderSwing(found);
+          document.title = found.asset + ' — OmniSight Pick Detail';
+        })
+        .catch(function () {
+          document.getElementById('pick-detail').innerHTML = '<p class="live-stamp">Could not load pick data.</p>';
+        });
+    }
+    load();
+  })();
+  </script>
+</body>
+</html>

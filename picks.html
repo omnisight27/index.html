@@ -29,6 +29,13 @@
 
     <p><label style="cursor:pointer"><input type="checkbox" id="longs-only" style="transform:scale(1.3);margin-right:8px">Longs only (hide short signals)</label></p>
 
+    <div class="tab-bar" id="picks-tabs">
+      <button class="tab-btn active" data-tab="tradable">✅ Tradable Now</button>
+      <button class="tab-btn" data-tab="all">All Signals</button>
+      <button class="tab-btn" data-tab="how">How Predictions Work</button>
+    </div>
+
+    <div id="tab-tradable">
     <h3>⚡ Intraday Signals <span class="live-stamp" id="intraday-stamp">(hourly)</span></h3>
     <div class="grid" id="picks-intraday"><p class="live-stamp">Loading intraday…</p></div>
 
@@ -37,6 +44,29 @@
 
     <h3 id="shorts-header">Top Shorts <span class="live-stamp">(1-5 day swing)</span></h3>
     <div class="grid" id="picks-shorts"></div>
+    </div>
+
+    <div id="tab-all" style="display:none">
+    <h3>⚡ All Intraday Signals</h3>
+    <div class="grid" id="picks-intraday-all"><p class="live-stamp">Loading…</p></div>
+    <h3>All Swing Picks</h3>
+    <div class="grid" id="picks-longs-all"></div>
+    <h3>All Shorts</h3>
+    <div class="grid" id="picks-shorts-all"></div>
+    </div>
+
+    <div id="tab-how" style="display:none">
+      <div class="card">
+        <h3>How NexIntel Predictions Work</h3>
+        <p><strong>1. Ingest.</strong> Every 6 hours the engine pulls live data: 1,000 cryptocurrencies, 44 stocks & ETFs, gold/silver, forex, Fear & Greed sentiment, federal contract awards, and macro data (CPI, jobs, rates).</p>
+        <p><strong>2. Features.</strong> Each asset gets 22 model signals — trend (MACD, moving averages), momentum (RSI, rate-of-change), volatility (Bollinger, ATR), mean-reversion (z-score), and risk (VaR proxy).</p>
+        <p><strong>3. Ensemble score.</strong> Three layers combine: a regression model (optimal weights solved via least-squares), geometric pattern matching (how similar is today to past winners vs losers), and a regime tilt (risk-on boosts longs, risk-off damps them).</p>
+        <p><strong>4. Psychology layer.</strong> Extreme greed → contrarian bearish bias. Extreme fear → contrarian bullish bias. Gold over $4,000 or a surging dollar trims confidence.</p>
+        <p><strong>5. Thesis.</strong> Every pick gets entry/exit dates, stop-loss, take-profit, risk/reward, and expected return — plus position sizing via the Kelly criterion (starts at 0% until the model has enough scored history).</p>
+        <p><strong>6. Remember.</strong> After each run, prior picks are scored against actual prices. Wins and losses train the model — weights optimize automatically once 22+ scored samples exist.</p>
+        <p class="live-stamp">No model is right every time. Confidence % is the model's own uncertainty — higher is better, but nothing here is financial advice.</p>
+      </div>
+    </div>
 
     <div class="grid" style="margin-top: 40px;">
       <div class="card">

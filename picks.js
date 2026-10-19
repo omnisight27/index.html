@@ -72,13 +72,54 @@
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
       '<p class="live-stamp">' + p.reason + '</p>' +
+      '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=' + side + '">📄 Full detail page →</a></p>' +
       modelDetails(p) + '</div>';
   }
 
-  // Profit calculator — user enters $ amount, shows expected $ gain/loss per pick
+  function isTradable(p) {
+    // Stocks/ETFs are tradable via brokerage; crypto needs exchange listing
+    var cls = (p['class'] || '').toLowerCase();
+    if (cls === 'equity') return true;
+    if (cls === 'crypto' || (p.info_url && p.info_url.indexOf('coingecko') > -1)) {
+      return (p.tradable || []).length > 0;
+    }
+    return true;
+  }
+
+  function setupTabs() {
+    var tabs = document.querySelectorAll('#picks-tabs .tab-btn');
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        tabs.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var tab = btn.getAttribute('data-tab');
+        document.getElementById('tab-tradable').style.display = tab === 'tradable' ? 'block' : 'none';
+        document.getElementById('tab-all').style.display = tab === 'all' ? 'block' : 'none';
+        document.getElementById('tab-how').style.display = tab === 'how' ? 'block' : 'none';
+      });
+    });
+  }
+
+  function intradayCard(s, withBadge) {
+    var t = s.thesis || {};
+    var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
+    var header = withBadge
+      ? assetHeader(s).replace('</p>', ' <span class="live-stamp">' + s.confidence + '%</span></p>')
+      : assetHeader(s);
+    return '<div class="alert-card ' + cls + '">' +
+      header +
+      '<p><strong>In:</strong> ' + t.entry_time + ' @ $' + t.entry +
+      ' &nbsp; <strong>Out by:</strong> ' + t.exit_by + '</p>' +
+      '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
+      '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
+      '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday">📄 Full detail page →</a></p>' +
+      '</div>';
+  }
+
   // Intraday signals (hourly engine)
   function loadIntraday() {
     var el = document.getElementById('picks-intraday');
+    var elAll = document.getElementById('picks-intraday-all');
     var stamp = document.getElementById('intraday-stamp');
     if (!el) return;
     fetch('data/intraday.json', { cache: 'no-store' })
@@ -91,20 +132,18 @@
         }
         if (!all.length) {
           el.innerHTML = '<p class="live-stamp">No intraday signals this hour — market is quiet.</p>';
+          if (elAll) elAll.innerHTML = '<p class="live-stamp">No intraday signals this hour.</p>';
           return;
         }
-        el.innerHTML = all.slice(0, 6).map(function (s) {
-          var t = s.thesis || {};
-          var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
-          s.confidence_badge = ' <span class="live-stamp">' + s.confidence + '%</span>';
-          return '<div class="alert-card ' + cls + '">' +
-            assetHeader(s).replace('</p>', s.confidence_badge + '</p>') +
-            '<p><strong>In:</strong> ' + t.entry_time + ' @ $' + t.entry +
-            ' &nbsp; <strong>Out by:</strong> ' + t.exit_by + '</p>' +
-            '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
-            '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
-            '</div>';
-        }).join('');
+        // Tradable tab: filter to what Nic can trade
+        var tradable = all.filter(isTradable);
+        el.innerHTML = tradable.length
+          ? tradable.slice(0, 6).map(function (s) { return intradayCard(s, true); }).join('')
+          : '<p class="live-stamp">No tradable intraday signals this hour — check All Signals.</p>';
+        // All tab: everything
+        if (elAll) {
+          elAll.innerHTML = all.slice(0, 6).map(function (s) { return intradayCard(s, false); }).join('');
+        }
       })
       .catch(function () {
         el.innerHTML = '<p class="live-stamp">Intraday engine not yet run — check back after the next hourly cycle.</p>';
@@ -167,14 +206,28 @@
           swingStamp.textContent = '(last ran ' + dt2.toLocaleTimeString() + ')';
         }
         var longs = document.getElementById('picks-longs');
+        var longsAll = document.getElementById('picks-longs-all');
         if (longs) {
-          longs.innerHTML = d.longs.length
+          var tradLongs = d.longs.filter(isTradable);
+          longs.innerHTML = tradLongs.length
+            ? tradLongs.map(function (p) { return pickCard(p, 'long'); }).join('')
+            : '<div class="card"><p>No tradable long signals right now — check All Signals.</p></div>';
+        }
+        if (longsAll) {
+          longsAll.innerHTML = d.longs.length
             ? d.longs.map(function (p) { return pickCard(p, 'long'); }).join('')
             : '<div class="card"><p>No long signals right now.</p></div>';
         }
         var shorts = document.getElementById('picks-shorts');
+        var shortsAll = document.getElementById('picks-shorts-all');
         if (shorts) {
-          shorts.innerHTML = d.shorts.length
+          var tradShorts = d.shorts.filter(isTradable);
+          shorts.innerHTML = tradShorts.length
+            ? tradShorts.map(function (p) { return pickCard(p, 'short'); }).join('')
+            : '<div class="card"><p>No tradable short signals right now.</p></div>';
+        }
+        if (shortsAll) {
+          shortsAll.innerHTML = d.shorts.length
             ? d.shorts.map(function (p) { return pickCard(p, 'short'); }).join('')
             : '<div class="card"><p>No short signals right now.</p></div>';
         }
@@ -226,6 +279,7 @@
       });
     wireCalculator();
     loadIntraday();
+    setupTabs();
     // Auto-refresh every 5 minutes for live updates
     setInterval(function () {
       loadIntraday();
