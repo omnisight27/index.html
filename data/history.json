@@ -1,99 +1,52 @@
 {
   "picks": [
     {
-      "date": "2026-10-19T07:19:53.708010+00:00",
+      "date": "2026-10-19T07:48:54.667156+00:00",
       "scored": false,
       "longs": [
         {
-          "asset": "ARB",
-          "price": 0.2,
-          "score": 8.2,
-          "confidence": 54,
-          "reason": "ARB +8.0% (24h), -0.3% (7d) @ $0. Ensemble score +8.2 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "asset": "XMR",
+          "price": 596.66,
+          "score": 9.9,
+          "confidence": 57,
+          "reason": "XMR +4.1% (24h), +11.7% (7d) @ $597. Ensemble score +9.9 (w\u00b7x + geo +0.00 + RISK_OFF).",
           "class": "crypto",
           "features": [
-            5.579,
+            6.127,
             0.0,
             0.0,
             0.18,
             0.3,
-            0.797,
-            1.603,
-            0.531,
-            0.997,
-            -1.0,
-            2.672,
-            -1.0,
-            0.996,
-            1.995,
-            2.004,
-            1.328,
-            1.297,
-            1.002,
-            0.594,
-            1.594,
+            0.408,
+            0.484,
+            0.272,
+            0.995,
+            1.0,
+            0.806,
+            1.0,
+            0.511,
+            1.99,
+            0.605,
+            0.681,
+            0.908,
+            0.719,
+            -0.183,
+            0.817,
             0.0,
-            -2.63
+            -1.348
           ],
           "geo_edge": 0.0,
           "thesis": {
             "direction": "LONG",
             "bull_case": [
-              "strong 24h momentum (+8.0%)"
+              "strong 24h momentum (+4.1%)",
+              "trend alignment across timeframes"
             ],
             "bear_case": [
               "no strong bearish factors"
             ],
-            "stop_loss": 0.17,
-            "take_profit": 0.23,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)"
-          },
-          "position_pct": 0.0,
-          "regime": "RISK_OFF"
-        },
-        {
-          "asset": "VVV",
-          "price": 23.85,
-          "score": 8.0,
-          "confidence": 54,
-          "reason": "VVV +7.5% (24h), -3.8% (7d) @ $24. Ensemble score +8.0 (w\u00b7x + geo +0.00 + RISK_OFF).",
-          "class": "crypto",
-          "features": [
-            5.269,
-            0.0,
-            0.0,
-            0.18,
-            0.3,
-            0.753,
-            1.614,
-            0.502,
-            0.997,
-            -1.0,
-            2.691,
-            -1.0,
-            0.941,
-            1.995,
-            2.018,
-            1.254,
-            1.253,
-            1.009,
-            0.505,
-            1.505,
-            0.0,
-            -2.484
-          ],
-          "geo_edge": 0.0,
-          "thesis": {
-            "direction": "LONG",
-            "bull_case": [
-              "strong 24h momentum (+7.5%)"
-            ],
-            "bear_case": [
-              "no strong bearish factors"
-            ],
-            "stop_loss": 21.16,
-            "take_profit": 27.44,
+            "stop_loss": 560.1,
+            "take_profit": 645.4,
             "risk_reward": 1.33,
             "time_horizon": "1-5 days (swing)"
           },
@@ -147,58 +100,57 @@
           },
           "position_pct": 0.0,
           "regime": "RISK_OFF"
-        }
-      ],
-      "shorts": [
+        },
         {
-          "asset": "BTW",
-          "price": 2.26,
-          "score": -15.2,
-          "confidence": 73,
-          "reason": "BTW -6.9% (24h), +33.2% (7d) @ $2. Ensemble score -15.2 (w\u00b7x + geo +0.00 + RISK_OFF).",
-          "class": "crypto",
+          "asset": "XOM",
+          "price": 178.98,
+          "score": 7.8,
+          "confidence": 66,
+          "reason": "XOM +2.46% today @ $178.98. Ensemble score +7.8 (w\u00b7x + geo + RISK_OFF).",
+          "class": "equity",
           "features": [
-            -4.848,
+            3.692,
             0.0,
             0.0,
             0.18,
             0.3,
-            0.693,
-            -2.335,
-            -0.462,
-            -0.997,
-            -1.0,
-            -3.0,
-            -1.0,
-            -0.866,
-            -1.994,
-            -2.919,
-            -1.154,
-            -0.193,
-            1.459,
-            0.385,
-            -1.385,
+            0.246,
+            0.352,
+            0.164,
+            0.992,
+            1.0,
+            0.586,
+            1.0,
+            0.308,
+            1.984,
+            0.44,
+            0.41,
+            0.746,
+            0.396,
+            -0.508,
+            0.492,
             0.0,
-            -2.286
+            -0.812
           ],
           "geo_edge": 0.0,
           "thesis": {
-            "direction": "SHORT",
+            "direction": "LONG",
             "bull_case": [
-              "no strong bullish factors"
+              "trend alignment across timeframes"
             ],
             "bear_case": [
-              "sharp 24h selloff (-6.9%)",
-              "risk-off regime favors shorts"
+              "no strong bearish factors"
             ],
-            "stop_loss": 2.49,
-            "take_profit": 1.95,
+            "stop_loss": 172.37,
+            "take_profit": 187.79,
             "risk_reward": 1.33,
             "time_horizon": "1-5 days (swing)"
           },
           "position_pct": 0.0,
           "regime": "RISK_OFF"
-        },
+        }
+      ],
+      "shorts": [
         {
           "asset": "MSTR",
           "price": 136.83,
@@ -293,6 +245,55 @@
             ],
             "stop_loss": 206.17,
             "take_profit": 159.18,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)"
+          },
+          "position_pct": 0.0,
+          "regime": "RISK_OFF"
+        },
+        {
+          "asset": "BTW",
+          "price": 2.23,
+          "score": -13.0,
+          "confidence": 70,
+          "reason": "BTW -8.6% (24h), +33.2% (7d) @ $2. Ensemble score -13.0 (w\u00b7x + geo +0.00 + RISK_OFF).",
+          "class": "crypto",
+          "features": [
+            -6.016,
+            3.438,
+            0.0,
+            0.18,
+            0.3,
+            0.859,
+            -2.669,
+            -0.573,
+            -0.998,
+            -1.0,
+            -3.0,
+            -1.0,
+            -1.074,
+            -1.995,
+            -3.0,
+            -1.432,
+            -0.359,
+            1.668,
+            0.719,
+            -1.719,
+            0.537,
+            -2.836
+          ],
+          "geo_edge": 0.0,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-8.6%)",
+              "risk-off regime favors shorts"
+            ],
+            "stop_loss": 2.52,
+            "take_profit": 1.85,
             "risk_reward": 1.33,
             "time_horizon": "1-5 days (swing)"
           },
