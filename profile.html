@@ -26,43 +26,31 @@
     <div class="grid">
       <div class="card">
         <h3>Account</h3>
-        <p><strong>alex.morgan@example.com</strong></p>
-        <p>Beta Tier 2: Advanced Analytics</p>
-        <button class="btn">Edit</button>
+        <p><strong id="profile-name-shown">OmniSight User</strong></p>
+        <p>Local profile — stored on this device only.</p>
+        <label>Display name:<br />
+          <input type="text" id="profile-name" placeholder="Your name"
+            style="margin-top:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);width:100%;" />
+        </label>
       </div>
 
       <div class="card">
         <h3>Notifications</h3>
-        <p>Email, SMS, and in‑platform alerts.</p>
-        <label><input type="checkbox" checked /> Email Alerts</label>
-        <label><input type="checkbox" checked /> Critical Only</label>
-      </div>
-
-      <div class="card">
-        <h3>Subscription</h3>
-        <p>Plan: Beta Access (Free)</p>
-        <p>Renewal: 2026-10-15</p>
-        <button class="btn">Manage Billing</button>
+        <p>Alert delivery preferences.</p>
+        <label><input type="checkbox" id="notif-email" checked /> Email Alerts</label>
+        <label><input type="checkbox" id="notif-critical" /> Critical Only</label>
       </div>
 
       <div class="card">
         <h3>Engine Prioritization</h3>
-        <p>Choose which engines matter most to you.</p>
-        <label><input type="checkbox" checked /> Macro (Priority 1)</label>
-        <label><input type="checkbox" checked /> Money Max (Priority 2)</label>
+        <p>Rank engines — alerts sort by your priority.</p>
+        <ol id="priority-list" class="priority-list"></ol>
       </div>
 
       <div class="card">
-        <h3>API Access</h3>
-        <p>Rate Limit: 50,000 calls/month</p>
-        <button class="btn">View API Key</button>
-      </div>
-
-      <div class="card">
-        <h3>Account Settings</h3>
-        <p>Data, privacy, and account controls.</p>
-        <button class="btn">Download Data</button>
-        <button class="btn danger">Delete Account</button>
+        <h3>Your Data</h3>
+        <p>Everything is stored locally on this device.</p>
+        <button class="btn" id="download-data">Download Data</button>
       </div>
     </div>
   </main>
@@ -70,5 +58,7 @@
   <footer class="footer">
     <p>© OmniSight — NexIntel AI Engine</p>
   </footer>
+  <script src="engine-config.js"></script>
+  <script src="profile.js"></script>
 </body>
 </html>

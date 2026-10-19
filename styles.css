@@ -388,6 +388,19 @@ input[type="radio"] {
 .report-table th { color: var(--text-muted); font-weight: 600; }
 .report-table td { color: var(--text-light); }
 
+/* Profile priority list (Loop 6) */
+.priority-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.priority-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.priority-item:last-child { border-bottom: none; }
+.priority-rank { color: var(--accent); font-weight: bold; min-width: 28px; }
+.priority-name { flex: 1; color: var(--text-light); }
+.priority-btns { display: flex; gap: 4px; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-sm:disabled { opacity: .3; cursor: default; }
+
 /* Footer */
 .footer {
   text-align: center;

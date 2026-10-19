@@ -106,6 +106,16 @@
       return a.confidence >= (cfg.minConfidence || 0);
     });
 
+    // Sort by engine priority from the profile page (Loop 6)
+    if (window.OmniSightProfile) {
+      var prio = window.OmniSightProfile.load().priority || [];
+      visible.sort(function (a, b) {
+        var ia = prio.indexOf(a.engine), ib = prio.indexOf(b.engine);
+        if (ia < 0) ia = 99; if (ib < 0) ib = 99;
+        return ia - ib;
+      });
+    }
+
     feed.innerHTML = '';
     if (!visible.length) {
       feed.innerHTML = '<div class="alert-card alert-hold"><h4>No alerts pass your filters</h4>' +
