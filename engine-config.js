@@ -9,12 +9,12 @@
 
   var DEFAULTS = {
     engines: {
-      'Govgistics': true,
-      'Money Max': true,
-      'Coinbase': true,
-      'Amazon & eBay': true,
-      'Macro': true,
-      'On-Chain': true
+      'Contract Intel': true,
+      'Liquidity Engine': true,
+      'Crypto Pulse': true,
+      'Commerce Radar': true,
+      'Macro Scope': true,
+      'Chain Signal': true
     },
     minConfidence: 70,
     maxRisk: 3

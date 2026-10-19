@@ -6,7 +6,7 @@
   'use strict';
 
   var KEY = 'omnisight_profile_v1';
-  var ENGINES = ['Govgistics', 'Money Max', 'Coinbase', 'Amazon & eBay', 'Macro', 'On-Chain'];
+  var ENGINES = ['Contract Intel', 'Liquidity Engine', 'Crypto Pulse', 'Commerce Radar', 'Macro Scope', 'Chain Signal'];
 
   function defaults() {
     return {

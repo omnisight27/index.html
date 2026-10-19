@@ -6,10 +6,10 @@
   'use strict';
 
   var COINS = {
-    bitcoin:  { symbol: 'BTC', engine: 'Coinbase' },
-    ethereum: { symbol: 'ETH', engine: 'Coinbase' },
-    solana:   { symbol: 'SOL', engine: 'On-Chain' },
-    ripple:   { symbol: 'XRP', engine: 'On-Chain' }
+    bitcoin:  { symbol: 'BTC', engine: 'Crypto Pulse' },
+    ethereum: { symbol: 'ETH', engine: 'Crypto Pulse' },
+    solana:   { symbol: 'SOL', engine: 'Chain Signal' },
+    ripple:   { symbol: 'XRP', engine: 'Chain Signal' }
   };
 
   function fmt(n) {
@@ -56,7 +56,7 @@
     if (greed !== null) {
       if (greed <= 25) {
         alerts.push({
-          type: 'buy', engine: 'Macro',
+          type: 'buy', engine: 'Macro Scope',
           title: 'Extreme Fear Reading',
           confidence: 82,
           body: 'Fear & Greed at ' + greed + ' — extreme fear. Historically a contrarian entry zone.',
@@ -64,7 +64,7 @@
         });
       } else if (greed >= 75) {
         alerts.push({
-          type: 'hold', engine: 'Macro',
+          type: 'hold', engine: 'Macro Scope',
           title: 'Extreme Greed Warning',
           confidence: 78,
           body: 'Fear & Greed at ' + greed + ' — extreme greed. Consider trimming into strength.',
@@ -72,7 +72,7 @@
         });
       } else {
         alerts.push({
-          type: 'hold', engine: 'Macro',
+          type: 'hold', engine: 'Macro Scope',
           title: 'Sentiment Neutral',
           confidence: 60,
           body: 'Fear & Greed at ' + greed + '. No sentiment extreme — trend-following conditions.',
@@ -83,7 +83,7 @@
 
     if (!alerts.length) {
       alerts.push({
-        type: 'hold', engine: 'Coinbase',
+        type: 'hold', engine: 'Crypto Pulse',
         title: 'Markets Quiet',
         confidence: 55,
         body: 'No coin moved more than 3% in 24h. Watching for breakout.',

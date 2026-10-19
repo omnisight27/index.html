@@ -7,9 +7,11 @@
 
   // Engines with a real health-check endpoint and what "healthy" means
   var HEALTH_CHECKS = {
-    'Coinbase': 'https://api.coingecko.com/api/v3/ping',
-    'On-Chain': 'https://api.coingecko.com/api/v3/ping',
-    'Macro': 'https://api.alternative.me/fng/?limit=1'
+    'Crypto Pulse': 'https://api.coingecko.com/api/v3/ping',
+    'Chain Signal': 'https://api.coingecko.com/api/v3/ping',
+    'Macro Scope': 'https://api.alternative.me/fng/?limit=1',
+    'Contract Intel': 'https://api.usaspending.gov/api/v2/agency/awards/?fiscal_year=2025',
+    'Liquidity Engine': 'https://api.stlouisfed.org/fred/series?series_id=GDP&api_key=demo&file_type=json'
   };
 
   function setStatus(card, online, latencyMs) {
