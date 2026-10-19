@@ -136,9 +136,16 @@ def ingest():
     finnhub_key = os.environ.get('FINNHUB_API_KEY')
     d['stocks'] = {}
     if finnhub_key:
-        for sym in ['SPY', 'QQQ', 'DIA', 'AAPL', 'NVDA', 'TSLA', 'MSFT']:
+        # Indices, sector ETFs, mega-caps — the stocks that move markets
+        symbols = ['SPY', 'QQQ', 'DIA', 'IWM',                      # indices
+                   'XLK', 'XLF', 'XLE', 'XLV', 'XLI', 'XLU', 'XLP', 'XLY', 'XLRE', 'XLB', 'XLC',  # sectors
+                   'AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'JPM',
+                   'V', 'MA', 'XOM', 'UNH', 'LLY', 'COST', 'HD', 'PG', 'JNJ', 'BAC',
+                   'CRM', 'ORCL', 'AMD', 'NFLX', 'DIS', 'INTC', 'COIN', 'MSTR', 'PLTR']  # mega-caps + crypto-adjacent
+        for sym in symbols:
             q = fetch_json(f'https://finnhub.io/api/v1/quote?symbol={sym}&token={finnhub_key}')
-            if q: d['stocks'][sym] = q
+            if q and q.get('c'): d['stocks'][sym] = q
+        print(f"  stocks: {len(d['stocks'])} symbols ingested")
     else:
         print('  [info] FINNHUB_API_KEY absent — stocks feed skipped (add key in GitHub Secrets)')
 
