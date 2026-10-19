@@ -9,9 +9,11 @@
 <body>
   <header class="nav">
     <div class="nav-brand">OmniSight</div>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
     <nav class="nav-menu">
       <a href="index.html">Home</a>
       <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
       <a href="alerts.html">Alerts</a>
       <a href="reports.html">Reports</a>
       <a href="engines.html" class="active">Engines</a>
@@ -23,39 +25,45 @@
     <h2>Engine Management</h2>
     <p>Toggle engines and configure alert thresholds.</p>
 
-    <div class="grid">
-      <div class="card">
-        <h3>Govgistics</h3>
+    <div class="grid" id="engine-grid">
+      <div class="card" data-engine="Govgistics">
+        <h3>Govgistics <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>Government contracts & sector signals.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
 
-      <div class="card">
-        <h3>Money Max</h3>
+      <div class="card" data-engine="Money Max">
+        <h3>Money Max <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>Cash‑flow, debt, liquidity windows.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
 
-      <div class="card">
-        <h3>Coinbase</h3>
+      <div class="card" data-engine="Coinbase">
+        <h3>Coinbase <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>Crypto flow pressure & order books.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
 
-      <div class="card">
-        <h3>Amazon & eBay</h3>
+      <div class="card" data-engine="Amazon & eBay">
+        <h3>Amazon & eBay <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>Consumer demand & scarcity.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
 
-      <div class="card">
-        <h3>Macro</h3>
+      <div class="card" data-engine="Macro">
+        <h3>Macro <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>GDP, inflation, war risk, rates.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
 
-      <div class="card">
-        <h3>On‑Chain</h3>
+      <div class="card" data-engine="On-Chain">
+        <h3>On‑Chain <span class="status-dot standby"></span></h3>
+        <p class="status-text">Checking…</p>
         <p>Whale moves & liquidity stress.</p>
         <label><input type="checkbox" checked /> Enabled</label>
       </div>
@@ -63,14 +71,17 @@
 
     <div class="config-section">
       <h3>Alert Configuration</h3>
-      <label>Minimum Confidence: <input type="number" value="70" min="0" max="100" /></label>
-      <label>Maximum Risk Score: <input type="number" value="3" min="0" max="10" /></label>
-      <button class="btn primary">Save Configuration</button>
+      <label>Minimum Confidence: <input type="number" id="cfg-min-confidence" value="70" min="0" max="100" /></label>
+      <label>Maximum Risk Score: <input type="number" id="cfg-max-risk" value="3" min="0" max="10" /></label>
+      <button class="btn primary" id="cfg-save">Save Configuration</button>
     </div>
   </main>
 
   <footer class="footer">
     <p>© OmniSight — NexIntel AI Engine</p>
   </footer>
+  <script src="engine-config.js"></script>
+  <script src="engines-page.js"></script>
+  <script src="nav.js"></script>
 </body>
 </html>
