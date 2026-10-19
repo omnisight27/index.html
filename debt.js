@@ -51,7 +51,31 @@
     }
   }
 
-  // Toggle extra fields when type changes
+  // Persist to localStorage
+  function save() {
+    readRows();
+    try {
+      localStorage.setItem('nx_debts', JSON.stringify(debts));
+      var budget = document.getElementById('budget').value;
+      localStorage.setItem('nx_debt_budget', budget);
+    } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var saved = localStorage.getItem('nx_debts');
+      if (saved) debts = JSON.parse(saved);
+      var b = localStorage.getItem('nx_debt_budget');
+      if (b) document.getElementById('budget').value = b;
+    } catch (e) {}
+  }
+
+  // Auto-save on any input change (debounced)
+  var saveTimer = null;
+  document.getElementById('debt-list').addEventListener('input', function () {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 800);
+  });
   document.getElementById('debt-list').addEventListener('change', function (e) {
     if (e.target.dataset.f === 'type') {
       var row = e.target.closest('.debt-row');
@@ -60,6 +84,7 @@
         el.style.display = el.dataset.extra === t ? '' : 'none';
       });
     }
+    save();
   });
 
   function readRows() {
@@ -216,8 +241,14 @@
     if (e.target.dataset.del !== undefined) {
       readRows();
       debts.splice(parseInt(e.target.dataset.del, 10), 1);
+      save();
       render();
     }
+  });
+
+  document.getElementById('budget').addEventListener('input', function () {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 800);
   });
 
   document.getElementById('calc').addEventListener('click', function () {
@@ -272,5 +303,6 @@
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
   });
 
+  load();
   render();
 })();
