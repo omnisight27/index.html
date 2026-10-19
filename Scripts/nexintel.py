@@ -627,6 +627,7 @@ def remember(data, signals):
         'date': now, 'scored': False,
         'longs': signals['longs'], 'shorts': signals['shorts'],
         'fear_greed': signals['psychology']['fear_greed'],
+        'regime': signals.get('regime'),
     })
     # Keep last 90 runs
     history['picks'] = history['picks'][-90:]
