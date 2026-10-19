@@ -1,150 +1,105 @@
 {
-  "generated": "2026-10-19T06:18:48.271410+00:00",
+  "generated": "2026-10-19T05:50:29.936680+00:00",
   "fear_greed": 59,
   "longs": [
     {
       "asset": "SOLANA",
-      "price": 105.68,
-      "score": 2.8,
-      "confidence": 46,
-      "reason": "SOLANA +2.1% (24h), +0.0% (7d) @ $106. Ensemble score +2.8 (w\u00b7x + geo +0.00 + RISK_OFF).",
+      "price": 105.5,
+      "score": 4.0,
+      "confidence": 48,
+      "reason": "SOLANA +2.1% (24h), +0.0% (7d) @ $106. Optimized score +4.0 (w\u00b7x + geo +0.00).",
       "class": "crypto",
       "features": [
-        1.478,
+        1.501,
         0.0,
         0.0,
         0.18,
         0.3,
-        0.211,
-        0.422,
-        0.141,
+        0.214,
+        0.429,
+        0.143,
         0.991,
         -1.0,
-        0.704,
+        0.715,
         -1.0,
-        0.264,
+        0.268,
         1.981,
-        0.528,
-        0.352,
-        0.711,
-        0.264,
-        -0.578,
-        0.422,
+        0.536,
+        0.357,
+        0.714,
+        0.268,
+        -0.571,
+        0.429,
         0.0,
-        -0.697
+        -0.708
       ],
-      "geo_edge": 0.0,
-      "thesis": {
-        "direction": "LONG",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "no strong bearish factors"
-        ],
-        "stop_loss": 102.33,
-        "take_profit": 110.14,
-        "risk_reward": 1.33,
-        "time_horizon": "1-5 days (swing)"
-      },
-      "position_pct": 0.0,
-      "regime": "RISK_OFF"
+      "geo_edge": 0.0
     },
     {
       "asset": "CHAINLINK",
-      "price": 12.14,
-      "score": 2.2,
-      "confidence": 45,
-      "reason": "CHAINLINK +1.5% (24h), +0.0% (7d) @ $12. Ensemble score +2.2 (w\u00b7x + geo +0.00 + RISK_OFF).",
+      "price": 12.17,
+      "score": 3.6,
+      "confidence": 47,
+      "reason": "CHAINLINK +1.9% (24h), +0.0% (7d) @ $12. Optimized score +3.6 (w\u00b7x + geo +0.00).",
       "class": "crypto",
       "features": [
-        1.031,
+        1.297,
         0.0,
         0.0,
         0.18,
         0.3,
-        0.147,
-        0.295,
-        0.098,
-        0.987,
+        0.185,
+        0.371,
+        0.124,
+        0.989,
         -1.0,
-        0.491,
+        0.618,
         -1.0,
-        0.184,
-        1.973,
-        0.368,
-        0.245,
-        0.647,
-        0.184,
-        -0.705,
-        0.295,
+        0.232,
+        1.979,
+        0.463,
+        0.309,
+        0.685,
+        0.232,
+        -0.629,
+        0.371,
         0.0,
-        -0.486
+        -0.612
       ],
-      "geo_edge": 0.0,
-      "thesis": {
-        "direction": "LONG",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "no strong bearish factors"
-        ],
-        "stop_loss": 11.78,
-        "take_profit": 12.63,
-        "risk_reward": 1.33,
-        "time_horizon": "1-5 days (swing)"
-      },
-      "position_pct": 0.0,
-      "regime": "RISK_OFF"
+      "geo_edge": 0.0
     },
     {
       "asset": "RIPPLE",
       "price": 1.31,
-      "score": 2.1,
-      "confidence": 45,
-      "reason": "RIPPLE +1.4% (24h), +0.0% (7d) @ $1. Ensemble score +2.1 (w\u00b7x + geo +0.00 + RISK_OFF).",
+      "score": 3.1,
+      "confidence": 47,
+      "reason": "RIPPLE +1.5% (24h), +0.0% (7d) @ $1. Optimized score +3.1 (w\u00b7x + geo +0.00).",
       "class": "crypto",
       "features": [
-        0.972,
+        1.051,
         0.0,
         0.0,
         0.18,
         0.3,
-        0.139,
-        0.278,
-        0.093,
-        0.986,
+        0.15,
+        0.3,
+        0.1,
+        0.987,
         -1.0,
-        0.463,
+        0.501,
         -1.0,
-        0.174,
-        1.971,
-        0.347,
-        0.231,
-        0.639,
-        0.174,
-        -0.722,
-        0.278,
+        0.188,
+        1.974,
+        0.375,
+        0.25,
+        0.65,
+        0.188,
+        -0.7,
+        0.3,
         0.0,
-        -0.458
+        -0.496
       ],
-      "geo_edge": 0.0,
-      "thesis": {
-        "direction": "LONG",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "no strong bearish factors"
-        ],
-        "stop_loss": 1.27,
-        "take_profit": 1.36,
-        "risk_reward": 1.33,
-        "time_horizon": "1-5 days (swing)"
-      },
-      "position_pct": 0.0,
-      "regime": "RISK_OFF"
+      "geo_edge": 0.0
     }
   ],
   "shorts": [],
@@ -154,8 +109,7 @@
     "bias": 0,
     "notes": [
       "Weights: warming up (0/22 samples) \u2014 heuristic weights",
-      "Regime: RISK_OFF (greed, gold bid (risk-off), strong USD (risk-off)) \u2014 Risk-off: favor shorts/hedges, demand stronger long signals",
-      "Gold $4,177 \u2014 risk-off bid, trimming long confidence",
+      "Gold $4,185 \u2014 risk-off bid, trimming long confidence",
       "Strong USD (JPY>155) \u2014 headwind for risk assets"
     ]
   },
@@ -197,23 +151,23 @@
   ],
   "headlines": [
     {
-      "title": "Sensex drops 1,200 points as market value hits 4,72,62,167 cr",
-      "source": null
-    },
-    {
-      "title": "Stock Market LIVE Updates, Sensex Today: Sensex, Nifty Trade Flat, Oil Retreats From 5-Month High",
-      "source": null
-    },
-    {
-      "title": "Sensex, Nifty open in the green but quickly move into the red: See major gainers, laggards",
-      "source": null
-    },
-    {
       "title": "CXMT Drops 6.5% as US Chip Rout Hits Asia, Erasing Profit Turnaround Gains",
       "source": null
     },
     {
       "title": "Stocks showing promise of a rally: Brokerage expects up to 10% return; know target price",
+      "source": null
+    },
+    {
+      "title": "Stocks to watch today: ICICI, HDFC, RailTel and more in focus",
+      "source": null
+    },
+    {
+      "title": "HDFC, ICICI or Axis Bank: Post Q2 results, which stock is showing the highest potential?",
+      "source": null
+    },
+    {
+      "title": "What does the average Australian investor in 2026 look like?",
       "source": null
     }
   ],
@@ -229,7 +183,5 @@
     "within_5pct": 0,
     "mae": null,
     "within_5pct_rate": null
-  },
-  "regime": "RISK_OFF",
-  "kelly_pct": 0.0
+  }
 }

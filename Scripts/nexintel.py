@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+"""
+NexIntel Signal Engine — the autonomous loop.
+Runs on GitHub Actions (no server). Every run:
+  1. INGEST  — pulls all keyless live feeds
+  2. THINK   — scores assets, applies the psychology layer, generates picks
+  3. REMEMBER — scores yesterday's picks against today's prices, updates track record
+  4. PUBLISH — writes data/latest.json + data/history.json (site reads these)
+
+API keys (FRED, Finnhub, EIA) are read from environment variables = GitHub Secrets.
+If a key is absent, that feed is skipped gracefully — the engine degrades, never dies.
+"""
+
+import json, os, math, urllib.request, urllib.parse
+from datetime import datetime, timezone
+
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
+SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
+os.makedirs(SNAP_DIR, exist_ok=True)
+
+def fetch_json(url, timeout=20, method='GET', body=None, headers=None):
+    req = urllib.request.Request(url, method=method,
+        data=json.dumps(body).encode() if body else None,
+        headers=headers or {'User-Agent': 'NexIntel/1.0', 'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode())
+    except Exception as e:
+        print(f'  [warn] {url[:60]}... failed: {e}')
+        return None
+
+# ---------------------------------------------------------------- INGEST
+def ingest():
+    print('INGEST: pulling live feeds...')
+    d = {}
+
+    # Crypto (CoinGecko)
+    cg = fetch_json('https://api.coingecko.com/api/v3/simple/price'
+        '?ids=bitcoin,ethereum,solana,ripple,cardano,dogecoin,avalanche,chainlink'
+        '&vs_currencies=usd&include_24hr_change=true&include_7d_change=true')
+    d['crypto'] = cg or {}
+
+    # Coinbase real-time tickers
+    d['tickers'] = {}
+    for pair in ['BTC-USD', 'ETH-USD', 'SOL-USD']:
+        t = fetch_json(f'https://api.exchange.coinbase.com/products/{pair}/ticker')
+        if t: d['tickers'][pair] = t
+
+    # Sentiment (Fear & Greed)
+    fg = fetch_json('https://api.alternative.me/fng/?limit=7')
+    d['fear_greed'] = fg['data'] if fg and 'data' in fg else []
+
+    # Forex (open.er-api.com)
+    fx = fetch_json('https://open.er-api.com/v6/latest/USD')
+    d['forex'] = fx.get('rates', {}) if fx else {}
+
+    # Metals (gold-api.com)
+    d['metals'] = {}
+    for sym in ['XAU', 'XAG', 'XPT', 'XPD']:
+        m = fetch_json(f'https://api.gold-api.com/price/{sym}')
+        if m: d['metals'][sym] = m
+
+    # Federal contracts (USASpending — largest recent awards)
+    awards = fetch_json('https://api.usaspending.gov/api/v2/search/spending_by_award/',
+        method='POST',
+        body={'filters': {'award_type_codes': ['A', 'B', 'C', 'D']},
+              'fields': ['Award ID', 'Recipient Name', 'Award Amount', 'Awarding Agency'],
+              'limit': 10, 'sort': 'Award Amount', 'order': 'desc'})
+    d['contracts'] = (awards or {}).get('results', [])
+
+    # Headlines
+    news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
+    d['headlines'] = (news or {}).get('results', [])[:10]
+
+    # --- Keyed feeds (graceful if absent) ---
+    fred_key = os.environ.get('FRED_API_KEY')
+    d['rates'] = {}
+    if fred_key:
+        for sid, name in [('DGS10', 'us10y'), ('DGS2', 'us2y'), ('DFEDTARU', 'fedfunds'),
+                          ('T10Y2Y', 'curve'), ('DCOILWTICO', 'wti')]:
+            r = fetch_json(f'https://api.stlouisfed.org/fred/series/observations'
+                           f'?series_id={sid}&api_key={fred_key}&file_type=json&limit=1&sort_order=desc')
+            try: d['rates'][name] = r['observations'][0]['value']
+            except: pass
+    else:
+        print('  [info] FRED_API_KEY absent — rates feed skipped (add key in GitHub Secrets)')
+
+    finnhub_key = os.environ.get('FINNHUB_API_KEY')
+    d['stocks'] = {}
+    if finnhub_key:
+        for sym in ['SPY', 'QQQ', 'DIA', 'AAPL', 'NVDA', 'TSLA', 'MSFT']:
+            q = fetch_json(f'https://finnhub.io/api/v1/quote?symbol={sym}&token={finnhub_key}')
+            if q: d['stocks'][sym] = q
+    else:
+        print('  [info] FINNHUB_API_KEY absent — stocks feed skipped (add key in GitHub Secrets)')
+
+    return d
+
+# ---------------------------------------------------------------- THINK
+def clamp(x, lo=0, hi=100):
+    return max(lo, min(hi, x))
+
+# ---------------------------------------------------------------- OPTIMIZATION
+# Row echelon form via Gaussian elimination with partial pivoting.
+# Solves Ax = b for the least-squares optimal weight vector.
+def to_row_echelon(A, b):
+    """Forward elimination: reduce [A|b] to row echelon form. Returns (U, y)."""
+    n = len(A)
+    U = [row[:] + [b[i]] for i, row in enumerate(A)]  # augmented matrix
+    for col in range(n):
+        # partial pivot: largest absolute value in this column at/below diagonal
+        piv = max(range(col, n), key=lambda r: abs(U[r][col]))
+        U[col], U[piv] = U[piv], U[col]
+        if abs(U[col][col]) < 1e-12:
+            continue  # singular column — leave as is (ridge handles it)
+        for r in range(col + 1, n):
+            factor = U[r][col] / U[col][col]
+            for c in range(col, n + 1):
+                U[r][c] -= factor * U[col][c]
+    return [row[:n] for row in U], [row[n] for row in U]
+
+def back_substitute(U, y):
+    """Solve Ux = y where U is upper-triangular (row echelon form)."""
+    n = len(U)
+    x = [0.0] * n
+    for i in range(n - 1, -1, -1):
+        s = y[i] - sum(U[i][j] * x[j] for j in range(i + 1, n))
+        x[i] = s / U[i][i] if abs(U[i][i]) > 1e-12 else 0.0
+    return x
+
+def solve_least_squares(X, y, ridge=1e-3):
+    """
+    Solve min_w ||Xw - y||^2 via normal equations: (X^T X + λI) w = X^T y.
+    The system is reduced to row echelon form, then back-substituted.
+    Returns the optimal weight vector w.
+    """
+    n_feat = len(X[0])
+    # X^T X + λI
+    XtX = [[sum(X[r][i] * X[r][j] for r in range(len(X))) + (ridge if i == j else 0)
+            for j in range(n_feat)] for i in range(n_feat)]
+    Xty = [sum(X[r][i] * y[r] for r in range(len(X))) for i in range(n_feat)]
+    U, yy = to_row_echelon(XtX, Xty)
+    return back_substitute(U, yy)
+
+# Feature order (must stay consistent between training and scoring):
+# [momentum, reversion, psych_bias, fg_level, fg_delta, vol,
+#  acceleration, zscore, rsi, trend_align,
+#  macd, ma_align, donchian, rsi2, roc, stoch,
+#  boll_pctb, atr, vol_regime, zscore2, extreme_fade, var_proxy]
+# 1-10: base signals | 11-22: model library (trend/momentum/volatility/risk)
+import sys as _sys
+_sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from models import build_model_features, MODEL_NAMES, kelly_fraction, drawdown_guard
+N_FEATURES = 22
+HEURISTIC_W = ([1.0, 1.0, 0.6, 8.0, 4.0, -0.5, 0.8, -1.2, 0.3, 2.0] +
+               [0.5] * 12)  # model features start at half weight
+FEATURE_NAMES = (['momentum', 'reversion', 'psych_bias', 'fg_level', 'fg_delta', 'vol',
+                  'acceleration', 'zscore', 'rsi', 'trend_align'] + MODEL_NAMES)
+
+def extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta):
+    # --- Calculus: velocity (1st derivative) and acceleration (2nd derivative) ---
+    velocity = chg24
+    daily_trend = chg7d / 7.0
+    acceleration = chg24 - daily_trend  # + = move speeding up, - = dying
+    momentum = chg24 * (1 + (0.5 if (chg24 > 0) == (chg7d > 0) else -0.3))
+    reversion = -chg24 * 0.4 if abs(chg24) > 8 else 0.0
+    # --- Statistics: volatility, z-score, RSI proxy, trend alignment ---
+    vol = abs(chg24) / 10.0
+    zscore = max(-3.0, min(3.0, chg24 / 5.0))  # ~5% = 1 std for crypto daily
+    rs = max(chg24, 0.01) / max(-chg24, 0.01)
+    rsi = 100 - (100 / (1 + rs))  # 0-100 bounded oscillator
+    rsi_centered = (rsi - 50) / 50.0
+    trend_align = 1.0 if (chg24 > 0) == (chg7d > 0) else -1.0
+    base = [momentum, reversion, float(psych_bias),
+            (fg_now - 50) / 50.0, fg_delta / 20.0, vol,
+            acceleration / 5.0, zscore / 3.0, rsi_centered, trend_align]
+    # Append the full model library — optimizer decides what earns its weight
+    return base + build_model_features(chg24, chg7d)
+
+# ---------------------------------------------------------------- GEOMETRY
+def dot(a, b):
+    return sum(x * y for x, y in zip(a, b))
+
+def norm(a):
+    return math.sqrt(sum(x * x for x in a)) or 1e-12
+
+def cosine_sim(a, b):
+    """Cosine similarity: 1 = identical direction, -1 = opposite, 0 = orthogonal."""
+    return dot(a, b) / (norm(a) * norm(b))
+
+def geometric_edge(features, history):
+    """
+    Fast geometric pattern match: compare today's feature vector against the
+    centroid of historical WINNING setups vs LOSING setups.
+    Returns (edge, info) where edge > 0 favors the trade.
+    """
+    wins, losses = [], []
+    for run in history.get('picks', []):
+        if not run.get('scored'): continue
+        for p in run.get('longs', []) + run.get('shorts', []):
+            f, r = p.get('features'), p.get('return_pct')
+            if f and r is not None and len(f) <= N_FEATURES:
+                pf = _pad(f)
+                if r > 0: wins.append(pf)
+                else: losses.append(pf)
+    if len(wins) < 3 or len(losses) < 3:
+        return 0.0, 'warming up'
+    win_c = [sum(f[i] for f in wins) / len(wins) for i in range(N_FEATURES)]
+    loss_c = [sum(f[i] for f in losses) / len(losses) for i in range(N_FEATURES)]
+    edge = cosine_sim(features, win_c) - cosine_sim(features, loss_c)
+    return edge, f'{len(wins)}W/{len(losses)}L centroids'
+
+def _pad(f):
+    """Pad older shorter feature vectors with zeros to current N_FEATURES."""
+    f = list(f)
+    while len(f) < N_FEATURES: f.append(0.0)
+    return f[:N_FEATURES]
+
+def learn_weights(history):
+    """
+    Train on scored historical picks: X = feature rows, y = realized returns.
+    Solves for optimal weights via row echelon form. Needs >= N_FEATURES samples;
+    falls back to heuristics before that.
+    """
+    X, y = [], []
+    for run in history.get('picks', []):
+        if not run.get('scored'): continue
+        for p in run.get('longs', []) + run.get('shorts', []):
+            f = p.get('features')
+            r = p.get('return_pct')
+            if f and r is not None and len(f) <= N_FEATURES:
+                X.append(_pad(f)); y.append(r)
+    if len(X) < N_FEATURES:
+        return HEURISTIC_W, {'trained': False, 'samples': len(X),
+                             'note': f'warming up ({len(X)}/{N_FEATURES} samples) — heuristic weights'}
+    w = solve_least_squares(X, y)
+    return w, {'trained': True, 'samples': len(X),
+               'note': f'optimized on {len(X)} scored picks via row echelon form'}
+
+def think(data, history):
+    """Generate long/short picks using learned optimal weights + psychology layer."""
+    print('THINK: scoring assets (optimization)...')
+    longs, shorts = [], []
+    explanations = []
+
+    crypto = data.get('crypto', {})
+    fg_now = int(data['fear_greed'][0]['value']) if data.get('fear_greed') else 50
+    fg_prev = int(data['fear_greed'][1]['value']) if len(data.get('fear_greed', [])) > 1 else fg_now
+    fg_delta = fg_now - fg_prev
+
+    # --- Psychology layer ("god particle"): crowd sentiment drives contrarian edge ---
+    psych_bias = 0
+    if fg_now <= 20:   psych_bias = +25; explanations.append(f'Extreme fear ({fg_now}) — capitulation zone, long bias')
+    elif fg_now <= 35: psych_bias = +10; explanations.append(f'Fear ({fg_now}) — cautious long bias')
+    elif fg_now >= 80: psych_bias = -25; explanations.append(f'Extreme greed ({fg_now}) — euphoria, short bias')
+    elif fg_now >= 65: psych_bias = -10; explanations.append(f'Greed ({fg_now}) — trim-into-strength bias')
+    if fg_delta <= -8: explanations.append(f'Sentiment collapsing ({fg_delta:+d}) — fear accelerating')
+    if fg_delta >= +8: explanations.append(f'Sentiment surging ({fg_delta:+d}) — greed accelerating')
+
+    # --- Learn optimal weights from history (row echelon form) ---
+    weights, winfo = learn_weights(history)
+    explanations.append('Weights: ' + winfo['note'])
+    print(f"  weights = {[round(w, 3) for w in weights]} ({winfo['note']})")
+
+    # --- Score crypto with w·x ---
+    for cid, info in crypto.items():
+        chg24 = info.get('usd_24h_change') or 0
+        chg7d = (info.get('usd_7d_change') or 0)
+        price = info.get('usd') or 0
+        sym = cid.upper()
+        feats = extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta)
+        score = sum(w * f for w, f in zip(weights, feats))
+        # Geometric layer: fastest pattern match via cosine similarity
+        g_edge, g_info = geometric_edge(feats, history)
+        score += g_edge * 10.0
+        conf = clamp(50 + abs(score) * 1.5)
+        reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ ${price:,.0f}. '
+                  f'Optimized score {score:+.1f} (w·x + geo {g_edge:+.2f}).')
+        pick = {'asset': sym, 'price': round(price, 2), 'score': round(score, 1),
+                'confidence': round(conf), 'reason': reason, 'class': 'crypto',
+                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3)}
+        (longs if score > 0 else shorts).append(pick)
+
+    # --- Metals as risk barometer ---
+    metals = data.get('metals', {})
+    xau = (metals.get('XAU') or {}).get('price')
+    if xau:
+        # Gold strength = risk-off → temper crypto longs
+        risk_off = xau > 4000
+        if risk_off:
+            explanations.append(f'Gold ${xau:,.0f} — risk-off bid, trimming long confidence')
+            for p in longs: p['confidence'] = max(40, p['confidence'] - 5)
+
+    # --- Forex: USD strength = risk-off for crypto ---
+    fx = data.get('forex', {})
+    if fx.get('JPY'):
+        # JPY per USD high = strong dollar = risk-off
+        if fx['JPY'] > 155:
+            explanations.append('Strong USD (JPY>155) — headwind for risk assets')
+            for p in longs: p['confidence'] = max(40, p['confidence'] - 3)
+
+    # --- Stocks (if Finnhub key present) — same feature model ---
+    for sym, q in data.get('stocks', {}).items():
+        dp = q.get('dp') or 0  # day percent change
+        c = q.get('c') or 0
+        feats = extract_features(dp, dp * 2, psych_bias, fg_now, fg_delta)
+        score = sum(w * f for w, f in zip(weights, feats))
+        g_edge, _ = geometric_edge(feats, history)
+        score += g_edge * 10.0
+        conf = clamp(50 + abs(score) * 2)
+        reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Optimized score {score:+.1f} (w·x + geo).'
+        pick = {'asset': sym, 'price': round(c, 2), 'score': round(score, 1),
+                'confidence': round(conf), 'reason': reason, 'class': 'equity',
+                'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3)}
+        (longs if score > 0 else shorts).append(pick)
+
+    # --- Contracts watch (Govgistics): flag mega-awards ---
+    contracts = data.get('contracts', [])
+    mega = [c for c in contracts if (c.get('Award Amount') or 0) > 500_000_000]
+    contract_notes = [f"${c['Award Amount']/1e9:.2f}B → {c.get('Recipient Name','?')} ({c.get('Awarding Agency','?')})"
+                      for c in mega[:5]]
+
+    longs.sort(key=lambda p: -p['score'])
+    shorts.sort(key=lambda p: p['score'])
+
+    return {
+        'longs': longs[:3], 'shorts': shorts[:3],
+        'psychology': {'fear_greed': fg_now, 'delta': fg_delta, 'bias': psych_bias,
+                       'notes': explanations},
+        'weights': [round(w, 4) for w in weights],
+        'weight_info': winfo,
+        'contracts_watch': contract_notes,
+        'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
+                      for h in data.get('headlines', [])[:5]],
+    }
+
+def load_history():
+    hist_path = os.path.join(DATA_DIR, 'history.json')
+    try:
+        with open(hist_path) as f: return json.load(f)
+    except: return {'picks': [], 'stats': {'wins': 0, 'losses': 0, 'total': 0}}
+
+# ---------------------------------------------------------------- REMEMBER
+def remember(data, signals):
+    """Score previous picks against current prices; build track record + error metrics."""
+    print('REMEMBER: scoring prior picks...')
+    history = load_history()
+    stats = history.setdefault('stats', {'wins': 0, 'losses': 0, 'total': 0})
+    # Error tracking: 5% margin-of-error target — |predicted| vs |realized|
+    err = history.setdefault('error', {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0})
+
+    # Current prices for scoring
+    px = {}
+    for cid, info in data.get('crypto', {}).items():
+        if info.get('usd'): px[cid.upper()] = info['usd']
+    for sym, q in data.get('stocks', {}).items():
+        if q.get('c'): px[sym] = q['c']
+
+    # Score any unscored picks from prior runs
+    for run in history['picks']:
+        if run.get('scored'): continue
+        scored_any = False
+        for p in run.get('longs', []) + run.get('shorts', []):
+            cur = px.get(p['asset'])
+            if not cur or not p.get('price'): continue
+            ret = (cur - p['price']) / p['price'] * 100
+            if p in run.get('shorts', []): ret = -ret
+            p['exit'] = round(cur, 2); p['return_pct'] = round(ret, 2)
+            p['win'] = ret > 0
+            # Error metric: how far was |predicted score| from |actual return|?
+            abs_err = abs(abs(p.get('score') or 0) - abs(ret))
+            err['sum_abs_err'] += abs_err; err['n'] += 1
+            if abs_err <= 5.0: err['within_5pct'] += 1
+            p['abs_error'] = round(abs_err, 2)
+            scored_any = True
+            stats['total'] += 1
+            stats['wins' if ret > 0 else 'losses'] += 1
+        if scored_any: run['scored'] = True
+
+    # Append today's picks as a new run
+    now = datetime.now(timezone.utc).isoformat()
+    history['picks'].append({
+        'date': now, 'scored': False,
+        'longs': signals['longs'], 'shorts': signals['shorts'],
+        'fear_greed': signals['psychology']['fear_greed'],
+    })
+    # Keep last 90 runs
+    history['picks'] = history['picks'][-90:]
+
+    s = stats
+    s['win_rate'] = round(100 * s['wins'] / s['total'], 1) if s['total'] else None
+    # Error summary: mean absolute error + % within the 5% target
+    if err['n']:
+        err['mae'] = round(err['sum_abs_err'] / err['n'], 2)
+        err['within_5pct_rate'] = round(100 * err['within_5pct'] / err['n'], 1)
+    else:
+        err['mae'] = None; err['within_5pct_rate'] = None
+    return history
+
+# ---------------------------------------------------------------- PUBLISH
+def publish(data, signals, history):
+    now = datetime.now(timezone.utc)
+    stamp = now.strftime('%Y-%m-%dT%H-%M')
+
+    # Snapshot raw data
+    with open(os.path.join(SNAP_DIR, f'{stamp}.json'), 'w') as f:
+        json.dump({'timestamp': now.isoformat(), 'data': data}, f)
+
+    latest = {
+        'generated': now.isoformat(),
+        'fear_greed': signals['psychology']['fear_greed'],
+        'longs': signals['longs'], 'shorts': signals['shorts'],
+        'psychology': signals['psychology'],
+        'weights': signals.get('weights'),
+        'weight_info': signals.get('weight_info'),
+        'contracts_watch': signals['contracts_watch'],
+        'headlines': signals['headlines'],
+        'track_record': history['stats'],
+        'model_error': history.get('error', {}),
+    }
+    with open(os.path.join(DATA_DIR, 'latest.json'), 'w') as f:
+        json.dump(latest, f, indent=2)
+    with open(os.path.join(DATA_DIR, 'history.json'), 'w') as f:
+        json.dump(history, f, indent=2)
+    print(f'PUBLISH: data/latest.json written ({len(signals["longs"])}L/{len(signals["shorts"])}S)')
+
+def main():
+    print('=== NexIntel loop starting ===')
+    data = ingest()
+    history = load_history()          # load BEFORE think — weights learn from it
+    signals = think(data, history)
+    history = remember(data, signals) # remember() reloads + scores + appends
+    publish(data, signals, history)
+    print('=== NexIntel loop complete ===')
+
+if __name__ == '__main__':
+    main()
