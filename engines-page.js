@@ -5,13 +5,24 @@
 (function () {
   'use strict';
 
-  // Engines with a real health-check endpoint and what "healthy" means
+  // Engines with a real health-check endpoint and what "healthy" means.
+  // For data-backed engines we check our own latest.json — if the NexIntel
+  // loop populated that feed, the engine is genuinely online.
   var HEALTH_CHECKS = {
     'Crypto Pulse': 'https://api.coingecko.com/api/v3/ping',
     'Chain Signal': 'https://api.coingecko.com/api/v3/ping',
-    'Macro Scope': 'https://api.alternative.me/fng/?limit=1',
-    'Contract Intel': 'https://api.usaspending.gov/api/v2/agency/awards/?fiscal_year=2025',
-    'Liquidity Engine': 'https://api.stlouisfed.org/fred/series?series_id=GDP&api_key=demo&file_type=json'
+    'Macro Scope': 'https://api.alternative.me/fng/?limit=1'
+  };
+  // Feed-backed engines: verified against NexIntel's own data output
+  var FEED_CHECKS = {
+    'Contract Intel': function (model) {
+      var cw = model && model.contracts_watch;
+      return cw && cw.length > 0;
+    },
+    'Liquidity Engine': function (model) {
+      var m = model && model.macro;
+      return m && (m.cpi || m.gdp || m.m2);
+    }
   };
 
   function setStatus(card, online, latencyMs) {
@@ -32,6 +43,22 @@
 
   function checkHealth(name, card) {
     var url = HEALTH_CHECKS[name];
+    var feedCheck = FEED_CHECKS[name];
+    if (feedCheck) {
+      // Check NexIntel's own data output for this feed
+      fetch('data/latest.json', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function (model) {
+          if (feedCheck(model)) {
+            setStatus(card, true, 0);
+            card.querySelector('.status-text').textContent = 'Online · live feed';
+          } else {
+            setStatus(card, null);
+          }
+        })
+        .catch(function () { setStatus(card, false); });
+      return;
+    }
     if (!url) { setStatus(card, null); return; }
     var t0 = performance.now();
     fetch(url, { cache: 'no-store' })
