@@ -50,6 +50,7 @@
       '<p><strong>Ensemble score:</strong> ' + (p.score !== undefined ? p.score : '—') +
       ' &nbsp; <strong>Geometric edge:</strong> ' + (p.geo_edge !== undefined ? p.geo_edge : '—') +
       ' &nbsp; <strong>Regime:</strong> ' + (p.regime || '—') + '</p>' +
+      (p.tf_align ? '<p><strong>Timeframe alignment:</strong> ' + p.tf_align + ' <span class="live-stamp">(1h / 24h / 7d / 14d / 30d)</span></p>' : '') +
       '<p><strong>Why this score</strong> — top model signals:</p>' +
       '<table class="feat-table"><tr><th>Signal</th><th>Value</th></tr>' + featRows + '</table>' +
       '<p class="live-stamp">Positive values push the score up (bullish), negative push it down. ' +

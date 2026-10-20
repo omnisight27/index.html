@@ -64,14 +64,17 @@ def ingest():
         for page in range(1, 5):
             mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
                 f'?vs_currency=usd&order=market_cap_desc&per_page=250&page={page}'
-                '&price_change_percentage=24h,7d')
+                '&price_change_percentage=1h,24h,7d,14d,30d')
             if not mkts:
                 break
             for c in mkts:
                 d['crypto'][c['id']] = {
                     'usd': c['current_price'],
+                    'usd_1h_change': c.get('price_change_percentage_1h_in_currency') or 0,
                     'usd_24h_change': c.get('price_change_percentage_24h') or 0,
                     'usd_7d_change': c.get('price_change_percentage_7d_in_currency') or 0,
+                    'usd_14d_change': c.get('price_change_percentage_14d_in_currency') or 0,
+                    'usd_30d_change': c.get('price_change_percentage_30d_in_currency') or 0,
                     'symbol': (c['symbol'] or '').upper(),
                     'name': c.get('name') or '',
                     'market_cap': c.get('market_cap') or 0,
@@ -555,6 +558,14 @@ def think(data, history):
         if score > 0: score *= adj['long_boost']
         else: score *= adj['short_damp']
         conf = clamp(50 + abs(score) * 1.5)
+        # Multi-timeframe alignment: count windows (1h/24h/7d/14d/30d) that
+        # agree with the pick direction. Full agreement +3 conf, near-none -3.
+        tf_windows = [info.get('usd_1h_change') or 0, chg24, chg7d,
+                      info.get('usd_14d_change') or 0, info.get('usd_30d_change') or 0]
+        tf_agree = sum(1 for w in tf_windows if w != 0 and (w > 0) == (score > 0))
+        tf_align = f'{tf_agree}/5 timeframes agree'
+        if tf_agree == 5: conf = min(97, conf + 3)
+        elif tf_agree <= 1: conf = max(35, conf - 3)
         thesis = build_thesis(sym, chg24, chg7d, price, score, conf, regime, fg_now, g_edge, 'crypto')
         reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ ${price:,.0f}. '
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
@@ -563,6 +574,7 @@ def think(data, history):
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'tradable': tradable_on(sym),
+                'tf_align': tf_align,
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
@@ -637,6 +649,7 @@ def think(data, history):
                 'info_url': f'https://finance.yahoo.com/quote/{sym}',
                 'edgar_url': edgar_url(sym),
                 'cik': TICKER_CIK.get(sym),
+                'tf_align': None,  # Finnhub gives day change only — no multi-window data
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
