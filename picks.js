@@ -138,6 +138,7 @@
 
   // Movers + watch strips (intraday.json) — shared state for detail links
   var lastIntraday = null;
+  var lastSwing = null;  // latest.json payload, for the verdict strip
   var swingSides = {};  // asset -> 'long' | 'short', filled from latest.json
 
   function fmtPlanPrice(v) {
@@ -215,6 +216,183 @@
     fill('watch-all', watch, '👀 Watching <span class="live-stamp">(early signs — volume surge or fresh turn)</span>', 'Nothing showing early signs right now.', false);
   }
 
+  // ---------- 🎯 Today's Verdicts ----------
+  // One plain-word verdict per surfaced asset, computed in the browser from
+  // the two payloads this page already loads — no new engine fields.
+  //   BUY      — intraday LONG signal with confidence >= 70; OR swing long
+  //              with confidence >= 70 AND >= 4 of 5 timeframes agreeing;
+  //              OR a mover carrying a plan whose 1h change is still
+  //              positive AND whose 24h change is >= +15%.
+  //   CLOSEST  — only when no BUY exists: the highest-confidence long
+  //   TO A BUY   candidate under the bar, with the gap in plain words.
+  //   WATCHING — top watch-list / Setting Up items (max 3).
+  //   AVOID    — any pick with a news flag; any mover down >= 10% in 24h.
+  // A news-flagged asset can never be a BUY (the ZEC lesson: a bad headline
+  // outranks a model score).
+  function tfAgree(p) {
+    var v = p && p.tf_align;
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return v <= 1 ? Math.round(v * 5) : Math.round(v);
+    var m = String(v).match(/(\d+)\s*\/\s*5/) || String(v).match(/(\d+)\s+of\s+5/i);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function detailFor(asset) {
+    var intra = lastIntraday && ((lastIntraday.longs || []).concat(lastIntraday.shorts || []))
+      .some(function (s) { return s.asset === asset; });
+    if (intra) return 'pick.html?asset=' + encodeURIComponent(asset) + '&type=intraday';
+    if (swingSides[asset]) return 'pick.html?asset=' + encodeURIComponent(asset) + '&type=swing&side=' + swingSides[asset];
+    return null;
+  }
+
+  function planLine(plan) {
+    if (!plan || plan.take_profit === undefined || plan.stop_loss === undefined) return '';
+    return '<p><strong>Buy</strong> ~$' + fmtPlanPrice(plan.entry) +
+      ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(plan.take_profit) +
+      ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(plan.stop_loss) +
+      (plan.exit_by ? ' · <strong>Out by</strong> ' + plan.exit_by : '') + '</p>';
+  }
+
+  function verdictCard(v) {
+    var badges = {
+      'BUY': ['#10b981', '#ffffff'],
+      'CLOSEST TO A BUY': ['#f59e0b', '#0b1220'],
+      'WATCHING': ['#38bdf8', '#0b1220'],
+      'AVOID': ['#dc2626', '#ffffff']
+    };
+    var b = badges[v.verdict] || ['#6b7280', '#ffffff'];
+    var cls = v.verdict === 'BUY' ? 'alert-buy' : (v.verdict === 'AVOID' ? 'alert-sell' : 'alert-hold');
+    var nm = v.name && v.name !== v.asset ? ' <span class="asset-name">' + v.name + '</span>' : '';
+    var link = v.info_url ? ' <a class="asset-link" href="' + v.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
+    var detail = v.detail ? '<p><a class="details-toggle" href="' + v.detail + '">📄 Full detail page →</a></p>' : '';
+    return '<div class="alert-card ' + cls + '">' +
+      '<h4><span style="background:' + b[0] + ';color:' + b[1] + ';padding:2px 10px;border-radius:999px;font-size:13px;vertical-align:middle">' + v.verdict + '</span> ' + v.asset + '</h4>' +
+      '<p class="asset-sub">' + nm + link + '</p>' +
+      '<p>' + v.reason + '</p>' +
+      planLine(v.plan) +
+      detail + '</div>';
+  }
+
+  function computeVerdicts(swing, intra) {
+    swing = swing || {};
+    intra = intra || {};
+    var seen = {};
+    var buys = [], avoids = [], watching = [];
+    var swingLongs = swing.longs || [];
+    var intraLongs = (intra.longs || []).filter(function (s) { return !s.direction || s.direction === 'LONG'; });
+    var movers = intra.movers || [];
+    var newsFlagged = {};
+    (swing.longs || []).concat(swing.shorts || []).forEach(function (p) {
+      if (p.news_flag) newsFlagged[p.asset] = p;
+    });
+    function push(list, v) { if (!seen[v.asset]) { seen[v.asset] = 1; list.push(v); } }
+
+    // BUY — intraday signals, then aligned swing longs, then hot movers
+    intraLongs.forEach(function (s) {
+      if ((s.confidence || 0) >= 70 && !newsFlagged[s.asset]) {
+        var t = s.thesis || {};
+        push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url,
+          reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 70% buy bar.',
+          plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null,
+          detail: 'pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday' });
+      }
+    });
+    swingLongs.forEach(function (p) {
+      var agree = tfAgree(p);
+      if ((p.confidence || 0) >= 70 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
+        var t = p.thesis || {};
+        push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url,
+          reason: p.confidence + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
+          plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit },
+          detail: 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=long' });
+      }
+    });
+    movers.forEach(function (m) {
+      if (m.plan && (m.chg_1h || 0) > 0 && (m.chg_24h || 0) >= 15) {
+        push(buys, { verdict: 'BUY', asset: m.asset, name: m.name, info_url: m.info_url,
+          reason: 'Mover still climbing: +' + m.chg_24h + '% in 24h and +' + m.chg_1h + '% this hour, with a plan attached.',
+          plan: m.plan, detail: detailFor(m.asset) });
+      }
+    });
+
+    // AVOID — bad headlines and falling knives
+    Object.keys(newsFlagged).forEach(function (a) {
+      var p = newsFlagged[a];
+      push(avoids, { verdict: 'AVOID', asset: a, name: p.name, info_url: p.info_url,
+        reason: '⚠️ News risk: ' + plainReason(p.news_flag), detail: detailFor(a) });
+    });
+    movers.forEach(function (m) {
+      if ((m.chg_24h || 0) <= -10) {
+        push(avoids, { verdict: 'AVOID', asset: m.asset, name: m.name, info_url: m.info_url,
+          reason: 'Falling hard (' + m.chg_24h + '% in 24h) — no catching knives (long-only).',
+          detail: detailFor(m.asset) });
+      }
+    });
+
+    // CLOSEST TO A BUY — only when nothing cleared the bar
+    var closest = null;
+    if (!buys.length) {
+      var cands = [];
+      swingLongs.forEach(function (p) {
+        if (!newsFlagged[p.asset] && !seen[p.asset]) cands.push({ src: 'swing', p: p, conf: p.confidence || 0 });
+      });
+      intraLongs.forEach(function (s) {
+        if (!newsFlagged[s.asset] && !seen[s.asset]) cands.push({ src: 'intra', p: s, conf: s.confidence || 0 });
+      });
+      cands.sort(function (a, b) { return b.conf - a.conf; });
+      if (cands.length) {
+        var c = cands[0], p = c.p, t = p.thesis || {}, gap;
+        if (c.conf < 70) {
+          gap = c.conf + '% confidence — the buy bar is 70%.';
+        } else {
+          var ag = tfAgree(p);
+          gap = c.conf + '% confidence, but ' +
+            (ag === null ? 'no timeframe confirmation yet' : 'only ' + ag + ' of 5 timeframes agree') +
+            ' — the buy bar needs 4 of 5 agreeing.';
+        }
+        closest = { verdict: 'CLOSEST TO A BUY', asset: p.asset, name: p.name, info_url: p.info_url,
+          reason: 'Closest thing to a buy right now: ' + gap,
+          plan: c.src === 'swing'
+            ? { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit }
+            : (t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null),
+          detail: c.src === 'swing'
+            ? 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=long'
+            : 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=intraday' };
+        seen[p.asset] = 1;
+      }
+    }
+
+    // WATCHING — early signs, top 3 across watch + Setting Up
+    (intra.watch || []).concat(intra.accum || []).forEach(function (m) {
+      if (watching.length >= 3) return;
+      push(watching, { verdict: 'WATCHING', asset: m.asset, name: m.name, info_url: m.info_url,
+        reason: 'Watching — ' + plainReason(m.watch_reason || 'early signs building'),
+        plan: m.plan || null, detail: detailFor(m.asset) });
+    });
+
+    var cards = buys.concat(closest ? [closest] : []).concat(watching).concat(avoids);
+    var emptyNote = null;
+    if (!buys.length && !closest) {
+      var lbl = swing.regime_label || (swing.regime ? regimeLabel(swing.regime) : null);
+      emptyNote = lbl
+        ? 'No buy today — ' + lbl + '; the model would rather sit out than force a trade.'
+        : 'No buy today — the model would rather sit out than force a trade.';
+    }
+    return { cards: cards, emptyNote: emptyNote };
+  }
+
+  function renderVerdicts() {
+    var el = document.getElementById('verdicts');
+    if (!el) return;
+    if (!lastSwing && !lastIntraday) return;
+    var res = computeVerdicts(lastSwing || {}, lastIntraday || {});
+    var html = '<h3>🎯 Today\'s Verdicts</h3>';
+    if (res.emptyNote) html += '<div class="card"><p>' + res.emptyNote + '</p></div>';
+    if (res.cards.length) html += '<div class="grid">' + res.cards.map(verdictCard).join('') + '</div>';
+    html += '<p class="live-stamp">Verdicts are the system\'s paper-grade calls — every BUY is recorded in the 📒 Proof Book (Reports). Real-money buys follow Nic\'s protocol: Queen B calls it first.</p>';
+    el.innerHTML = html;
+  }
+
   // Intraday signals (hourly engine)
   function loadIntraday() {
     var el = document.getElementById('picks-intraday');
@@ -225,6 +403,7 @@
       .then(function (d) {
         lastIntraday = d;
         renderMovers();  // movers/watch render even when no signals fire
+        renderVerdicts();
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
         // Unified freshness stamp at the top of the page — the intraday
@@ -329,7 +508,9 @@
         // Remember swing pick sides so mover cards can link to detail pages
         (d.longs || []).forEach(function (p) { swingSides[p.asset] = 'long'; });
         (d.shorts || []).forEach(function (p) { swingSides[p.asset] = 'short'; });
+        lastSwing = d;
         renderMovers();
+        renderVerdicts();
         var ms = document.getElementById('model-stats');
         if (ms) {
           var tr = d.track_record || {};
@@ -383,8 +564,18 @@
     setupTabs();
     // Auto-refresh every 5 minutes for live updates — loadIntraday() also
     // refreshes the unified data stamp. (The separate latest.json re-fetch
-    // that used to live here only rewrote "last ran" texts; consolidated.)
-    setInterval(loadIntraday, 300000);
+    // that used to live here only rewrote "last ran" texts; consolidated.
+    // A quiet latest.json re-fetch remains ONLY to keep the verdict strip's
+    // swing side fresh — it writes no stamps and renders no grids.)
+    setInterval(function () {
+      loadIntraday();
+      fetch('data/latest.json', { cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          lastSwing = d;
+          renderVerdicts();
+        }).catch(function () {});
+    }, 300000);
     // Longs-only toggle (persisted)
     var loToggle = document.getElementById('longs-only');
     var shortsGrid = document.getElementById('picks-shorts');
