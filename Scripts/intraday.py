@@ -145,12 +145,20 @@ def main():
         if sym in listings_cb: out.append('coinbase')
         if sym in listings_cdc: out.append('cryptocom')
         return out
-    # Top 50 coins by market cap (1 call)
-    mkts = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
-        '?vs_currency=usd&order=market_cap_desc&per_page=50&page=1')
-    if not mkts:
+    # Broad universe for the movers scan: top 1,000 by market cap (4 pages).
+    # Page 1 doubles as the top-50 universe for the signal scan below.
+    universe = []
+    for page in range(1, 5):
+        mkts_page = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
+            f'?vs_currency=usd&order=market_cap_desc&per_page=250&page={page}'
+            '&price_change_percentage=1h,24h')
+        if not mkts_page:
+            break
+        universe.extend(mkts_page)
+    if not universe:
         print('  FAILED: no market data')
         return
+    mkts = universe[:50]
 
     signals = []
     for c in mkts:
@@ -188,12 +196,70 @@ def main():
     longs = [s for s in signals if s['direction'] == 'LONG'][:5]
     shorts = [s for s in signals if s['direction'] == 'SHORT'][:5]
 
+    # --- Movers scan (two tiers) over the full top-1,000 universe ---
+    # 🚀 MOVER: already moving — |1h| >= 5% or |24h| >= 10%, mcap >= $100M.
+    # 👀 WATCH: early signs — |1h| >= 3% AND (volume surge OR fresh inflection).
+    #   Volume-surge approximation: CoinGecko gives only current 24h volume
+    #   (no per-coin baseline), so "surge" = the coin's volume/market-cap
+    #   ratio sits in the TOP QUARTILE of the scanned universe — unusually
+    #   heavy trading relative to the coin's own size.
+    #   Fresh inflection: 1h move >= 3% while the 24h trend is still against
+    #   it (24h <= 0 for an up-turn, >= 0 for a down-turn) — the turn is
+    #   starting before the daily numbers confirm it.
+    def mover_fields(c, direction):
+        return {
+            'asset': (c['symbol'] or '').upper(),
+            'name': c.get('name') or (c['symbol'] or '').upper(),
+            'price': c.get('current_price') or 0,
+            'chg_1h': round(c.get('price_change_percentage_1h_in_currency') or 0, 2),
+            'chg_24h': round(c.get('price_change_percentage_24h_in_currency')
+                             if c.get('price_change_percentage_24h_in_currency') is not None
+                             else (c.get('price_change_percentage_24h') or 0), 2),
+            'market_cap': c.get('market_cap') or 0,
+            'direction': direction,
+            'tradable': tradable_on((c['symbol'] or '').upper()),
+            'info_url': f"https://www.coingecko.com/en/coins/{c['id']}",
+        }
+    scanned = [c for c in universe
+               if (c.get('market_cap') or 0) >= 100_000_000
+               and (c['symbol'] or '').upper() not in BLOCKED]
+    ratios = sorted((c.get('total_volume') or 0) / c['market_cap']
+                    for c in scanned if c.get('market_cap'))
+    vol_q3 = ratios[int(len(ratios) * 0.75)] if ratios else float('inf')
+    movers, watch = [], []
+    for c in scanned:
+        chg1 = c.get('price_change_percentage_1h_in_currency') or 0
+        chg24 = c.get('price_change_percentage_24h_in_currency')
+        if chg24 is None:
+            chg24 = c.get('price_change_percentage_24h') or 0
+        if abs(chg1) >= 5 or abs(chg24) >= 10:
+            direction = ('UP' if chg24 > 0 else 'DOWN') if abs(chg24) >= abs(chg1) \
+                        else ('UP' if chg1 > 0 else 'DOWN')
+            movers.append(mover_fields(c, direction))
+            continue  # a mover is never also a watch item
+        if abs(chg1) >= 3:
+            vol_ratio = (c.get('total_volume') or 0) / c['market_cap'] if c.get('market_cap') else 0
+            surge = vol_ratio >= vol_q3
+            inflection = (chg1 >= 3 and chg24 <= 0) or (chg1 <= -3 and chg24 >= 0)
+            if surge or inflection:
+                w = mover_fields(c, 'UP' if chg1 > 0 else 'DOWN')
+                w['watch_reason'] = ('volume surge' if surge else '') + \
+                    (' + ' if surge and inflection else '') + \
+                    ('fresh inflection' if inflection else '')
+                watch.append(w)
+    movers.sort(key=lambda m: -abs(m['chg_24h']))
+    watch.sort(key=lambda m: -abs(m['chg_1h']))
+    movers, watch = movers[:10], watch[:10]
+    print(f'  Movers scan: {len(movers)} movers, {len(watch)} watching (of {len(scanned)} scanned)')
+
     out = {
         'generated': datetime.now(timezone.utc).isoformat(),
         'mode': 'intraday',
         'horizon': '1-4 hours',
         'longs': longs,
         'shorts': shorts,
+        'movers': movers,
+        'watch': watch,
         'coins_scanned': len(mkts),
     }
     os.makedirs(DATA_DIR, exist_ok=True)
