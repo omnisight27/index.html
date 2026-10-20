@@ -194,9 +194,12 @@ def ingest():
             try: d['rates'][name] = r['observations'][0]['value']
             except: pass
         # Macro dashboard: CPI, GDP, unemployment, consumer sentiment, money supply
+        # + GNP, payrolls (PAYEMS), jobless claims (ICSA), consumer spending (PCE)
         for sid, name in [('CPIAUCSL', 'cpi'), ('GDP', 'gdp'), ('UNRATE', 'unemployment'),
                           ('UMCSENT', 'consumer_sentiment'), ('M2SL', 'm2'),
-                          ('DEXUSEU', 'eur_usd'), ('DGS30', 'us30y')]:
+                          ('DEXUSEU', 'eur_usd'), ('DGS30', 'us30y'),
+                          ('GNP', 'gnp'), ('PAYEMS', 'payrolls'),
+                          ('ICSA', 'jobless_claims'), ('PCE', 'consumer_spending')]:
             r = fetch_json(f'https://api.stlouisfed.org/fred/series/observations'
                            f'?series_id={sid}&api_key={fred_key}&file_type=json&limit=3&sort_order=desc')
             try:
@@ -398,6 +401,13 @@ def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
     cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
     if cpi_yoy and cpi_yoy > 4: score -= 1; reasons.append(f'inflation hot ({cpi_yoy:.1f}% YoY)')
     elif cpi_yoy and cpi_yoy < 2: score += 1; reasons.append(f'inflation cool ({cpi_yoy:.1f}% YoY)')
+    # Labor + spending overlays (FRED ICSA / PCE)
+    icsa = macro.get('jobless_claims') or {}
+    if icsa.get('value') and icsa.get('prev') and icsa['value'] > icsa['prev']:
+        score -= 1; reasons.append('jobless claims rising')
+    pce = macro.get('consumer_spending') or {}
+    if pce.get('change_pct') is not None and pce['change_pct'] >= 0.5:
+        score += 1; reasons.append('consumer spending strong')
     if score >= 1: regime = 'RISK_ON'
     elif score <= -1: regime = 'RISK_OFF'
     else: regime = 'NEUTRAL'
@@ -763,6 +773,15 @@ def think(data, history):
                 'reason': f"CPI YoY at {cpi_v}% — below 2% (cool inflation, risk-on tilt).",
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             })
+    # Liquidity Engine alert — jobless claims spike (>10% vs prior week)
+    icsa = macro.get('jobless_claims', {})
+    if icsa.get('change_pct') and icsa['change_pct'] > 10 and icsa.get('value'):
+        alerts.append({
+            'type': 'MACRO', 'asset': 'ICSA', 'price': icsa['value'], 'confidence': 80,
+            'asset_class': 'macro',
+            'reason': f"Jobless claims jumped {icsa['change_pct']:+.1f}% to {icsa['value']:,.0f} — labor market cooling fast (risk-off tilt).",
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
 
     # --- Regime FLIP alert: compare to previous run ---
     prev_regime = None
