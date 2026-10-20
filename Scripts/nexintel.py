@@ -631,6 +631,35 @@ def think(data, history):
         'DIS': 'Walt Disney Co.', 'INTC': 'Intel Corp.', 'COIN': 'Coinbase Global Inc.', 'MSTR': 'MicroStrategy Inc.',
         'PLTR': 'Palantir Technologies Inc.',
     }
+    # --- SEC insider activity: count Form 4 filings in the last 90 days ---
+    # v1 counts filings only — buy vs sell needs per-form parsing, so the note
+    # never claims a direction. Per-run cache; SEC downtime must never break us.
+    # NOTE: SEC 403s user-agents without a name + email-style contact.
+    _sec_cache = {}
+    def insider_activity(cik):
+        if cik in _sec_cache:
+            return _sec_cache[cik]
+        result = None
+        try:
+            sub = fetch_json(f'https://data.sec.gov/submissions/CIK{cik:010d}.json',
+                             headers={'User-Agent': 'OmniSight Research contact@omnisight.local',
+                                      'Accept': 'application/json'})
+            recent = (sub or {}).get('filings', {}).get('recent', {})
+            forms = recent.get('form', [])
+            dates = recent.get('filingDate', [])
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).strftime('%Y-%m-%d')
+            count = 0
+            for form, fdate in zip(forms, dates):
+                if fdate < cutoff:
+                    break  # filings are newest-first — nothing older counts
+                if form == '4':
+                    count += 1
+            result = count
+        except Exception as e:
+            print(f'  SEC insider lookup failed for CIK {cik}: {e}')
+        _sec_cache[cik] = result
+        return result
+
     for sym, q in data.get('stocks', {}).items():
         dp = q.get('dp') or 0  # day percent change
         c = q.get('c') or 0
@@ -653,6 +682,15 @@ def think(data, history):
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
+        # Insider activity (Form 4 count, 90d) — activity signal, not direction
+        cik = TICKER_CIK.get(sym)
+        if cik:
+            n_insider = insider_activity(cik)
+            if n_insider is not None:
+                pick['insider_recent'] = n_insider
+                if n_insider >= 3:
+                    pick['reason'] += (f' Insider activity: {n_insider} Form 4 filings '
+                                       f'in 90d — see SEC deep dive.')
         (longs if score > 0 else shorts).append(pick)
 
     # --- Contracts watch (Govgistics): flag mega-awards with tickers ---
