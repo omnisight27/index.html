@@ -1,73 +1,8 @@
 {
-  "generated": "2026-10-20T05:59:34.539552+00:00",
+  "generated": "2026-10-20T11:32:28.831745+00:00",
   "mode": "intraday",
   "horizon": "1-4 hours",
   "longs": [],
-  "shorts": [
-    {
-      "asset": "ETH",
-      "score": -5.14,
-      "confidence": 65,
-      "direction": "SHORT",
-      "thesis": {
-        "direction": "SHORT",
-        "entry": 2396.89,
-        "stop_loss": 2403.5,
-        "take_profit": 2386.98,
-        "entry_time": "05:59 UTC",
-        "exit_by": "07:59 UTC",
-        "horizon": "1-4 hours",
-        "expected_return_pct": 0.41,
-        "max_loss_pct": 0.28,
-        "rsi": 53.0,
-        "chg_1h": -0.55,
-        "bull_case": [
-          "intraday momentum alignment"
-        ],
-        "bear_case": [
-          "breaking 24h lows"
-        ]
-      },
-      "name": "Ethereum",
-      "info_url": "https://www.coingecko.com/en/coins/ethereum",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "timestamp": "2026-10-20T05:59:32.318541+00:00"
-    },
-    {
-      "asset": "BTC",
-      "score": -4.36,
-      "confidence": 63,
-      "direction": "SHORT",
-      "thesis": {
-        "direction": "SHORT",
-        "entry": 81680.86,
-        "stop_loss": 81876.89,
-        "take_profit": 81386.81,
-        "entry_time": "05:59 UTC",
-        "exit_by": "07:59 UTC",
-        "horizon": "1-4 hours",
-        "expected_return_pct": 0.36,
-        "max_loss_pct": 0.24,
-        "rsi": 43.0,
-        "chg_1h": -0.41,
-        "bull_case": [
-          "intraday momentum alignment"
-        ],
-        "bear_case": [
-          "breaking 24h lows"
-        ]
-      },
-      "name": "Bitcoin",
-      "info_url": "https://www.coingecko.com/en/coins/bitcoin",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "timestamp": "2026-10-20T05:59:32.193485+00:00"
-    }
-  ],
+  "shorts": [],
   "coins_scanned": 50
 }
