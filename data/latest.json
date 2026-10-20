@@ -1,125 +1,68 @@
 {
-  "generated": "2026-10-20T10:13:26.349220+00:00",
+  "generated": "2026-10-20T10:40:58.726365+00:00",
   "fear_greed": 55,
   "longs": [
     {
       "asset": "GRX",
-      "price": 19.19,
-      "score": 11.7,
-      "confidence": 60,
-      "reason": "GRX +20.4% (24h), -11.6% (7d) @ $19. Ensemble score +11.7 (w\u00b7x + geo +0.02 + RISK_OFF).",
+      "price": 19.98,
+      "score": 42.4,
+      "confidence": 92,
+      "reason": "GRX +24.9% (24h), -11.6% (7d) @ $20. Ensemble score +42.4 (w\u00b7x + geo -0.07 + RISK_OFF).",
       "class": "crypto",
       "name": "GRX Chain",
       "info_url": "https://www.coingecko.com/en/coins/grx-chain",
       "tradable": [],
       "features": [
-        14.25,
-        -8.143,
+        17.419,
+        -9.954,
         0.0,
         0.1,
         -0.2,
-        2.036,
-        4.402,
+        2.488,
+        5.308,
         1.0,
         0.999,
         -1.0,
         3.0,
         -1.0,
-        2.545,
+        3.0,
         1.998,
         3.0,
         3.0,
         1.5,
-        2.751,
+        3.0,
         2.0,
         3.0,
-        -1.272,
+        -1.555,
         -3.0
       ],
-      "geo_edge": 0.015,
+      "geo_edge": -0.072,
       "thesis": {
         "direction": "LONG",
         "bull_case": [
-          "strong 24h momentum (+20.4%)"
+          "strong 24h momentum (+24.9%)"
         ],
         "bear_case": [
           "no strong bearish factors"
         ],
-        "stop_loss": 13.33,
-        "take_profit": 27.0,
+        "stop_loss": 12.52,
+        "take_profit": 29.92,
         "risk_reward": 1.33,
         "time_horizon": "1-5 days (swing)",
         "entry_date": "2026-10-20",
         "projected_exit": "2026-10-23",
-        "expected_return_pct": 40.71,
-        "max_loss_pct": 30.54
+        "expected_return_pct": 49.77,
+        "max_loss_pct": 37.33
       },
-      "position_pct": 11.9,
-      "regime": "RISK_OFF"
-    },
-    {
-      "asset": "A",
-      "price": 0.09,
-      "score": 10.0,
-      "confidence": 57,
-      "reason": "A +8.0% (24h), -7.7% (7d) @ $0. Ensemble score +10.0 (w\u00b7x + geo -0.02 + RISK_OFF).",
-      "class": "crypto",
-      "name": "Vaulta",
-      "info_url": "https://www.coingecko.com/en/coins/vaulta",
-      "tradable": [
-        "cryptocom"
-      ],
-      "features": [
-        5.634,
-        -3.219,
-        0.0,
-        0.1,
-        -0.2,
-        0.805,
-        1.83,
-        0.537,
-        0.998,
-        -1.0,
-        3.0,
-        -1.0,
-        1.006,
-        1.995,
-        2.287,
-        1.341,
-        1.305,
-        1.143,
-        0.61,
-        1.61,
-        -0.503,
-        -2.656
-      ],
-      "geo_edge": -0.021,
-      "thesis": {
-        "direction": "LONG",
-        "bull_case": [
-          "strong 24h momentum (+8.0%)"
-        ],
-        "bear_case": [
-          "no strong bearish factors"
-        ],
-        "stop_loss": 0.08,
-        "take_profit": 0.11,
-        "risk_reward": 1.33,
-        "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-10-20",
-        "projected_exit": "2026-10-23",
-        "expected_return_pct": 16.1,
-        "max_loss_pct": 12.07
-      },
-      "position_pct": 11.9,
+      "position_pct": 22.0,
       "regime": "RISK_OFF"
     },
     {
       "asset": "S",
       "price": 0.06,
-      "score": 6.6,
-      "confidence": 52,
-      "reason": "S +5.5% (24h), -2.5% (7d) @ $0. Ensemble score +6.6 (w\u00b7x + geo +0.03 + RISK_OFF).",
+      "score": 33.0,
+      "confidence": 91,
+      "reason": "S +5.1% (24h), -2.5% (7d) @ $0. Ensemble score +33.0 (w\u00b7x + geo -0.07 + RISK_OFF).",
       "class": "crypto",
       "name": "Sonic",
       "info_url": "https://www.coingecko.com/en/coins/sonic-3",
@@ -128,48 +71,105 @@
         "cryptocom"
       ],
       "features": [
-        3.842,
+        3.576,
         0.0,
         0.0,
         0.1,
         -0.2,
-        0.549,
-        1.17,
-        0.366,
+        0.511,
+        1.094,
+        0.341,
         0.996,
         -1.0,
-        1.951,
+        1.824,
         -1.0,
-        0.686,
-        1.993,
-        1.463,
-        0.915,
-        1.049,
-        0.731,
-        0.098,
-        1.098,
+        0.639,
+        1.992,
+        1.368,
+        0.851,
+        1.011,
+        0.684,
+        0.022,
+        1.022,
         0.0,
-        -1.811
+        -1.686
       ],
-      "geo_edge": 0.026,
+      "geo_edge": -0.072,
       "thesis": {
         "direction": "LONG",
         "bull_case": [
-          "strong 24h momentum (+5.5%)"
+          "strong 24h momentum (+5.1%)"
         ],
         "bear_case": [
           "no strong bearish factors"
         ],
         "stop_loss": 0.05,
         "take_profit": 0.06,
-        "risk_reward": 0.62,
+        "risk_reward": 0.58,
         "time_horizon": "1-5 days (swing)",
         "entry_date": "2026-10-20",
         "projected_exit": "2026-10-23",
-        "expected_return_pct": 10.98,
-        "max_loss_pct": 8.23
+        "expected_return_pct": 10.22,
+        "max_loss_pct": 7.66
       },
-      "position_pct": 11.9,
+      "position_pct": 22.0,
+      "regime": "RISK_OFF"
+    },
+    {
+      "asset": "STABLE",
+      "price": 0.03,
+      "score": 32.7,
+      "confidence": 91,
+      "reason": "STABLE +5.9% (24h), -4.1% (7d) @ $0. Ensemble score +32.7 (w\u00b7x + geo -0.07 + RISK_OFF).",
+      "class": "crypto",
+      "name": "\u200b\u200bStable",
+      "info_url": "https://www.coingecko.com/en/coins/stable-2",
+      "tradable": [
+        "cryptocom"
+      ],
+      "features": [
+        4.161,
+        0.0,
+        0.0,
+        0.1,
+        -0.2,
+        0.594,
+        1.307,
+        0.396,
+        0.997,
+        -1.0,
+        2.178,
+        -1.0,
+        0.743,
+        1.993,
+        1.634,
+        0.991,
+        1.094,
+        0.817,
+        0.189,
+        1.189,
+        0.0,
+        -1.962
+      ],
+      "geo_edge": -0.074,
+      "thesis": {
+        "direction": "LONG",
+        "bull_case": [
+          "strong 24h momentum (+5.9%)"
+        ],
+        "bear_case": [
+          "no strong bearish factors"
+        ],
+        "stop_loss": 0.02,
+        "take_profit": 0.03,
+        "risk_reward": 0.3,
+        "time_horizon": "1-5 days (swing)",
+        "entry_date": "2026-10-20",
+        "projected_exit": "2026-10-23",
+        "expected_return_pct": 11.89,
+        "max_loss_pct": 8.92
+      },
+      "position_pct": 22.0,
       "regime": "RISK_OFF"
     }
   ],
@@ -177,42 +177,42 @@
     {
       "asset": "ANVL",
       "price": 0.0,
-      "score": -200.8,
+      "score": -61.1,
       "confidence": 100,
-      "reason": "ANVL -0.7% (24h), +74.8% (7d) @ $0. Ensemble score -200.8 (w\u00b7x + geo +0.08 + RISK_OFF).",
+      "reason": "ANVL -0.7% (24h), +74.8% (7d) @ $0. Ensemble score -61.1 (w\u00b7x + geo +0.18 + RISK_OFF).",
       "class": "crypto",
       "name": "Anvil",
       "info_url": "https://www.coingecko.com/en/coins/anvil",
       "tradable": [],
       "features": [
-        -0.492,
+        -0.525,
         0.0,
         0.0,
         0.1,
         -0.2,
-        0.07,
-        -2.279,
-        -0.047,
-        -0.972,
+        0.075,
+        -2.288,
+        -0.05,
+        -0.974,
         -1.0,
         -3.0,
         -1.0,
-        -0.088,
-        -1.944,
-        -2.848,
-        -0.117,
-        0.43,
-        1.424,
-        -0.859,
-        -0.141,
+        -0.094,
+        -1.947,
+        -2.86,
+        -0.125,
+        0.425,
+        1.43,
+        -0.85,
+        -0.15,
         0.0,
-        -0.232
+        -0.247
       ],
-      "geo_edge": 0.08,
+      "geo_edge": 0.182,
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "pattern matches historical winners"
         ],
         "bear_case": [
           "risk-off regime favors shorts"
@@ -226,119 +226,122 @@
         "expected_return_pct": 4.0,
         "max_loss_pct": 3.0
       },
-      "position_pct": 11.9,
+      "position_pct": 22.0,
       "regime": "RISK_OFF"
     },
     {
-      "asset": "AKE",
-      "price": 0.03,
-      "score": -149.3,
+      "asset": "RAIL",
+      "price": 2.16,
+      "score": -35.5,
       "confidence": 100,
-      "reason": "AKE +4.6% (24h), +27.9% (7d) @ $0. Ensemble score -149.3 (w\u00b7x + geo +0.04 + RISK_OFF).",
+      "reason": "RAIL -1.4% (24h), -29.3% (7d) @ $2. Ensemble score -35.5 (w\u00b7x + geo -0.10 + RISK_OFF).",
       "class": "crypto",
-      "name": "Akedo",
-      "info_url": "https://www.coingecko.com/en/coins/akedo",
+      "name": "Railgun",
+      "info_url": "https://www.coingecko.com/en/coins/railgun",
       "tradable": [],
       "features": [
-        6.971,
+        -2.114,
         0.0,
         0.0,
         0.1,
         -0.2,
-        0.465,
-        0.132,
-        0.31,
-        0.996,
+        0.141,
+        0.556,
+        -0.094,
+        -0.986,
         1.0,
-        0.219,
+        0.927,
         1.0,
-        0.581,
-        1.991,
-        0.164,
-        0.775,
-        0.965,
-        1.08,
-        -0.07,
-        0.93,
-        0.0,
-        -1.534
-      ],
-      "geo_edge": 0.043,
-      "thesis": {
-        "direction": "SHORT",
-        "bull_case": [
-          "strong 24h momentum (+4.6%)",
-          "trend alignment across timeframes"
-        ],
-        "bear_case": [
-          "risk-off regime favors shorts"
-        ],
-        "stop_loss": 0.03,
-        "take_profit": 0.03,
-        "risk_reward": 0.3,
-        "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-10-20",
-        "projected_exit": "2026-10-23",
-        "expected_return_pct": 9.3,
-        "max_loss_pct": 6.97
-      },
-      "position_pct": 11.9,
-      "regime": "RISK_OFF"
-    },
-    {
-      "asset": "PEARL",
-      "price": 1.97,
-      "score": -132.5,
-      "confidence": 100,
-      "reason": "PEARL +6.3% (24h), +19.8% (7d) @ $2. Ensemble score -132.5 (w\u00b7x + geo +0.06 + RISK_OFF).",
-      "class": "crypto",
-      "name": "Pearl",
-      "info_url": "https://www.coingecko.com/en/coins/pearl-2",
-      "tradable": [],
-      "features": [
-        9.451,
-        0.0,
-        0.0,
-        0.1,
-        -0.2,
-        0.63,
+        -0.176,
+        -1.972,
         0.695,
-        0.42,
-        0.997,
-        1.0,
-        1.159,
-        1.0,
-        0.788,
-        1.994,
-        0.869,
-        1.05,
-        1.13,
-        1.141,
-        0.26,
-        1.26,
+        -0.235,
+        0.359,
+        0.7,
+        -0.718,
+        -0.282,
         0.0,
-        -2.079
+        -0.465
       ],
-      "geo_edge": 0.055,
+      "geo_edge": -0.101,
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "strong 24h momentum (+6.3%)",
-          "trend alignment across timeframes"
+          "no strong bullish factors"
         ],
         "bear_case": [
+          "trend alignment across timeframes",
           "risk-off regime favors shorts"
         ],
-        "stop_loss": 2.16,
-        "take_profit": 1.72,
+        "stop_loss": 2.22,
+        "take_profit": 2.07,
         "risk_reward": 1.33,
         "time_horizon": "1-5 days (swing)",
         "entry_date": "2026-10-20",
         "projected_exit": "2026-10-23",
-        "expected_return_pct": 12.6,
-        "max_loss_pct": 9.45
+        "expected_return_pct": 4.0,
+        "max_loss_pct": 3.0
       },
-      "position_pct": 11.9,
+      "position_pct": 22.0,
+      "regime": "RISK_OFF"
+    },
+    {
+      "asset": "CAP",
+      "price": 0.07,
+      "score": -31.5,
+      "confidence": 97,
+      "reason": "CAP -1.5% (24h), -26.2% (7d) @ $0. Ensemble score -31.5 (w\u00b7x + geo -0.09 + RISK_OFF).",
+      "class": "crypto",
+      "name": "Cap",
+      "info_url": "https://www.coingecko.com/en/coins/cap-4",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "features": [
+        -2.286,
+        0.0,
+        0.0,
+        0.1,
+        -0.2,
+        0.152,
+        0.443,
+        -0.102,
+        -0.987,
+        1.0,
+        0.738,
+        1.0,
+        -0.19,
+        -1.974,
+        0.554,
+        -0.254,
+        0.348,
+        0.658,
+        -0.695,
+        -0.305,
+        0.0,
+        -0.503
+      ],
+      "geo_edge": -0.093,
+      "thesis": {
+        "direction": "SHORT",
+        "bull_case": [
+          "no strong bullish factors"
+        ],
+        "bear_case": [
+          "trend alignment across timeframes",
+          "risk-off regime favors shorts"
+        ],
+        "stop_loss": 0.07,
+        "take_profit": 0.07,
+        "risk_reward": 0.28,
+        "time_horizon": "1-5 days (swing)",
+        "entry_date": "2026-10-20",
+        "projected_exit": "2026-10-23",
+        "expected_return_pct": 4.0,
+        "max_loss_pct": 3.0
+      },
+      "position_pct": 22.0,
       "regime": "RISK_OFF"
     }
   ],
@@ -347,40 +350,40 @@
     "delta": -4,
     "bias": 0,
     "notes": [
-      "Weights: optimized on 24 scored picks via row echelon form",
+      "Weights: optimized on 30 scored picks via row echelon form",
       "Mixed conditions (38% buy / 62% caution) (greed, gold bid (risk-off), strong USD (risk-off)) \u2014 Risk-off: favor shorts/hedges, demand stronger long signals",
-      "Gold $4,115 \u2014 risk-off bid, trimming long confidence",
+      "Gold $4,122 \u2014 risk-off bid, trimming long confidence",
       "Strong USD (JPY>155) \u2014 headwind for risk assets"
     ]
   },
   "weights": [
-    -2.8586,
-    -0.0797,
+    -1.5947,
+    1.2913,
     0.0,
-    84.7983,
-    141.3305,
-    55.4822,
-    -7.6735,
-    -8.7145,
-    3.5828,
-    -17.7511,
-    -11.4496,
-    -17.7511,
-    54.4693,
-    3.7527,
-    43.2748,
-    -10.4678,
-    -37.9333,
-    -60.2851,
-    6.1071,
-    -17.6545,
-    -4.1332,
-    -5.0021
+    183.9072,
+    -45.5283,
+    36.3545,
+    -5.5769,
+    -1.1623,
+    2.8147,
+    -8.2199,
+    -14.3611,
+    -8.2199,
+    71.0156,
+    3.263,
+    23.8107,
+    -54.0893,
+    0.6082,
+    -50.5674,
+    10.2245,
+    2.3896,
+    -5.4282,
+    -8.2083
   ],
   "weight_info": {
     "trained": true,
-    "samples": 24,
-    "note": "optimized on 24 scored picks via row echelon form"
+    "samples": 30,
+    "note": "optimized on 30 scored picks via row echelon form"
   },
   "contracts_watch": [
     "$51.27B \u2192 HUMANA GOVERNMENT BUSINESS INC (Department of Defense)",
@@ -455,25 +458,108 @@
     }
   ],
   "track_record": {
-    "wins": 16,
-    "losses": 14,
-    "total": 30,
-    "win_rate": 53.3
+    "wins": 19,
+    "losses": 16,
+    "total": 35,
+    "win_rate": 54.3
   },
   "model_error": {
-    "sum_abs_err": 555.3148119931774,
-    "n": 30,
-    "within_5pct": 2,
-    "mae": 18.51,
-    "within_5pct_rate": 6.7
+    "sum_abs_err": 846.7943925399818,
+    "n": 35,
+    "within_5pct": 4,
+    "mae": 24.19,
+    "within_5pct_rate": 11.4
   },
   "regime": "RISK_OFF",
   "buy_pct": 38,
   "buy_text": "Mixed conditions (38% buy / 62% caution)",
-  "kelly_pct": 11.9,
-  "macro": {},
-  "rates": {},
+  "kelly_pct": 22.0,
+  "macro": {
+    "cpi": {
+      "value": 336.298,
+      "prev": 334.131,
+      "change": 2.17,
+      "change_pct": 0.65,
+      "date": "2026-09-01"
+    },
+    "gdp": {
+      "value": 32563.03,
+      "prev": 31906.274,
+      "change": 656.76,
+      "change_pct": 2.06,
+      "date": "2026-04-01"
+    },
+    "unemployment": {
+      "value": 4.2,
+      "prev": 4.1,
+      "change": 0.1,
+      "change_pct": 2.44,
+      "date": "2026-09-01"
+    },
+    "consumer_sentiment": {
+      "value": 51.7,
+      "prev": 55.2,
+      "change": -3.5,
+      "change_pct": -6.34,
+      "date": "2026-08-01"
+    },
+    "m2": {
+      "value": 23342.8,
+      "prev": 23217.9,
+      "change": 124.9,
+      "change_pct": 0.54,
+      "date": "2026-08-01"
+    },
+    "eur_usd": {
+      "value": 1.1231,
+      "prev": 1.1204,
+      "change": 0.0,
+      "change_pct": 0.24,
+      "date": "2026-10-16"
+    },
+    "us30y": {
+      "value": 5.43,
+      "prev": 5.43,
+      "change": 0.0,
+      "change_pct": 0.0,
+      "date": "2026-10-16"
+    }
+  },
+  "rates": {
+    "us10y": "5.09",
+    "us2y": "4.74",
+    "fedfunds": "4",
+    "curve": "0.38",
+    "wti": "101.91"
+  },
   "alerts": [
+    {
+      "type": "BUY",
+      "asset": "GRX",
+      "price": 19.98,
+      "confidence": 92,
+      "asset_class": "crypto",
+      "reason": "BUY signal: GRX (confidence 92%). Stop $12.52, target $29.92.",
+      "timestamp": "2026-10-20T10:40:58.725538+00:00"
+    },
+    {
+      "type": "BUY",
+      "asset": "S",
+      "price": 0.06,
+      "confidence": 91,
+      "asset_class": "crypto",
+      "reason": "BUY signal: S (confidence 91%). Stop $0.05, target $0.06.",
+      "timestamp": "2026-10-20T10:40:58.725547+00:00"
+    },
+    {
+      "type": "BUY",
+      "asset": "STABLE",
+      "price": 0.03,
+      "confidence": 91,
+      "asset_class": "crypto",
+      "reason": "BUY signal: STABLE (confidence 91%). Stop $0.02, target $0.03.",
+      "timestamp": "2026-10-20T10:40:58.725551+00:00"
+    },
     {
       "type": "SELL",
       "asset": "ANVL",
@@ -481,25 +567,25 @@
       "confidence": 100,
       "asset_class": "crypto",
       "reason": "SELL signal: ANVL (confidence 100%). Stop $0.0, target $0.0.",
-      "timestamp": "2026-10-20T10:13:26.347769+00:00"
+      "timestamp": "2026-10-20T10:40:58.725559+00:00"
     },
     {
       "type": "SELL",
-      "asset": "AKE",
-      "price": 0.03,
+      "asset": "RAIL",
+      "price": 2.16,
       "confidence": 100,
       "asset_class": "crypto",
-      "reason": "SELL signal: AKE (confidence 100%). Stop $0.03, target $0.03.",
-      "timestamp": "2026-10-20T10:13:26.347787+00:00"
+      "reason": "SELL signal: RAIL (confidence 100%). Stop $2.22, target $2.07.",
+      "timestamp": "2026-10-20T10:40:58.725567+00:00"
     },
     {
       "type": "SELL",
-      "asset": "PEARL",
-      "price": 1.97,
-      "confidence": 100,
+      "asset": "CAP",
+      "price": 0.07,
+      "confidence": 97,
       "asset_class": "crypto",
-      "reason": "SELL signal: PEARL (confidence 100%). Stop $2.16, target $1.72.",
-      "timestamp": "2026-10-20T10:13:26.347795+00:00"
+      "reason": "SELL signal: CAP (confidence 97%). Stop $0.07, target $0.07.",
+      "timestamp": "2026-10-20T10:40:58.725575+00:00"
     },
     {
       "type": "REGIME",
@@ -507,7 +593,7 @@
       "price": 0,
       "confidence": 70,
       "reason": "Regime: RISK_OFF \u2014 greed, gold bid (risk-off), strong USD (risk-off).",
-      "timestamp": "2026-10-20T10:13:26.347801+00:00"
+      "timestamp": "2026-10-20T10:40:58.725578+00:00"
     },
     {
       "type": "CONTRACT",
@@ -516,7 +602,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$51.27B award \u2192 HUMANA GOVERNMENT BUSINESS INC (Department of Defense).",
-      "timestamp": "2026-10-20T10:13:26.347819+00:00"
+      "timestamp": "2026-10-20T10:40:58.725586+00:00"
     },
     {
       "type": "CONTRACT",
@@ -525,7 +611,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$48.06B award \u2192 LOCKHEED MARTIN CORP [LMT] (Department of Energy).",
-      "timestamp": "2026-10-20T10:13:26.347827+00:00"
+      "timestamp": "2026-10-20T10:40:58.725591+00:00"
     },
     {
       "type": "CONTRACT",
@@ -534,7 +620,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$43.46B award \u2192 NATIONAL TECHNOLOGY & ENGINEERING SOLUTIONS OF SANDIA, LLC (Department of Energy).",
-      "timestamp": "2026-10-20T10:13:26.347837+00:00"
+      "timestamp": "2026-10-20T10:40:58.725600+00:00"
     }
   ],
   "long_term": {
