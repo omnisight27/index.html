@@ -950,6 +950,23 @@ def remember(data, signals):
 
     s = stats
     s['win_rate'] = round(100 * s['wins'] / s['total'], 1) if s['total'] else None
+    # Calibration: bucket scored picks by stated confidence band and compare
+    # against realized win rate — "says 70-79% → actually wins X%"
+    bands = [('50-59', 50, 59), ('60-69', 60, 69), ('70-79', 70, 79), ('80+', 80, 999)]
+    calib = {b[0]: {'n': 0, 'wins': 0} for b in bands}
+    for run in history['picks']:
+        for p in run.get('longs', []) + run.get('shorts', []):
+            if p.get('win') is None or p.get('confidence') is None:
+                continue
+            for label, lo, hi in bands:
+                if lo <= p['confidence'] <= hi:
+                    calib[label]['n'] += 1
+                    if p['win']: calib[label]['wins'] += 1
+                    break
+    history['calibration'] = [
+        {'band': label, 'n': c['n'],
+         'win_rate': round(100 * c['wins'] / c['n'], 1) if c['n'] else None}
+        for label, c in calib.items()]
     # Error summary: mean absolute error + % within the 5% target
     if err['n']:
         err['mae'] = round(err['sum_abs_err'] / err['n'], 2)
@@ -983,6 +1000,7 @@ def publish(data, signals, history):
         'headlines': signals['headlines'],
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
+        'calibration': history.get('calibration', []),
         'regime': signals.get('regime'),
         'buy_pct': signals.get('buy_pct'),
         'buy_text': signals.get('buy_text'),

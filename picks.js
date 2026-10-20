@@ -245,6 +245,8 @@
             '<p><strong>Picks scored:</strong> ' + (tr.total || 0) + ' (' + (tr.wins || 0) + 'W / ' + (tr.losses || 0) + 'L)</p>' +
             '<p><strong>Mean abs error:</strong> ' + (er.mae !== null && er.mae !== undefined ? er.mae + '%' : '—') + '</p>' +
             '<p><strong>Within 5% target:</strong> ' + (er.within_5pct_rate !== null && er.within_5pct_rate !== undefined ? er.within_5pct_rate + '%' : '—') + '</p>' +
+            (d.calibration || []).filter(function (c) { return c.n >= 3 && c.win_rate !== null && c.win_rate !== undefined; })
+              .map(function (c) { return '<p><strong>Calibration:</strong> says ' + c.band + '% → actually wins ' + c.win_rate + '% (n=' + c.n + ')</p>'; }).join('') +
             '<p class="live-stamp">Target: 5% margin of error · weights re-optimized every run via row echelon form</p>';
         }
         var ps = document.getElementById('psychology');
