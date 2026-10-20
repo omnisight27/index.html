@@ -489,6 +489,9 @@ def main():
     if not universe:
         print('  FAILED: no market data')
         return
+    # Core market data for this run is in hand — stamp the pull time so the
+    # frontend can show "Data pulled … ET" for cross-referencing.
+    data_pulled_at = datetime.now(timezone.utc).isoformat()
     mkts = universe[:50]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -713,8 +716,11 @@ def main():
     print(f"  Proof book: +{n_added} new calls, {pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
+    pub_now = datetime.now(timezone.utc).isoformat()
     out = {
-        'generated': datetime.now(timezone.utc).isoformat(),
+        'generated': pub_now,
+        'data_pulled_at': data_pulled_at,
+        'published_at': pub_now,
         'mode': 'intraday',
         'horizon': '1-4 hours',
         'longs': longs,

@@ -984,7 +984,7 @@ def remember(data, signals):
     return history
 
 # ---------------------------------------------------------------- PUBLISH
-def publish(data, signals, history):
+def publish(data, signals, history, data_pulled_at=None):
     now = datetime.now(timezone.utc)
     stamp = now.strftime('%Y-%m-%dT%H-%M')
 
@@ -997,6 +997,8 @@ def publish(data, signals, history):
 
     latest = {
         'generated': now.isoformat(),
+        'data_pulled_at': data_pulled_at,
+        'published_at': now.isoformat(),
         'fear_greed': signals['psychology']['fear_greed'],
         'longs': signals['longs'], 'shorts': signals['shorts'],
         'psychology': signals['psychology'],
@@ -1028,10 +1030,13 @@ def publish(data, signals, history):
 def main():
     print('=== NexIntel loop starting ===')
     data = ingest()
+    # Market-data pull complete — stamp it so the frontend can show
+    # "Data pulled … ET" next to "Published … ET" for cross-referencing.
+    pulled_at = datetime.now(timezone.utc).isoformat()
     history = load_history()          # load BEFORE think — weights learn from it
     signals = think(data, history)
     history = remember(data, signals) # remember() reloads + scores + appends
-    publish(data, signals, history)
+    publish(data, signals, history, pulled_at)
     print('=== NexIntel loop complete ===')
 
 if __name__ == '__main__':
