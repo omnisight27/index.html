@@ -1,8 +1,295 @@
 {
-  "generated": "2026-10-20T11:32:28.831745+00:00",
+  "generated": "2026-10-20T17:00:16.581495+00:00",
   "mode": "intraday",
   "horizon": "1-4 hours",
   "longs": [],
   "shorts": [],
+  "movers": [
+    {
+      "asset": "COMP",
+      "name": "Compound",
+      "price": 27.43,
+      "chg_1h": -0.35,
+      "chg_24h": 27.5,
+      "market_cap": 274002888,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/compound-governance-token"
+    },
+    {
+      "asset": "CARDS",
+      "name": "Collector Crypt",
+      "price": 0.33171,
+      "chg_1h": -1.58,
+      "chg_24h": 17.78,
+      "market_cap": 299382023,
+      "direction": "UP",
+      "tradable": [
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/collector-crypt"
+    },
+    {
+      "asset": "THETA",
+      "name": "Theta Network",
+      "price": 0.214561,
+      "chg_1h": 1.07,
+      "chg_24h": 15.63,
+      "market_cap": 214660065,
+      "direction": "UP",
+      "tradable": [
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/theta-token"
+    },
+    {
+      "asset": "BAT",
+      "name": "Basic Attention",
+      "price": 0.207277,
+      "chg_1h": -2.28,
+      "chg_24h": 14.8,
+      "market_cap": 310185008,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/basic-attention-token"
+    },
+    {
+      "asset": "PEARL",
+      "name": "Pearl",
+      "price": 2.2,
+      "chg_1h": 4.27,
+      "chg_24h": 14.69,
+      "market_cap": 769510650,
+      "direction": "UP",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/pearl-2"
+    },
+    {
+      "asset": "PEPE",
+      "name": "Pepe",
+      "price": 4.6e-06,
+      "chg_1h": -0.46,
+      "chg_24h": 12.05,
+      "market_cap": 1933847952,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/pepe"
+    },
+    {
+      "asset": "USELESS",
+      "name": "Useless Coin",
+      "price": 0.155166,
+      "chg_1h": -5.0,
+      "chg_24h": 11.56,
+      "market_cap": 155266894,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/useless-3"
+    },
+    {
+      "asset": "WLD",
+      "name": "Worldcoin",
+      "price": 0.566507,
+      "chg_1h": -2.28,
+      "chg_24h": 11.13,
+      "market_cap": 2163331759,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/worldcoin-wld"
+    },
+    {
+      "asset": "AERO",
+      "name": "Aerodrome Finance",
+      "price": 0.863829,
+      "chg_1h": -1.93,
+      "chg_24h": 10.39,
+      "market_cap": 850293451,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/aerodrome-finance"
+    },
+    {
+      "asset": "A",
+      "name": "Vaulta",
+      "price": 0.096044,
+      "chg_1h": -2.79,
+      "chg_24h": 10.27,
+      "market_cap": 160835981,
+      "direction": "UP",
+      "tradable": [
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/vaulta"
+    }
+  ],
+  "watch": [
+    {
+      "asset": "PUMP",
+      "name": "Pump.fun",
+      "price": 0.00456872,
+      "chg_1h": -4.86,
+      "chg_24h": 3.34,
+      "market_cap": 2110981992,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/pump-fun",
+      "watch_reason": "volume surge + fresh inflection"
+    },
+    {
+      "asset": "PONS",
+      "name": "Pons",
+      "price": 0.277157,
+      "chg_1h": -4.54,
+      "chg_24h": 5.8,
+      "market_cap": 186610382,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/pons",
+      "watch_reason": "volume surge + fresh inflection"
+    },
+    {
+      "asset": "GRASS",
+      "name": "Grass",
+      "price": 0.618621,
+      "chg_1h": -4.29,
+      "chg_24h": 4.66,
+      "market_cap": 432773270,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/grass",
+      "watch_reason": "fresh inflection"
+    },
+    {
+      "asset": "CASHCAT",
+      "name": "Cash Cat",
+      "price": 0.110976,
+      "chg_1h": -4.26,
+      "chg_24h": 3.92,
+      "market_cap": 109491702,
+      "direction": "DOWN",
+      "tradable": [
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/cash-cat",
+      "watch_reason": "fresh inflection"
+    },
+    {
+      "asset": "MON",
+      "name": "Monad",
+      "price": 0.02133303,
+      "chg_1h": -4.12,
+      "chg_24h": 2.37,
+      "market_cap": 252281061,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/monad",
+      "watch_reason": "fresh inflection"
+    },
+    {
+      "asset": "ARB",
+      "name": "Arbitrum",
+      "price": 0.189187,
+      "chg_1h": -3.96,
+      "chg_24h": -3.28,
+      "market_cap": 1303938366,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/arbitrum",
+      "watch_reason": "volume surge"
+    },
+    {
+      "asset": "NEAR",
+      "name": "NEAR Protocol",
+      "price": 4.95,
+      "chg_1h": -3.83,
+      "chg_24h": -0.03,
+      "market_cap": 6479714429,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/near",
+      "watch_reason": "volume surge"
+    },
+    {
+      "asset": "PYTH",
+      "name": "Pyth Network",
+      "price": 0.075748,
+      "chg_1h": -3.61,
+      "chg_24h": 2.36,
+      "market_cap": 596475099,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/pyth-network",
+      "watch_reason": "fresh inflection"
+    },
+    {
+      "asset": "STRK",
+      "name": "Starknet",
+      "price": 0.055164,
+      "chg_1h": -3.6,
+      "chg_24h": -3.02,
+      "market_cap": 418691131,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/starknet",
+      "watch_reason": "volume surge"
+    },
+    {
+      "asset": "INJ",
+      "name": "Injective",
+      "price": 8.6,
+      "chg_1h": -3.54,
+      "chg_24h": -0.28,
+      "market_cap": 860482940,
+      "direction": "DOWN",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/injective-protocol",
+      "watch_reason": "volume surge"
+    }
+  ],
   "coins_scanned": 50
 }
