@@ -1,295 +1,2514 @@
 {
-  "generated": "2026-10-20T17:00:16.581495+00:00",
+  "generated": "2026-10-20T20:34:18.113704+00:00",
+  "data_pulled_at": "2026-10-20T20:34:16.873348+00:00",
+  "published_at": "2026-10-20T20:34:18.113704+00:00",
   "mode": "intraday",
   "horizon": "1-4 hours",
   "longs": [],
   "shorts": [],
   "movers": [
     {
+      "id": "grx-chain",
+      "asset": "GRX",
+      "name": "GRX Chain",
+      "price": 15.94,
+      "chg_1h": -7.11,
+      "chg_24h": -28.71,
+      "market_cap": 151646681,
+      "direction": "DOWN",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/grx-chain",
+      "plan": null,
+      "plan_note": "Falling mover \u2014 no buy plan (long-only). Watch for reversal."
+    },
+    {
+      "id": "compound-governance-token",
       "asset": "COMP",
       "name": "Compound",
-      "price": 27.43,
-      "chg_1h": -0.35,
-      "chg_24h": 27.5,
-      "market_cap": 274002888,
+      "price": 26.42,
+      "chg_1h": 0.97,
+      "chg_24h": 22.89,
+      "market_cap": 264143800,
       "direction": "UP",
       "tradable": [
         "coinbase",
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/compound-governance-token"
+      "info_url": "https://www.coingecko.com/en/coins/compound-governance-token",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     },
     {
+      "id": "collector-crypt",
       "asset": "CARDS",
       "name": "Collector Crypt",
-      "price": 0.33171,
-      "chg_1h": -1.58,
-      "chg_24h": 17.78,
-      "market_cap": 299382023,
+      "price": 0.360834,
+      "chg_1h": 4.37,
+      "chg_24h": 20.58,
+      "market_cap": 324750194,
       "direction": "UP",
       "tradable": [
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/collector-crypt"
+      "info_url": "https://www.coingecko.com/en/coins/collector-crypt",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     },
     {
-      "asset": "THETA",
-      "name": "Theta Network",
-      "price": 0.214561,
-      "chg_1h": 1.07,
-      "chg_24h": 15.63,
-      "market_cap": 214660065,
-      "direction": "UP",
-      "tradable": [
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/theta-token"
-    },
-    {
-      "asset": "BAT",
-      "name": "Basic Attention",
-      "price": 0.207277,
-      "chg_1h": -2.28,
-      "chg_24h": 14.8,
-      "market_cap": 310185008,
-      "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/basic-attention-token"
-    },
-    {
-      "asset": "PEARL",
-      "name": "Pearl",
-      "price": 2.2,
-      "chg_1h": 4.27,
-      "chg_24h": 14.69,
-      "market_cap": 769510650,
-      "direction": "UP",
+      "id": "bitway",
+      "asset": "BTW",
+      "name": "Bitway",
+      "price": 1.71,
+      "chg_1h": -1.56,
+      "chg_24h": -16.63,
+      "market_cap": 2583557645,
+      "direction": "DOWN",
       "tradable": [],
-      "info_url": "https://www.coingecko.com/en/coins/pearl-2"
+      "info_url": "https://www.coingecko.com/en/coins/bitway",
+      "plan": null,
+      "plan_note": "Falling mover \u2014 no buy plan (long-only). Watch for reversal."
     },
     {
-      "asset": "PEPE",
-      "name": "Pepe",
-      "price": 4.6e-06,
-      "chg_1h": -0.46,
-      "chg_24h": 12.05,
-      "market_cap": 1933847952,
-      "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/pepe"
-    },
-    {
-      "asset": "USELESS",
-      "name": "Useless Coin",
-      "price": 0.155166,
-      "chg_1h": -5.0,
-      "chg_24h": 11.56,
-      "market_cap": 155266894,
-      "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/useless-3"
-    },
-    {
+      "id": "worldcoin-wld",
       "asset": "WLD",
       "name": "Worldcoin",
-      "price": 0.566507,
-      "chg_1h": -2.28,
-      "chg_24h": 11.13,
-      "market_cap": 2163331759,
+      "price": 0.587097,
+      "chg_1h": 0.1,
+      "chg_24h": 14.82,
+      "market_cap": 2240030042,
       "direction": "UP",
       "tradable": [
         "coinbase",
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/worldcoin-wld"
+      "info_url": "https://www.coingecko.com/en/coins/worldcoin-wld",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     },
     {
-      "asset": "AERO",
-      "name": "Aerodrome Finance",
-      "price": 0.863829,
-      "chg_1h": -1.93,
-      "chg_24h": 10.39,
-      "market_cap": 850293451,
+      "id": "mx-token",
+      "asset": "MX",
+      "name": "MX",
+      "price": 1.67,
+      "chg_1h": -0.31,
+      "chg_24h": -13.47,
+      "market_cap": 153681683,
+      "direction": "DOWN",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/mx-token",
+      "plan": null,
+      "plan_note": "Falling mover \u2014 no buy plan (long-only). Watch for reversal."
+    },
+    {
+      "id": "useless-3",
+      "asset": "USELESS",
+      "name": "Useless Coin",
+      "price": 0.156106,
+      "chg_1h": 2.87,
+      "chg_24h": 12.32,
+      "market_cap": 156079660,
       "direction": "UP",
       "tradable": [
         "coinbase",
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/aerodrome-finance"
+      "info_url": "https://www.coingecko.com/en/coins/useless-3",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     },
     {
-      "asset": "A",
-      "name": "Vaulta",
-      "price": 0.096044,
-      "chg_1h": -2.79,
-      "chg_24h": 10.27,
-      "market_cap": 160835981,
+      "id": "theta-token",
+      "asset": "THETA",
+      "name": "Theta Network",
+      "price": 0.207199,
+      "chg_1h": -1.1,
+      "chg_24h": 11.6,
+      "market_cap": 207200064,
       "direction": "UP",
       "tradable": [
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/vaulta"
+      "info_url": "https://www.coingecko.com/en/coins/theta-token",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
+    },
+    {
+      "id": "raydium",
+      "asset": "RAY",
+      "name": "Raydium",
+      "price": 2.08,
+      "chg_1h": 2.02,
+      "chg_24h": 11.25,
+      "market_cap": 560558964,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/raydium",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
+    },
+    {
+      "id": "pepe",
+      "asset": "PEPE",
+      "name": "Pepe",
+      "price": 4.56e-06,
+      "chg_1h": 1.15,
+      "chg_24h": 11.19,
+      "market_cap": 1918628916,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/pepe",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     }
   ],
   "watch": [
     {
-      "asset": "PUMP",
-      "name": "Pump.fun",
-      "price": 0.00456872,
-      "chg_1h": -4.86,
-      "chg_24h": 3.34,
-      "market_cap": 2110981992,
-      "direction": "DOWN",
+      "id": "quack-ai",
+      "asset": "Q",
+      "name": "Quack AI",
+      "price": 0.12569,
+      "chg_1h": 3.01,
+      "chg_24h": -5.03,
+      "market_cap": 591562133,
+      "direction": "UP",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/quack-ai",
+      "watch_reason": "fresh inflection",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
+    },
+    {
+      "id": "jito-governance-token",
+      "asset": "JTO",
+      "name": "Jito",
+      "price": 0.483927,
+      "chg_1h": 0.71,
+      "chg_24h": 9.53,
+      "market_cap": 258481148,
+      "direction": "UP",
       "tradable": [
         "coinbase",
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/pump-fun",
-      "watch_reason": "volume surge + fresh inflection"
+      "info_url": "https://www.coingecko.com/en/coins/jito-governance-token",
+      "watch_reason": "Strong day building \u2014 +10% in 24h and still rising this hour",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     },
     {
-      "asset": "PONS",
-      "name": "Pons",
-      "price": 0.277157,
-      "chg_1h": -4.54,
-      "chg_24h": 5.8,
-      "market_cap": 186610382,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/pons",
-      "watch_reason": "volume surge + fresh inflection"
-    },
-    {
-      "asset": "GRASS",
-      "name": "Grass",
-      "price": 0.618621,
-      "chg_1h": -4.29,
-      "chg_24h": 4.66,
-      "market_cap": 432773270,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/grass",
-      "watch_reason": "fresh inflection"
-    },
-    {
-      "asset": "CASHCAT",
-      "name": "Cash Cat",
-      "price": 0.110976,
-      "chg_1h": -4.26,
-      "chg_24h": 3.92,
-      "market_cap": 109491702,
-      "direction": "DOWN",
+      "id": "vaulta",
+      "asset": "A",
+      "name": "Vaulta",
+      "price": 0.097243,
+      "chg_1h": 0.68,
+      "chg_24h": 9.86,
+      "market_cap": 162859826,
+      "direction": "UP",
       "tradable": [
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/cash-cat",
-      "watch_reason": "fresh inflection"
-    },
-    {
-      "asset": "MON",
-      "name": "Monad",
-      "price": 0.02133303,
-      "chg_1h": -4.12,
-      "chg_24h": 2.37,
-      "market_cap": 252281061,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/monad",
-      "watch_reason": "fresh inflection"
-    },
-    {
-      "asset": "ARB",
-      "name": "Arbitrum",
-      "price": 0.189187,
-      "chg_1h": -3.96,
-      "chg_24h": -3.28,
-      "market_cap": 1303938366,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/arbitrum",
-      "watch_reason": "volume surge"
-    },
-    {
-      "asset": "NEAR",
-      "name": "NEAR Protocol",
-      "price": 4.95,
-      "chg_1h": -3.83,
-      "chg_24h": -0.03,
-      "market_cap": 6479714429,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/near",
-      "watch_reason": "volume surge"
-    },
-    {
-      "asset": "PYTH",
-      "name": "Pyth Network",
-      "price": 0.075748,
-      "chg_1h": -3.61,
-      "chg_24h": 2.36,
-      "market_cap": 596475099,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/pyth-network",
-      "watch_reason": "fresh inflection"
-    },
-    {
-      "asset": "STRK",
-      "name": "Starknet",
-      "price": 0.055164,
-      "chg_1h": -3.6,
-      "chg_24h": -3.02,
-      "market_cap": 418691131,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/starknet",
-      "watch_reason": "volume surge"
-    },
-    {
-      "asset": "INJ",
-      "name": "Injective",
-      "price": 8.6,
-      "chg_1h": -3.54,
-      "chg_24h": -0.28,
-      "market_cap": 860482940,
-      "direction": "DOWN",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/injective-protocol",
-      "watch_reason": "volume surge"
+      "info_url": "https://www.coingecko.com/en/coins/vaulta",
+      "watch_reason": "Strong day building \u2014 +10% in 24h and still rising this hour",
+      "plan": null,
+      "plan_note": "Plan unavailable \u2014 price feed hiccup."
     }
   ],
+  "accum": [],
+  "accum_history": {
+    "BTC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 82595.0,
+        "vol24h": 27220600000.0,
+        "vol_ratio": 0.016399
+      }
+    ],
+    "ETH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2438.55,
+        "vol24h": 10871500000.0,
+        "vol_ratio": 0.0364992
+      }
+    ],
+    "USDT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999117,
+        "vol24h": 50814700000.0,
+        "vol_ratio": 0.277652
+      }
+    ],
+    "BNB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 738.89,
+        "vol24h": 687775000.0,
+        "vol_ratio": 0.00707798
+      }
+    ],
+    "XRP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.33,
+        "vol24h": 1482970000.0,
+        "vol_ratio": 0.0176825
+      }
+    ],
+    "USDC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999725,
+        "vol24h": 16106300000.0,
+        "vol_ratio": 0.223366
+      }
+    ],
+    "SOL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 106.18,
+        "vol24h": 2723620000.0,
+        "vol_ratio": 0.0435213
+      }
+    ],
+    "TRX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.330978,
+        "vol24h": 328991000.0,
+        "vol_ratio": 0.0104642
+      }
+    ],
+    "FIGR_HELOC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.055,
+        "vol24h": 57038300.0,
+        "vol_ratio": 0.00224241
+      }
+    ],
+    "ZEC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1219.23,
+        "vol24h": 844377000.0,
+        "vol_ratio": 0.0407537
+      }
+    ],
+    "HYPE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 80.28,
+        "vol24h": 684308000.0,
+        "vol_ratio": 0.0383343
+      }
+    ],
+    "DOGE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.081634,
+        "vol24h": 437842000.0,
+        "vol_ratio": 0.0342971
+      }
+    ],
+    "USDS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 92715400.0,
+        "vol_ratio": 0.0092559
+      }
+    ],
+    "WBT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 80.76,
+        "vol24h": 117340000.0,
+        "vol_ratio": 0.0122365
+      }
+    ],
+    "LINK": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 12.23,
+        "vol24h": 248069000.0,
+        "vol_ratio": 0.0264581
+      }
+    ],
+    "ADA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.222099,
+        "vol24h": 268449000.0,
+        "vol_ratio": 0.0321825
+      }
+    ],
+    "LEO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 9.04,
+        "vol24h": 190439.0,
+        "vol_ratio": 2.29113e-05
+      }
+    ],
+    "RAIN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00918706,
+        "vol24h": 14597300.0,
+        "vol_ratio": 0.00224022
+      }
+    ],
+    "NEAR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4.88,
+        "vol24h": 1026460000.0,
+        "vol_ratio": 0.160548
+      }
+    ],
+    "XLM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.180344,
+        "vol24h": 120076000.0,
+        "vol_ratio": 0.0189124
+      }
+    ],
+    "BCH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 281.19,
+        "vol24h": 141282000.0,
+        "vol_ratio": 0.024988
+      }
+    ],
+    "LTC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 60.76,
+        "vol24h": 248270000.0,
+        "vol_ratio": 0.0525628
+      }
+    ],
+    "USDE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999527,
+        "vol24h": 26546300.0,
+        "vol_ratio": 0.00567031
+      }
+    ],
+    "UNI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 7.35,
+        "vol24h": 383840000.0,
+        "vol_ratio": 0.0836422
+      }
+    ],
+    "DAI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 241373000.0,
+        "vol_ratio": 0.053203
+      }
+    ],
+    "AVAX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 9.66,
+        "vol24h": 255990000.0,
+        "vol_ratio": 0.0596789
+      }
+    ],
+    "SUI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.025,
+        "vol24h": 470002000.0,
+        "vol_ratio": 0.11136
+      }
+    ],
+    "CC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.105227,
+        "vol24h": 14909700.0,
+        "vol_ratio": 0.00355533
+      }
+    ],
+    "USD1": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998821,
+        "vol24h": 979670000.0,
+        "vol_ratio": 0.244793
+      }
+    ],
+    "GRAM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.34,
+        "vol24h": 27767500.0,
+        "vol_ratio": 0.00731188
+      }
+    ],
+    "HBAR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.083621,
+        "vol24h": 102783000.0,
+        "vol_ratio": 0.027929
+      }
+    ],
+    "XAUT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4118.58,
+        "vol24h": 188216000.0,
+        "vol_ratio": 0.0564877
+      }
+    ],
+    "USDG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 492345000.0,
+        "vol_ratio": 0.15727
+      }
+    ],
+    "TAO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 273.57,
+        "vol24h": 134482000.0,
+        "vol_ratio": 0.0433549
+      }
+    ],
+    "SHIB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.1e-06,
+        "vol24h": 45146800.0,
+        "vol_ratio": 0.0150138
+      }
+    ],
+    "CRO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.05759,
+        "vol24h": 5119550.0,
+        "vol_ratio": 0.00175224
+      }
+    ],
+    "PYUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 48680700.0,
+        "vol_ratio": 0.0169741
+      }
+    ],
+    "QNT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 193.98,
+        "vol24h": 61238400.0,
+        "vol_ratio": 0.021683
+      }
+    ],
+    "ENA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.193405,
+        "vol24h": 382029000.0,
+        "vol_ratio": 0.147403
+      }
+    ],
+    "BTW": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.71,
+        "vol24h": 24459800.0,
+        "vol_ratio": 0.00946749
+      }
+    ],
+    "OKB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 115.04,
+        "vol24h": 19082800.0,
+        "vol_ratio": 0.00789884
+      }
+    ],
+    "RLUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 164803000.0,
+        "vol_ratio": 0.0685258
+      }
+    ],
+    "USYC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "USDY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.15,
+        "vol24h": 6843630.0,
+        "vol_ratio": 0.00290545
+      }
+    ],
+    "AAVE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 152.21,
+        "vol24h": 247285000.0,
+        "vol_ratio": 0.105279
+      }
+    ],
+    "WLD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.587097,
+        "vol24h": 662519000.0,
+        "vol_ratio": 0.295764
+      }
+    ],
+    "ONDO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.452804,
+        "vol24h": 135762000.0,
+        "vol_ratio": 0.0615949
+      }
+    ],
+    "BUIDL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "PUMP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00470058,
+        "vol24h": 169891000.0,
+        "vol_ratio": 0.0782622
+      }
+    ],
+    "DOT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.16,
+        "vol24h": 156032000.0,
+        "vol_ratio": 0.0789569
+      }
+    ],
+    "ASTER": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.715892,
+        "vol24h": 82973200.0,
+        "vol_ratio": 0.0426744
+      }
+    ],
+    "PEPE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4.56e-06,
+        "vol24h": 483627000.0,
+        "vol_ratio": 0.252069
+      }
+    ],
+    "USDF": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.997189,
+        "vol24h": 207311.0,
+        "vol_ratio": 0.00186296
+      }
+    ],
+    "PAXG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4124.02,
+        "vol24h": 128088000.0,
+        "vol_ratio": 0.0702965
+      }
+    ],
+    "SKY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.075795,
+        "vol24h": 11689400.0,
+        "vol_ratio": 0.00658574
+      }
+    ],
+    "USDD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998754,
+        "vol24h": 3676460.0,
+        "vol_ratio": 0.00208169
+      }
+    ],
+    "MNT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.532812,
+        "vol24h": 21477200.0,
+        "vol_ratio": 0.0122076
+      }
+    ],
+    "WLFI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.054815,
+        "vol24h": 40302800.0,
+        "vol_ratio": 0.0231297
+      }
+    ],
+    "M": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.760504,
+        "vol24h": 2720650.0,
+        "vol_ratio": 0.00156271
+      }
+    ],
+    "EURSAFO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "MORPHO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.36,
+        "vol24h": 23680500.0,
+        "vol_ratio": 0.0142766
+      }
+    ],
+    "ICP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.91,
+        "vol24h": 41922900.0,
+        "vol_ratio": 0.0258289
+      }
+    ],
+    "U": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999382,
+        "vol24h": 145059000.0,
+        "vol_ratio": 0.0914545
+      }
+    ],
+    "HTX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.66e-06,
+        "vol24h": 57784400.0,
+        "vol_ratio": 0.0392333
+      }
+    ],
+    "BGB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.91,
+        "vol24h": 11977700.0,
+        "vol_ratio": 0.00898109
+      }
+    ],
+    "BFUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998618,
+        "vol24h": 1029760.0,
+        "vol_ratio": 0.000781194
+      }
+    ],
+    "ARB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.18872,
+        "vol24h": 282411000.0,
+        "vol_ratio": 0.217124
+      }
+    ],
+    "USDGO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 26359300.0,
+        "vol_ratio": 0.0204234
+      }
+    ],
+    "ETC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 7.89,
+        "vol24h": 41383600.0,
+        "vol_ratio": 0.0330166
+      }
+    ],
+    "VVV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 24.93,
+        "vol24h": 42645400.0,
+        "vol_ratio": 0.0352313
+      }
+    ],
+    "JST": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.139718,
+        "vol24h": 18302800.0,
+        "vol_ratio": 0.0163377
+      }
+    ],
+    "GT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 10.21,
+        "vol24h": 3116110.0,
+        "vol_ratio": 0.00291641
+      }
+    ],
+    "JUP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.31664,
+        "vol24h": 77591700.0,
+        "vol_ratio": 0.0738253
+      }
+    ],
+    "KAS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.037121,
+        "vol24h": 20481100.0,
+        "vol_ratio": 0.0198724
+      }
+    ],
+    "KCS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 7.38,
+        "vol24h": 12398500.0,
+        "vol_ratio": 0.0120352
+      }
+    ],
+    "ALGO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.113008,
+        "vol24h": 51072300.0,
+        "vol_ratio": 0.0498015
+      }
+    ],
+    "POL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.095063,
+        "vol24h": 46164100.0,
+        "vol_ratio": 0.0456843
+      }
+    ],
+    "RENDER": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.85,
+        "vol24h": 47730500.0,
+        "vol_ratio": 0.0498267
+      }
+    ],
+    "ATOM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.75,
+        "vol24h": 46936700.0,
+        "vol_ratio": 0.0498495
+      }
+    ],
+    "PI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.078806,
+        "vol24h": 3424680.0,
+        "vol_ratio": 0.0038553
+      }
+    ],
+    "FIL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.033,
+        "vol24h": 114147000.0,
+        "vol_ratio": 0.132252
+      }
+    ],
+    "INJ": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 8.59,
+        "vol24h": 138793000.0,
+        "vol_ratio": 0.161644
+      }
+    ],
+    "AERO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.85594,
+        "vol24h": 76054900.0,
+        "vol_ratio": 0.0904125
+      }
+    ],
+    "OUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.99886,
+        "vol24h": 250772.0,
+        "vol_ratio": 0.000303355
+      }
+    ],
+    "NEXO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.815664,
+        "vol24h": 2453160.0,
+        "vol_ratio": 0.00300854
+      }
+    ],
+    "LIT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.24,
+        "vol24h": 80999300.0,
+        "vol_ratio": 0.0999828
+      }
+    ],
+    "USTB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 11.25,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "ZRO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.91,
+        "vol24h": 112471000.0,
+        "vol_ratio": 0.147041
+      }
+    ],
+    "PEARL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.12,
+        "vol24h": 1987800.0,
+        "vol_ratio": 0.00266803
+      }
+    ],
+    "APT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.835509,
+        "vol24h": 72533400.0,
+        "vol_ratio": 0.0983002
+      }
+    ],
+    "AKE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0308934,
+        "vol24h": 13548000.0,
+        "vol_ratio": 0.0192344
+      }
+    ],
+    "CAKE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.21,
+        "vol24h": 51316600.0,
+        "vol_ratio": 0.0729133
+      }
+    ],
+    "GHO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998179,
+        "vol24h": 3529680.0,
+        "vol_ratio": 0.00505879
+      }
+    ],
+    "ETHFI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.7142,
+        "vol24h": 37684000.0,
+        "vol_ratio": 0.0546756
+      }
+    ],
+    "NIGHT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0395906,
+        "vol24h": 13164900.0,
+        "vol_ratio": 0.0200263
+      }
+    ],
+    "STX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.347339,
+        "vol24h": 26331400.0,
+        "vol_ratio": 0.0404202
+      }
+    ],
+    "XDC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0322058,
+        "vol24h": 8505050.0,
+        "vol_ratio": 0.0132367
+      }
+    ],
+    "DASH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 49.91,
+        "vol24h": 54748500.0,
+        "vol_ratio": 0.0852568
+      }
+    ],
+    "PYTH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.079379,
+        "vol24h": 48404100.0,
+        "vol_ratio": 0.0773989
+      }
+    ],
+    "TIA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.625287,
+        "vol24h": 129508000.0,
+        "vol_ratio": 0.210554
+      }
+    ],
+    "VET": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00704192,
+        "vol24h": 6928630.0,
+        "vol_ratio": 0.0114494
+      }
+    ],
+    "CRV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.375784,
+        "vol24h": 79157700.0,
+        "vol_ratio": 0.133345
+      }
+    ],
+    "Q": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.12569,
+        "vol24h": 32107300.0,
+        "vol_ratio": 0.0542755
+      }
+    ],
+    "JAAA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.053,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "BDX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.07352,
+        "vol24h": 2717450.0,
+        "vol_ratio": 0.00469635
+      }
+    ],
+    "RAY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.08,
+        "vol24h": 46902400.0,
+        "vol_ratio": 0.0836707
+      }
+    ],
+    "FLR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00639624,
+        "vol24h": 2382600.0,
+        "vol_ratio": 0.00425895
+      }
+    ],
+    "USD0": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.99886,
+        "vol24h": 121443.0,
+        "vol_ratio": 0.000224327
+      }
+    ],
+    "KAU": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 133.1,
+        "vol24h": 259222.0,
+        "vol_ratio": 0.000488994
+      }
+    ],
+    "EUTBL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.19,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "YLDS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999581,
+        "vol24h": 18523100.0,
+        "vol_ratio": 0.0365547
+      }
+    ],
+    "TRUMP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.79,
+        "vol24h": 139018000.0,
+        "vol_ratio": 0.275544
+      }
+    ],
+    "PENGU": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00802442,
+        "vol24h": 133314000.0,
+        "vol_ratio": 0.264344
+      }
+    ],
+    "EURC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.12,
+        "vol24h": 26404100.0,
+        "vol_ratio": 0.0524784
+      }
+    ],
+    "\u5e01\u5b89\u4eba\u751f": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.494791,
+        "vol24h": 2954730.0,
+        "vol_ratio": 0.00597186
+      }
+    ],
+    "TUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998736,
+        "vol24h": 17344300.0,
+        "vol_ratio": 0.0351165
+      }
+    ],
+    "STABLE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0264188,
+        "vol24h": 10916200.0,
+        "vol_ratio": 0.0229553
+      }
+    ],
+    "A7A5": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0117077,
+        "vol24h": 316.08,
+        "vol_ratio": 6.87986e-07
+      }
+    ],
+    "FET": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.195274,
+        "vol24h": 89440200.0,
+        "vol_ratio": 0.198211
+      }
+    ],
+    "VIRTUAL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.674358,
+        "vol24h": 35361700.0,
+        "vol_ratio": 0.0796577
+      }
+    ],
+    "HASH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00748392,
+        "vol24h": 40412.0,
+        "vol_ratio": 9.11254e-05
+      }
+    ],
+    "STRK": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.057009,
+        "vol24h": 63100300.0,
+        "vol_ratio": 0.145806
+      }
+    ],
+    "GRASS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.614359,
+        "vol24h": 28425700.0,
+        "vol_ratio": 0.0661784
+      }
+    ],
+    "SEI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.060965,
+        "vol24h": 45645600.0,
+        "vol_ratio": 0.11121
+      }
+    ],
+    "DRV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.393868,
+        "vol24h": 9089860.0,
+        "vol_ratio": 0.0230872
+      }
+    ],
+    "PENDLE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.15,
+        "vol24h": 57134200.0,
+        "vol_ratio": 0.152662
+      }
+    ],
+    "FF": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.109546,
+        "vol24h": 4626280.0,
+        "vol_ratio": 0.0126297
+      }
+    ],
+    "BSV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 17.95,
+        "vol24h": 5920480.0,
+        "vol_ratio": 0.0163934
+      }
+    ],
+    "SPX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.382625,
+        "vol24h": 8876050.0,
+        "vol_ratio": 0.0249233
+      }
+    ],
+    "BTT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.67113e-07,
+        "vol24h": 10907000.0,
+        "vol_ratio": 0.0307741
+      }
+    ],
+    "XPL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.077886,
+        "vol24h": 34643800.0,
+        "vol_ratio": 0.0981305
+      }
+    ],
+    "SOFID": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999094,
+        "vol24h": 7543280.0,
+        "vol_ratio": 0.0217739
+      }
+    ],
+    "XTZ": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.312847,
+        "vol24h": 7597680.0,
+        "vol_ratio": 0.0220897
+      }
+    ],
+    "REUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.11,
+        "vol24h": 2832450.0,
+        "vol_ratio": 0.00824771
+      }
+    ],
+    "LDO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.413395,
+        "vol24h": 46743300.0,
+        "vol_ratio": 0.136318
+      }
+    ],
+    "JTRSY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.12,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "CARDS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.360834,
+        "vol24h": 36170100.0,
+        "vol_ratio": 0.111378
+      }
+    ],
+    "OUSG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 116.96,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "SUN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0165518,
+        "vol24h": 15213400.0,
+        "vol_ratio": 0.0478047
+      }
+    ],
+    "APXUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.988306,
+        "vol24h": 1772940.0,
+        "vol_ratio": 0.00579424
+      }
+    ],
+    "FDUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.997937,
+        "vol24h": 106124000.0,
+        "vol_ratio": 0.34911
+      }
+    ],
+    "UB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.121368,
+        "vol24h": 9793570.0,
+        "vol_ratio": 0.0322795
+      }
+    ],
+    "GNO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 114.27,
+        "vol24h": 843499.0,
+        "vol_ratio": 0.00279646
+      }
+    ],
+    "OP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.130294,
+        "vol24h": 100352000.0,
+        "vol_ratio": 0.335049
+      }
+    ],
+    "BAT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.199477,
+        "vol24h": 61736700.0,
+        "vol_ratio": 0.20695
+      }
+    ],
+    "OHM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 19.65,
+        "vol24h": 109207.0,
+        "vol_ratio": 0.000372076
+      }
+    ],
+    "KITE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.121711,
+        "vol24h": 8377580.0,
+        "vol_ratio": 0.0287942
+      }
+    ],
+    "PIEVERSE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.051,
+        "vol24h": 2641180.0,
+        "vol_ratio": 0.00914948
+      }
+    ],
+    "CFX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.05469,
+        "vol24h": 5652160.0,
+        "vol_ratio": 0.0196841
+      }
+    ],
+    "BP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.089,
+        "vol24h": 4002490.0,
+        "vol_ratio": 0.0147022
+      }
+    ],
+    "GRT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0247725,
+        "vol24h": 14489000.0,
+        "vol_ratio": 0.0534632
+      }
+    ],
+    "BONK": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.06e-06,
+        "vol24h": 36173200.0,
+        "vol_ratio": 0.134274
+      }
+    ],
+    "KAIA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0416798,
+        "vol24h": 10228400.0,
+        "vol_ratio": 0.0380504
+      }
+    ],
+    "COMP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 26.42,
+        "vol24h": 117507000.0,
+        "vol_ratio": 0.444862
+      }
+    ],
+    "USDAI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.99923,
+        "vol24h": 3925140.0,
+        "vol_ratio": 0.0149856
+      }
+    ],
+    "DCR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 14.7,
+        "vol24h": 762375.0,
+        "vol_ratio": 0.00293712
+      }
+    ],
+    "JTO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.483927,
+        "vol24h": 24777900.0,
+        "vol_ratio": 0.0958595
+      }
+    ],
+    "LUNC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4.678e-05,
+        "vol24h": 6686840.0,
+        "vol_ratio": 0.0259016
+      }
+    ],
+    "MON": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0217408,
+        "vol24h": 18633200.0,
+        "vol_ratio": 0.07249
+      }
+    ],
+    "AR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.88,
+        "vol24h": 10550800.0,
+        "vol_ratio": 0.0414181
+      }
+    ],
+    "APEPE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.18e-06,
+        "vol24h": 5643570.0,
+        "vol_ratio": 0.0228301
+      }
+    ],
+    "SHFL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.494679,
+        "vol24h": 635712.0,
+        "vol_ratio": 0.00259859
+      }
+    ],
+    "JASMY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0049464,
+        "vol24h": 12557600.0,
+        "vol_ratio": 0.0513538
+      }
+    ],
+    "FLOKI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.455e-05,
+        "vol24h": 17014200.0,
+        "vol_ratio": 0.0718883
+      }
+    ],
+    "SAFO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.025,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "NFT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.37685e-07,
+        "vol24h": 4778330.0,
+        "vol_ratio": 0.0203044
+      }
+    ],
+    "ENS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.56,
+        "vol24h": 11299400.0,
+        "vol_ratio": 0.0480814
+      }
+    ],
+    "EIGEN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.240044,
+        "vol24h": 23251800.0,
+        "vol_ratio": 0.0995172
+      }
+    ],
+    "SYRUP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.197838,
+        "vol24h": 8481280.0,
+        "vol_ratio": 0.0367341
+      }
+    ],
+    "PC0000031": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "KMNO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0392153,
+        "vol24h": 8712470.0,
+        "vol_ratio": 0.0383021
+      }
+    ],
+    "S": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.056718,
+        "vol24h": 52868300.0,
+        "vol_ratio": 0.239901
+      }
+    ],
+    "IOTA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0467855,
+        "vol24h": 7153860.0,
+        "vol_ratio": 0.0325376
+      }
+    ],
+    "AKT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.732615,
+        "vol24h": 6572950.0,
+        "vol_ratio": 0.0300078
+      }
+    ],
+    "RUNE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.666329,
+        "vol24h": 50595200.0,
+        "vol_ratio": 0.231111
+      }
+    ],
+    "FRAX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.991436,
+        "vol24h": 159225.0,
+        "vol_ratio": 0.000732293
+      }
+    ],
+    "KOGE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 63.39,
+        "vol24h": 8092.87,
+        "vol_ratio": 3.77705e-05
+      }
+    ],
+    "CRVUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999049,
+        "vol24h": 16341400.0,
+        "vol_ratio": 0.076632
+      }
+    ],
+    "KAG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 57.81,
+        "vol24h": 283655.0,
+        "vol_ratio": 0.00133815
+      }
+    ],
+    "ZBCN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00211236,
+        "vol24h": 7745160.0,
+        "vol_ratio": 0.0365972
+      }
+    ],
+    "CVX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.26,
+        "vol24h": 12103700.0,
+        "vol_ratio": 0.0574867
+      }
+    ],
+    "USX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999529,
+        "vol24h": 416894.0,
+        "vol_ratio": 0.00199147
+      }
+    ],
+    "THETA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.207199,
+        "vol24h": 17006000.0,
+        "vol_ratio": 0.0820754
+      }
+    ],
+    "WIF": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.205412,
+        "vol24h": 40278400.0,
+        "vol_ratio": 0.196338
+      }
+    ],
+    "BR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.680018,
+        "vol24h": 44824000.0,
+        "vol_ratio": 0.221888
+      }
+    ],
+    "FLUID": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.41,
+        "vol24h": 3281950.0,
+        "vol_ratio": 0.016271
+      }
+    ],
+    "TWT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.465194,
+        "vol24h": 5798600.0,
+        "vol_ratio": 0.0299216
+      }
+    ],
+    "MET": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.342932,
+        "vol24h": 9568990.0,
+        "vol_ratio": 0.0499352
+      }
+    ],
+    "EURCV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.12,
+        "vol24h": 24641200.0,
+        "vol_ratio": 0.129743
+      }
+    ],
+    "ZAMA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.074384,
+        "vol24h": 10591300.0,
+        "vol_ratio": 0.0558367
+      }
+    ],
+    "PONS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.276077,
+        "vol24h": 25708100.0,
+        "vol_ratio": 0.138345
+      }
+    ],
+    "AXS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.044,
+        "vol24h": 33221000.0,
+        "vol_ratio": 0.18118
+      }
+    ],
+    "USAT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998708,
+        "vol24h": 1347860.0,
+        "vol_ratio": 0.00736207
+      }
+    ],
+    "AUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999024,
+        "vol24h": 4744130.0,
+        "vol_ratio": 0.0263655
+      }
+    ],
+    "TRAC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.392025,
+        "vol24h": 2893790.0,
+        "vol_ratio": 0.0165053
+      }
+    ],
+    "ANVL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00197558,
+        "vol24h": 106732.0,
+        "vol_ratio": 0.000613369
+      }
+    ],
+    "MANA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.08801,
+        "vol24h": 11176600.0,
+        "vol_ratio": 0.0648868
+      }
+    ],
+    "SAND": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.058398,
+        "vol24h": 48445200.0,
+        "vol_ratio": 0.282366
+      }
+    ],
+    "BTSE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.04,
+        "vol24h": 321271.0,
+        "vol_ratio": 0.00190588
+      }
+    ],
+    "USTBL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.099,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "ZK": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0149781,
+        "vol24h": 14744000.0,
+        "vol_ratio": 0.0893233
+      }
+    ],
+    "BEAM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00318174,
+        "vol24h": 19347100.0,
+        "vol_ratio": 0.1185
+      }
+    ],
+    "A": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.097243,
+        "vol24h": 24066500.0,
+        "vol_ratio": 0.147774
+      }
+    ],
+    "XCN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00407253,
+        "vol24h": 2780690.0,
+        "vol_ratio": 0.0172521
+      }
+    ],
+    "CRCLB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 86.09,
+        "vol24h": 31219900.0,
+        "vol_ratio": 0.193966
+      }
+    ],
+    "STRCX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 108.39,
+        "vol24h": 346000.0,
+        "vol_ratio": 0.00215777
+      }
+    ],
+    "BORG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.163022,
+        "vol24h": 149607.0,
+        "vol_ratio": 0.000940703
+      }
+    ],
+    "SENT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0219201,
+        "vol24h": 6102710.0,
+        "vol_ratio": 0.0383732
+      }
+    ],
+    "NEO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.25,
+        "vol24h": 2892420.0,
+        "vol_ratio": 0.0182048
+      }
+    ],
+    "APYUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.4,
+        "vol24h": 905671.0,
+        "vol_ratio": 0.00575131
+      }
+    ],
+    "USELESS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.156106,
+        "vol24h": 14958800.0,
+        "vol_ratio": 0.0958407
+      }
+    ],
+    "2Z": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0299564,
+        "vol24h": 3703420.0,
+        "vol_ratio": 0.0237676
+      }
+    ],
+    "COCO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.154187,
+        "vol24h": 40995.0,
+        "vol_ratio": 0.000265879
+      }
+    ],
+    "NPC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.019101,
+        "vol24h": 3239360.0,
+        "vol_ratio": 0.0210658
+      }
+    ],
+    "MX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.67,
+        "vol24h": 7942360.0,
+        "vol_ratio": 0.0516806
+      }
+    ],
+    "GRX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 15.94,
+        "vol24h": 2668100.0,
+        "vol_ratio": 0.0175942
+      }
+    ],
+    "VSN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.039922,
+        "vol24h": 4767940.0,
+        "vol_ratio": 0.0314657
+      }
+    ],
+    "GUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.997581,
+        "vol24h": 187582.0,
+        "vol_ratio": 0.00125533
+      }
+    ],
+    "GOMINING": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.369584,
+        "vol24h": 14595500.0,
+        "vol_ratio": 0.0980568
+      }
+    ],
+    "SN51": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 29.77,
+        "vol24h": 1967510.0,
+        "vol_ratio": 0.013369
+      }
+    ],
+    "FARTCOIN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.146319,
+        "vol24h": 25384500.0,
+        "vol_ratio": 0.173569
+      }
+    ],
+    "APE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.146178,
+        "vol24h": 12331500.0,
+        "vol_ratio": 0.0843591
+      }
+    ],
+    "CHZ": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0137512,
+        "vol24h": 14110500.0,
+        "vol_ratio": 0.0971561
+      }
+    ],
+    "SPCXB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 151.16,
+        "vol24h": 62000400.0,
+        "vol_ratio": 0.43342
+      }
+    ],
+    "RAIL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.37,
+        "vol24h": 330454.0,
+        "vol_ratio": 0.0023226
+      }
+    ],
+    "0G": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.234444,
+        "vol24h": 4575900.0,
+        "vol_ratio": 0.0323495
+      }
+    ],
+    "IMX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.152938,
+        "vol24h": 4983110.0,
+        "vol_ratio": 0.0360207
+      }
+    ],
+    "DGAI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.913107,
+        "vol24h": 23985500.0,
+        "vol_ratio": 0.175133
+      }
+    ],
+    "AIOZ": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.105447,
+        "vol24h": 5991310.0,
+        "vol_ratio": 0.0441734
+      }
+    ],
+    "JPYC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00629101,
+        "vol24h": 845120.0,
+        "vol_ratio": 0.00631121
+      }
+    ],
+    "AWE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.06884,
+        "vol24h": 2466280.0,
+        "vol_ratio": 0.0184654
+      }
+    ],
+    "B": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.132113,
+        "vol24h": 3758600.0,
+        "vol_ratio": 0.0284461
+      }
+    ],
+    "XEC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 6.53e-06,
+        "vol24h": 2958760.0,
+        "vol_ratio": 0.0225463
+      }
+    ],
+    "1INCH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.093359,
+        "vol24h": 21533200.0,
+        "vol_ratio": 0.164102
+      }
+    ],
+    "SNX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.222057,
+        "vol24h": 5292190.0,
+        "vol_ratio": 0.0410208
+      }
+    ],
+    "JPYSC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00632135,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "GEOD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.277927,
+        "vol24h": 2616380.0,
+        "vol_ratio": 0.0203571
+      }
+    ],
+    "ONYC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.16,
+        "vol24h": 1649140.0,
+        "vol_ratio": 0.0129514
+      }
+    ],
+    "CASH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999056,
+        "vol24h": 3436480.0,
+        "vol_ratio": 0.0271185
+      }
+    ],
+    "OZO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.130762,
+        "vol24h": 218849.0,
+        "vol_ratio": 0.00174168
+      }
+    ],
+    "SFP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.250694,
+        "vol24h": 796606.0,
+        "vol_ratio": 0.0063552
+      }
+    ],
+    "SUPER": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.190726,
+        "vol24h": 7012300.0,
+        "vol_ratio": 0.0562763
+      }
+    ],
+    "MSTRX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 142.98,
+        "vol24h": 5018020.0,
+        "vol_ratio": 0.0409864
+      }
+    ],
+    "ULTIMA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1419.77,
+        "vol24h": 4148330.0,
+        "vol_ratio": 0.0344932
+      }
+    ],
+    "AVUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998224,
+        "vol24h": 34.71,
+        "vol_ratio": 2.88806e-07
+      }
+    ],
+    "PLUME": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0181806,
+        "vol24h": 14049400.0,
+        "vol_ratio": 0.116954
+      }
+    ],
+    "RSR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00191926,
+        "vol24h": 12261700.0,
+        "vol_ratio": 0.102156
+      }
+    ],
+    "H": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.056377,
+        "vol24h": 1152900.0,
+        "vol_ratio": 0.00964328
+      }
+    ],
+    "MGLO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.006,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "BC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0370203,
+        "vol24h": 116763.0,
+        "vol_ratio": 0.000982299
+      }
+    ],
+    "DBR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0181844,
+        "vol24h": 2443080.0,
+        "vol_ratio": 0.0205669
+      }
+    ],
+    "THBILL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.015,
+        "vol24h": 1247.45,
+        "vol_ratio": 1.06055e-05
+      }
+    ],
+    "NOPAL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.11,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "GLM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.116254,
+        "vol24h": 2136590.0,
+        "vol_ratio": 0.0183786
+      }
+    ],
+    "EGLD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.7,
+        "vol24h": 2078160.0,
+        "vol_ratio": 0.0180972
+      }
+    ],
+    "PC0000023": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "META": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.04,
+        "vol24h": 809649.0,
+        "vol_ratio": 0.00707707
+      }
+    ],
+    "ALFW": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 3.2,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "SN64": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 18.24,
+        "vol24h": 1083620.0,
+        "vol_ratio": 0.00957198
+      }
+    ],
+    "RLB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.072875,
+        "vol24h": 102163.0,
+        "vol_ratio": 0.000903346
+      }
+    ],
+    "CASHCAT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.114169,
+        "vol24h": 9943490.0,
+        "vol_ratio": 0.0881733
+      }
+    ],
+    "PC0000085": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "ATH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00555772,
+        "vol24h": 8450150.0,
+        "vol_ratio": 0.0755355
+      }
+    ],
+    "ZEN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 6.07,
+        "vol24h": 6847820.0,
+        "vol_ratio": 0.0612869
+      }
+    ],
+    "CRCLX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 86.14,
+        "vol24h": 13284800.0,
+        "vol_ratio": 0.119674
+      }
+    ],
+    "KNTQ": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.347574,
+        "vol24h": 6820150.0,
+        "vol_ratio": 0.0622957
+      }
+    ],
+    "SOSO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.315544,
+        "vol24h": 5120420.0,
+        "vol_ratio": 0.0474479
+      }
+    ],
+    "AUTO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.027,
+        "vol24h": 99479.0,
+        "vol_ratio": 0.000929086
+      }
+    ],
+    "WAL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0408624,
+        "vol24h": 11731700.0,
+        "vol_ratio": 0.109695
+      }
+    ],
+    "SKR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0148156,
+        "vol24h": 2115060.0,
+        "vol_ratio": 0.0199078
+      }
+    ],
+    "USDAT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999111,
+        "vol24h": 508898.0,
+        "vol_ratio": 0.00481112
+      }
+    ],
+    "SHX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0056843,
+        "vol24h": 1132480.0,
+        "vol_ratio": 0.0107135
+      }
+    ],
+    "CAP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.067691,
+        "vol24h": 9459550.0,
+        "vol_ratio": 0.0895813
+      }
+    ],
+    "ORCA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.74,
+        "vol24h": 8806500.0,
+        "vol_ratio": 0.083405
+      }
+    ],
+    "STAC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1036.82,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "EDGE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.293443,
+        "vol24h": 1517700.0,
+        "vol_ratio": 0.0147773
+      }
+    ],
+    "USD3": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.2,
+        "vol24h": 272397.0,
+        "vol_ratio": 0.00266038
+      }
+    ],
+    "FRXUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999923,
+        "vol24h": 2998830.0,
+        "vol_ratio": 0.0293135
+      }
+    ],
+    "GENIUS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.303793,
+        "vol24h": 2180180.0,
+        "vol_ratio": 0.0213984
+      }
+    ],
+    "CRCLON": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 86.14,
+        "vol24h": 1022820.0,
+        "vol_ratio": 0.0100562
+      }
+    ],
+    "GALA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00198368,
+        "vol24h": 22811500.0,
+        "vol_ratio": 0.226562
+      }
+    ],
+    "SOON": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.29601,
+        "vol24h": 7401350.0,
+        "vol_ratio": 0.0735855
+      }
+    ]
+  },
+  "proof": {
+    "record": [],
+    "stats": {
+      "graded": 0,
+      "wins": 0,
+      "losses": 0,
+      "expired": 0,
+      "open": 0,
+      "win_rate": null,
+      "paper_pnl_total": 0,
+      "by_kind": {
+        "signal": {
+          "graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "expired": 0,
+          "open": 0,
+          "win_rate": null,
+          "paper_pnl_total": 0
+        },
+        "mover": {
+          "graded": 0,
+          "wins": 0,
+          "losses": 0,
+          "expired": 0,
+          "open": 0,
+          "win_rate": null,
+          "paper_pnl_total": 0
+        }
+      }
+    }
+  },
   "coins_scanned": 50
 }
