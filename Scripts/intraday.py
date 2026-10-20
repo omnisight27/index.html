@@ -213,6 +213,229 @@ def strong_day(chg24, chg1, vol_ratio, vol_med):
         return chg1 <= -0.5 and vol_ratio >= vol_med
     return False
 
+# ---------------------------------------------------------------------------
+# 📒 Proof Book — a public paper-trading ledger of every intraday call.
+#
+# Persistence route: the intraday workflow commits ONLY data/intraday.json
+# (see .github/workflows/intraday-loop.yml, `git add data/intraday.json`),
+# so a separate data/proof.json would never survive a production run. The
+# ledger therefore rides inside data/intraday.json under the `proof` key —
+# the same precedent as accum_history above. The Reports page reads it
+# from there.
+#
+# Conventions: every call is graded as if $1,000 rode it (paper money).
+# A call that touches its target first is 'won' (+expected_return_pct);
+# one that touches its stop first is 'lost' (-max_loss_pct); one that
+# reaches its exit time + 2h grace untouched is 'expired' and graded at
+# the actual price drift. Anything unresolved after 7 days expires too.
+# Grading walks the hourly price path SINCE ENTRY (main() tops up chart
+# fetches so every open call's asset has one, not just the top-50 signal
+# universe); first touch in time order decides. If no chart is
+# available, the fallback is extremes actually observed run over run
+# (current-price snapshots accumulated on the entry) — the markets
+# payload's trailing-24h high/low is trusted ONLY once a call is >= 24h
+# old, because before that the window mostly predates the call (a local
+# end-to-end test graded 17/17 fresh calls instantly against pre-entry
+# movement — exactly what a proof book must never do). Where both levels
+# are crossed inside one observation gap, order is unknowable and the
+# call is graded a loss: the book never credits an ambiguous win.
+# Simplification: the hourly path is hourly closes, so a spike that
+# fully reverted inside a single hour can be missed.
+# ---------------------------------------------------------------------------
+PAPER_USD = 1000
+
+def _iso_parse(s):
+    try:
+        return datetime.fromisoformat(s)
+    except Exception:
+        return None
+
+def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h):
+    """Normalize a signal thesis / mover plan into a ledger entry.
+    horizon_h matches the builders: signals exit at +2h
+    (build_intraday_thesis), mover plans at +3h (build_mover_plan)."""
+    from datetime import timedelta
+    if not plan:
+        return None
+    try:
+        entry = float(plan.get('entry'))
+        tp = float(plan.get('take_profit'))
+        sl = float(plan.get('stop_loss'))
+    except (TypeError, ValueError):
+        return None
+    if not entry or entry <= 0:
+        return None
+    exp_ret = plan.get('expected_return_pct')
+    if exp_ret is None:
+        exp_ret = round(abs(tp - entry) / entry * 100, 2)
+    max_loss = plan.get('max_loss_pct')
+    if max_loss is None:
+        max_loss = round(abs(entry - sl) / entry * 100, 2)
+    return {
+        'id': f'{kind}:{asset}:{int(now.timestamp())}',
+        'ts_open': now.isoformat(),
+        'kind': kind,
+        'asset': asset,
+        'name': name or asset,
+        'direction': direction or 'LONG',
+        'entry': entry,
+        'take_profit': tp,
+        'stop_loss': sl,
+        'exit_by': (now + timedelta(hours=horizon_h)).isoformat(),
+        'expected_return_pct': exp_ret,
+        'max_loss_pct': max_loss,
+        'status': 'open',
+        'result_pct': None,
+        'paper_pnl': None,
+        'ts_closed': None,
+        'last_price': entry,
+    }
+
+def proof_record_new(record, candidates, now):
+    """Prepend fresh calls to the ledger (kept newest-first). Dedup: the
+    same asset+kind is never re-recorded while an entry is still open,
+    nor within 24h of a previous entry — movers re-fire every hour and
+    must not flood the book."""
+    fresh = []
+    for cand in candidates:
+        if not cand:
+            continue
+        dup = False
+        for e in record:
+            if e.get('asset') != cand['asset'] or e.get('kind') != cand['kind']:
+                continue
+            if e.get('status') == 'open':
+                dup = True
+                break
+            opened = _iso_parse(e.get('ts_open') or '')
+            if opened and (now - opened).total_seconds() < 24 * 3600:
+                dup = True
+                break
+        if not dup:
+            fresh.append(cand)
+    record[:] = fresh + record
+    return len(fresh)
+
+def proof_grade(record, mkt_by_sym, charts_by_sym, now):
+    """Grade every open ledger entry against fresh market data.
+    mkt_by_sym: {sym: {'price', 'high_24h', 'low_24h'}} from the markets
+    payload; charts_by_sym: {sym: [[ts_ms, price], ...]} hourly points —
+    main() tops this up so every open call's asset is covered."""
+    from datetime import timedelta
+    for e in record:
+        if e.get('status') != 'open':
+            continue
+        sym = e['asset']
+        is_long = e.get('direction') != 'SHORT'
+        tp, sl, entry = e['take_profit'], e['stop_loss'], e['entry']
+        opened = _iso_parse(e.get('ts_open') or '')
+        mkt = mkt_by_sym.get(sym) or {}
+        cur = mkt.get('price')
+        if cur:
+            e['last_price'] = cur
+        status = result = None
+        if cur:
+            pts = []
+            chart = charts_by_sym.get(sym)
+            if chart and opened:
+                opened_ms = opened.timestamp() * 1000
+                pts = [pr for ts, pr in chart if ts >= opened_ms]
+            if pts:
+                # Walk in time order — first touch decides. Current price
+                # is the final observation.
+                for p in pts + [cur]:
+                    if is_long:
+                        if p >= tp:
+                            status = 'won'
+                            break
+                        if p <= sl:
+                            status = 'lost'
+                            break
+                    else:
+                        if p <= tp:
+                            status = 'won'
+                            break
+                        if p >= sl:
+                            status = 'lost'
+                            break
+            else:
+                # No hourly path: extremes actually observed since entry
+                # (accumulated snapshots), plus the trailing-24h window
+                # once it lies entirely after entry (age >= 24h).
+                hi = max(e.get('obs_hi') or cur, cur)
+                lo = min(e.get('obs_lo') or cur, cur)
+                if opened and (now - opened).total_seconds() >= 24 * 3600:
+                    if mkt.get('high_24h') is not None:
+                        hi = max(hi, mkt['high_24h'])
+                    if mkt.get('low_24h') is not None:
+                        lo = min(lo, mkt['low_24h'])
+                e['obs_hi'], e['obs_lo'] = hi, lo
+                if is_long:
+                    hit_tp, hit_sl = hi >= tp, lo <= sl
+                else:
+                    hit_tp, hit_sl = lo <= tp, hi >= sl
+                if hit_tp and hit_sl:
+                    status = 'lost'  # order unknowable — conservative
+                elif hit_tp:
+                    status = 'won'
+                elif hit_sl:
+                    status = 'lost'
+            if status == 'won':
+                result = e['expected_return_pct']
+            elif status == 'lost':
+                result = -e['max_loss_pct']
+        if status is None:
+            exit_by = _iso_parse(e.get('exit_by') or '')
+            age_days = (now - opened).total_seconds() / 86400 if opened else 99
+            drift_from = None
+            if exit_by and now > exit_by + timedelta(hours=2):
+                drift_from = cur or e.get('last_price')
+            elif age_days > 7:
+                drift_from = e.get('last_price') or entry
+            if drift_from:
+                status = 'expired'
+                result = ((drift_from - entry) / entry * 100) if is_long \
+                    else ((entry - drift_from) / entry * 100)
+        if status:
+            e['status'] = status
+            e['result_pct'] = round(result, 2)
+            e['paper_pnl'] = round(result * PAPER_USD / 100, 2)
+            e['ts_closed'] = now.isoformat()
+
+def proof_stats(record):
+    def agg(entries):
+        closed = [e for e in entries if e.get('status') in ('won', 'lost', 'expired')]
+        wins = sum(1 for e in closed if e['status'] == 'won')
+        losses = sum(1 for e in closed if e['status'] == 'lost')
+        expired = sum(1 for e in closed if e['status'] == 'expired')
+        return {
+            'graded': len(closed),
+            'wins': wins,
+            'losses': losses,
+            'expired': expired,
+            'open': sum(1 for e in entries if e.get('status') == 'open'),
+            'win_rate': round(wins / (wins + losses) * 100, 1) if (wins + losses) else None,
+            'paper_pnl_total': round(sum(e.get('paper_pnl') or 0 for e in closed), 2),
+        }
+    stats = agg(record)
+    stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
+                        for k in ('signal', 'mover')}
+    return stats
+
+def _proof_trim(record, cap=100):
+    """Cap the published ledger at the newest 100 entries, dropping the
+    oldest CLOSED entries first so open calls are never silently lost."""
+    if len(record) <= cap:
+        return record
+    drop = set()
+    for i in range(len(record) - 1, -1, -1):  # newest-first: walk oldest back
+        if len(record) - len(drop) <= cap:
+            break
+        if record[i].get('status') != 'open':
+            drop.add(i)
+    out = [e for i, e in enumerate(record) if i not in drop]
+    return out[:cap]
+
 def main():
     print('INTRADAY: hourly signals...')
     # Cross-run memory for the accumulation detector: the engine itself is
@@ -222,6 +445,13 @@ def main():
     try:
         with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
             prior_history = (json.load(f) or {}).get('accum_history') or {}
+    except Exception:
+        pass
+    # Same persistence trick for the 📒 Proof Book ledger (see proof block).
+    prior_proof = []
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_proof = ((json.load(f) or {}).get('proof') or {}).get('record') or []
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -260,8 +490,18 @@ def main():
         print('  FAILED: no market data')
         return
     mkts = universe[:50]
+    # Market lookup for Proof Book grading — universe is market-cap
+    # ordered, so the first occurrence of a symbol is its biggest coin.
+    mkt_by_sym = {}
+    for c in universe:
+        s = (c['symbol'] or '').upper()
+        if s and s not in mkt_by_sym:
+            mkt_by_sym[s] = {'price': c.get('current_price'),
+                             'high_24h': c.get('high_24h'),
+                             'low_24h': c.get('low_24h')}
 
     signals = []
+    charts_by_sym = {}  # retained for Proof Book grading (hourly points)
     for c in mkts:
         cid = c['id']
         sym = (c['symbol'] or '').upper()
@@ -278,6 +518,7 @@ def main():
         f = hourly_features(chart['prices'])
         if not f:
             continue
+        charts_by_sym[sym] = chart['prices']
         score = score_intraday(f)
         conf = min(95, max(40, 50 + abs(score) * 3))
         # Only signals with meaningful score
@@ -432,6 +673,46 @@ def main():
     accum = accum[:8]
     print(f'  Accumulation scan: {len(accum)} setting up')
 
+    # --- 📒 Proof Book: grade yesterday's calls before recording today's
+    # (a call is never graded in the same run that creates it, so the
+    # trailing-24h windows can't credit a pre-entry move) ---
+    proof = list(prior_proof)
+    proof_now = datetime.now(timezone.utc)
+    # Grading wants an hourly path for every open call, not just the
+    # top-50 signal universe: fetch charts for open entries' assets that
+    # the signal scan didn't cover (one fetch per symbol, bounded by the
+    # number of open calls).
+    id_by_sym = {}
+    for c in universe:
+        s = (c['symbol'] or '').upper()
+        if s and s not in id_by_sym:
+            id_by_sym[s] = c['id']
+    for e in proof:
+        if e.get('status') != 'open':
+            continue
+        sym = e['asset']
+        if sym in charts_by_sym or sym not in id_by_sym:
+            continue
+        ch = fetch_json(f'https://api.coingecko.com/api/v3/coins/{id_by_sym[sym]}/market_chart'
+                        '?vs_currency=usd&days=1&interval=hourly')
+        if ch and ch.get('prices'):
+            charts_by_sym[sym] = ch['prices']
+    proof_grade(proof, mkt_by_sym, charts_by_sym, proof_now)
+    proof_cands = []
+    for s in longs + shorts:
+        proof_cands.append(_proof_candidate(
+            'signal', s['asset'], s.get('name'), s.get('direction'),
+            s.get('thesis'), proof_now, 2))
+    for m in movers:
+        proof_cands.append(_proof_candidate(
+            'mover', m['asset'], m.get('name'), 'LONG',
+            m.get('plan'), proof_now, 3))
+    n_added = proof_record_new(proof, proof_cands, proof_now)
+    proof = _proof_trim(proof)
+    pstats = proof_stats(proof)
+    print(f"  Proof book: +{n_added} new calls, {pstats['open']} open, "
+          f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
+
     out = {
         'generated': datetime.now(timezone.utc).isoformat(),
         'mode': 'intraday',
@@ -442,6 +723,7 @@ def main():
         'watch': watch,
         'accum': accum,
         'accum_history': new_history,
+        'proof': {'record': proof, 'stats': pstats},
         'coins_scanned': len(mkts),
     }
     os.makedirs(DATA_DIR, exist_ok=True)
