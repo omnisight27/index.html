@@ -201,6 +201,18 @@ def accum_reason(hist, vol_ratio, vol_q90, chg_1h, now):
                 round(drift, 2) if drift is not None else 0.0)
     return None
 
+def strong_day(chg24, chg1, vol_ratio, vol_med):
+    """Strong-day watch predicate (pure function — unit-tested): a coin
+    grinding >= 8% over 24h in steps — no single explosive hour — counts
+    as setting up IF the current hour is still moving the same direction
+    (>= +0.5% / <= -0.5%) AND its volume ratio is at least the universe
+    median. Case study: CVX +9.24% 24h on 2026-10-20 tripped no tier."""
+    if chg24 >= 8:
+        return chg1 >= 0.5 and vol_ratio >= vol_med
+    if chg24 <= -8:
+        return chg1 <= -0.5 and vol_ratio >= vol_med
+    return False
+
 def main():
     print('INTRADAY: hourly signals...')
     # Cross-run memory for the accumulation detector: the engine itself is
@@ -317,6 +329,7 @@ def main():
                     for c in scanned if c.get('market_cap'))
     vol_q3 = ratios[int(len(ratios) * 0.75)] if ratios else float('inf')
     vol_q90 = ratios[int(len(ratios) * 0.90)] if ratios else float('inf')
+    vol_med = ratios[len(ratios) // 2] if ratios else float('inf')
     # Accumulation history upkeep: append this run's observation for every
     # scanned coin, keep the last 6, prune coins not in the latest scan.
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -339,8 +352,9 @@ def main():
                         else ('UP' if chg1 > 0 else 'DOWN')
             movers.append(mover_fields(c, direction))
             continue  # a mover is never also a watch item
+        vol_ratio = (c.get('total_volume') or 0) / c['market_cap'] if c.get('market_cap') else 0
+        listed = False
         if abs(chg1) >= 3:
-            vol_ratio = (c.get('total_volume') or 0) / c['market_cap'] if c.get('market_cap') else 0
             surge = vol_ratio >= vol_q3
             inflection = (chg1 >= 3 and chg24 <= 0) or (chg1 <= -3 and chg24 >= 0)
             if surge or inflection:
@@ -349,6 +363,15 @@ def main():
                     (' + ' if surge and inflection else '') + \
                     ('fresh inflection' if inflection else '')
                 watch.append(w)
+                listed = True
+        # Strong day (additive): +8%+ over 24h in steps, still moving the
+        # same way this hour, at least median volume — CVX case 2026-10-20:
+        # +9.24% 24h with no +3% hour tripped neither movers nor watch.
+        if not listed and strong_day(chg24, chg1, vol_ratio, vol_med):
+            w = mover_fields(c, 'UP' if chg24 > 0 else 'DOWN')
+            w['watch_reason'] = (f"Strong day building — {chg24:+.0f}% in 24h and still "
+                                 f"{'rising' if chg24 > 0 else 'falling'} this hour")
+            watch.append(w)
     movers.sort(key=lambda m: -abs(m['chg_24h']))
     watch.sort(key=lambda m: -abs(m['chg_1h']))
     movers, watch = movers[:10], watch[:10]
