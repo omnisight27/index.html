@@ -63,6 +63,8 @@
       '</div>' +
       '<div class="debt-extra">' +
         '<label><input type="checkbox" data-f="staked"' + (h.staked ? ' checked' : '') + '> Staked</label>' +
+        (h.source === 'coinbase' ? ' <span class="asset-badge badge-crypto">⟳ Synced from Coinbase</span>' : '') +
+        '<input type="hidden" data-f="source" value="' + esc(h.source || '') + '">' +
       '</div>' +
       '<button class="btn-small" data-del="' + i + '">✕ Remove</button>';
     return div;
@@ -404,6 +406,48 @@
     render();
     save();
   });
+
+  // ---------- Coinbase sync hook (used by coinbase-link.js) ----------
+  // Merges backend-normalized positions [{symbol, units, price_usd, staked}]
+  // into the on-device holdings: existing rows keep their avg cost, units are
+  // replaced with the synced balance, rows are marked source='coinbase'.
+  // USD cash gets its manual price set to $1 (it has no CoinGecko feed);
+  // everything else keeps valuing off the live feed as before.
+  window.OmniPortfolioSync = {
+    applyCoinbase: function (positions) {
+      readRows();  // fold in-progress edits into `holdings` first
+      var bySym = {};
+      holdings.forEach(function (h, i) {
+        var s = String(h.symbol || '').toUpperCase();
+        if (s && bySym[s] === undefined) bySym[s] = i;
+      });
+      var applied = 0;
+      (positions || []).forEach(function (p) {
+        var sym = String(p.symbol || '').toUpperCase();
+        if (!sym) return;
+        if (bySym[sym] !== undefined) {
+          var h = holdings[bySym[sym]];
+          h.units = String(p.units);
+          if (p.staked) h.staked = true;
+          h.source = 'coinbase';
+          if (sym === 'USD' && p.price_usd) h.manual_price = String(p.price_usd);
+        } else {
+          holdings.push({
+            symbol: sym, units: String(p.units), avg_cost: '',
+            manual_price: (sym === 'USD' && p.price_usd) ? String(p.price_usd) : '',
+            staked: !!p.staked, source: 'coinbase'
+          });
+          bySym[sym] = holdings.length - 1;
+        }
+        applied++;
+      });
+      render();  // rebuild the DOM from merged holdings FIRST — save() reads the DOM
+      save();
+      renderAnalysis();
+      loadPrices().then(renderAnalysis);
+      return applied;
+    }
+  };
 
   // ---------- Init ----------
 
