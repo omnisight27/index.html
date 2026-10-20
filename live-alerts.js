@@ -118,7 +118,13 @@
 
     feed.innerHTML = '';
     if (!visible.length) {
-      feed.innerHTML = '<div class="alert-card alert-hold"><h4>No alerts pass your filters</h4>' +
+      var selEngine = document.querySelector('.filters select');
+      var engName = selEngine ? selEngine.value : '';
+      var standbyMsg = '';
+      if (engName === 'Commerce Radar') {
+        standbyMsg = '<p><strong>Commerce Radar is on standby</strong> — no free retail-demand data source exists yet. This engine will activate when a feed is connected.</p>';
+      }
+      feed.innerHTML = '<div class="alert-card alert-hold"><h4>No alerts pass your filters</h4>' + standbyMsg +
         '<p>Loosen the confidence threshold or re-enable engines on the <a href="engines.html" style="color:var(--accent)">Engines</a> page.</p></div>';
     }
     visible.forEach(function (a) {
@@ -167,14 +173,18 @@
     Promise.all([pricesP, greedP, modelP]).then(function (res) {
       var alerts = buildAlerts(res[0], res[1]);
       // Prepend model alerts (highest priority) — map to engine by asset class
-      var CLASS_TO_ENGINE = { 'crypto': 'Crypto Pulse', 'equity': 'Macro Scope' };
+      var CLASS_TO_ENGINE = { 'crypto': 'Crypto Pulse', 'equity': 'Macro Scope',
+        'contract': 'Contract Intel', 'macro': 'Liquidity Engine' };
       res[2].forEach(function (ma) {
         var type = ma.type === 'BUY' ? 'buy' : ma.type === 'SELL' ? 'sell' : 'hold';
         var eng = ma.type === 'REGIME' ? 'Macro Scope'
+          : ma.type === 'CONTRACT' ? 'Contract Intel'
+          : ma.type === 'MACRO' ? 'Liquidity Engine'
           : (CLASS_TO_ENGINE[ma.asset_class] || 'NexIntel');
+        var icon = ma.type === 'CONTRACT' ? '📋 ' : ma.type === 'MACRO' ? '💧 ' : '🤖 ';
         alerts.unshift({
           type: type, engine: eng,
-          title: '🤖 ' + ma.type + ': ' + ma.asset,
+          title: icon + ma.type + ': ' + ma.asset,
           confidence: ma.confidence,
           body: ma.reason + ' <a href="picks.html" style="color:var(--accent)">See thesis →</a>',
           time: new Date(ma.timestamp).toLocaleString()

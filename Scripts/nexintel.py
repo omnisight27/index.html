@@ -661,6 +661,41 @@ def think(data, history):
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 
+    # Contract Intel alerts — mega awards (>$500M) with tickers
+    for c in mega[:3]:
+        name = c.get('Recipient Name', '?')
+        ticker = recipient_ticker(name)
+        amt = c.get('Award Amount', 0)
+        alerts.append({
+            'type': 'CONTRACT',
+            'asset': ticker or name,
+            'price': round(amt / 1e9, 2),
+            'confidence': 85,
+            'asset_class': 'contract',
+            'reason': f"${amt/1e9:.2f}B award → {name}" + (f" [{ticker}]" if ticker else "") + f" ({c.get('Awarding Agency','?')}).",
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        })
+
+    # Liquidity Engine alerts — significant macro moves
+    macro = data.get('macro', {})
+    cpi = macro.get('cpi_yoy', {})
+    if cpi.get('value'):
+        cpi_v = cpi['value']
+        if cpi_v > 4:
+            alerts.append({
+                'type': 'MACRO', 'asset': 'CPI', 'price': cpi_v, 'confidence': 75,
+                'asset_class': 'macro',
+                'reason': f"CPI YoY at {cpi_v}% — above 4% (hot inflation, risk-off tilt).",
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            })
+        elif cpi_v < 2:
+            alerts.append({
+                'type': 'MACRO', 'asset': 'CPI', 'price': cpi_v, 'confidence': 75,
+                'asset_class': 'macro',
+                'reason': f"CPI YoY at {cpi_v}% — below 2% (cool inflation, risk-on tilt).",
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            })
+
     # --- Regime FLIP alert: compare to previous run ---
     prev_regime = None
     try:
