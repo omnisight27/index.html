@@ -252,6 +252,14 @@ def ingest():
 def clamp(x, lo=0, hi=100):
     return max(lo, min(hi, x))
 
+# Plain-English regime labels for user-facing display (internal values stay
+# RISK_ON / RISK_OFF / NEUTRAL for all logic)
+REGIME_LABELS = {
+    'RISK_ON': '🟢 Conditions favor buying',
+    'RISK_OFF': '🔴 Conditions favor caution',
+    'NEUTRAL': '🟡 Mixed conditions',
+}
+
 # ---------------------------------------------------------------- OPTIMIZATION
 # Row echelon form via Gaussian elimination with partial pivoting.
 # Solves Ax = b for the least-squares optimal weight vector.
@@ -1002,6 +1010,7 @@ def publish(data, signals, history):
         'model_error': history.get('error', {}),
         'calibration': history.get('calibration', []),
         'regime': signals.get('regime'),
+        'regime_label': REGIME_LABELS.get(signals.get('regime'), signals.get('regime')),
         'buy_pct': signals.get('buy_pct'),
         'buy_text': signals.get('buy_text'),
         'kelly_pct': signals.get('kelly_pct'),

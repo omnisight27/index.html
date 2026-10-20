@@ -4,6 +4,21 @@
 (function () {
   'use strict';
 
+  // Plain-English regime labels (internal values stay RISK_ON/RISK_OFF/NEUTRAL)
+  var REGIME_LABELS = {
+    'RISK_ON': '🟢 Conditions favor buying',
+    'RISK_OFF': '🔴 Conditions favor caution',
+    'NEUTRAL': '🟡 Mixed conditions'
+  };
+  function regimeLabel(r) { return REGIME_LABELS[r] || r || '—'; }
+  // Soften raw regime tokens inside free-text reasons ("+ RISK_OFF)" reads as jargon)
+  function plainReason(text) {
+    return String(text || '')
+      .replace(/RISK_OFF/g, 'conditions favor caution')
+      .replace(/RISK_ON/g, 'conditions favor buying')
+      .replace(/NEUTRAL/g, 'mixed conditions');
+  }
+
   function assetBadge(p) {
     var cls = (p['class'] || '').toLowerCase();
     // Intraday signals are always crypto (no class field set — detect via CoinGecko link)
@@ -49,7 +64,7 @@
       '<div id="' + uid + '" class="details-body" style="display:none">' +
       '<p><strong>Ensemble score:</strong> ' + (p.score !== undefined ? p.score : '—') +
       ' &nbsp; <strong>Geometric edge:</strong> ' + (p.geo_edge !== undefined ? p.geo_edge : '—') +
-      ' &nbsp; <strong>Regime:</strong> ' + (p.regime || '—') + '</p>' +
+      ' &nbsp; <strong>Regime:</strong> ' + regimeLabel(p.regime) + '</p>' +
       (p.tf_align ? '<p><strong>Timeframe alignment:</strong> ' + p.tf_align + ' <span class="live-stamp">(1h / 24h / 7d / 14d / 30d)</span></p>' : '') +
       '<p><strong>Why this score</strong> — top model signals:</p>' +
       '<table class="feat-table"><tr><th>Signal</th><th>Value</th></tr>' + featRows + '</table>' +
@@ -76,7 +91,7 @@
       '<p class="profit-line" style="display:none"></p>' +
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
-      '<p class="live-stamp">' + p.reason + '</p>' +
+      '<p class="live-stamp">' + plainReason(p.reason) + '</p>' +
       '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=' + side + '">📄 Full detail page →</a></p>' +
       modelDetails(p) + '</div>';
   }
@@ -303,7 +318,7 @@
         }
         var ps = document.getElementById('psychology');
         if (ps && d.psychology) {
-          ps.innerHTML = '<p style="font-size:20px"><strong>' + (d.buy_text || d.regime || '—') + '</strong></p>' +
+          ps.innerHTML = '<p style="font-size:20px"><strong>' + (d.regime_label || d.buy_text || d.regime || '—') + '</strong></p>' +
             '<p><strong>Fear &amp; Greed:</strong> ' + d.psychology.fear_greed +
             ' (' + (d.psychology.delta >= 0 ? '+' : '') + d.psychology.delta + ')</p>' +
             '<p><strong>Kelly size:</strong> ' + (d.kelly_pct !== undefined ? d.kelly_pct + '%' : '—') + '</p>' +

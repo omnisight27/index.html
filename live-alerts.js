@@ -182,9 +182,13 @@
           : ma.type === 'MACRO' ? 'Liquidity Engine'
           : (CLASS_TO_ENGINE[ma.asset_class] || 'NexIntel');
         var icon = ma.type === 'CONTRACT' ? '📋 ' : ma.type === 'MACRO' ? '💧 ' : '🤖 ';
+        // Plain-English titles for regime alerts (type/engine mapping unchanged)
+        var title = ma.type === 'REGIME' ? '🌡️ Market conditions'
+          : ma.type === 'REGIME_FLIP' ? '🔄 Market conditions changed'
+          : icon + ma.type + ': ' + ma.asset;
         alerts.unshift({
           type: type, engine: eng,
-          title: icon + ma.type + ': ' + ma.asset,
+          title: title,
           confidence: ma.confidence,
           body: ma.reason + ' <a href="picks.html" style="color:var(--accent)">See thesis →</a>',
           time: new Date(ma.timestamp).toLocaleString()

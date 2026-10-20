@@ -37,6 +37,14 @@
 
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
+    // Plain-English regime labels (internal values stay RISK_ON/RISK_OFF/NEUTRAL)
+    var REGIME_LABELS = {
+      'RISK_ON': '🟢 Conditions favor buying',
+      'RISK_OFF': '🔴 Conditions favor caution',
+      'NEUTRAL': '🟡 Mixed conditions'
+    };
+    function regimeLabel(r) { return REGIME_LABELS[r] || r || '—'; }
+
     function badge(cls, name) {
       if ((cls || '').toLowerCase() === 'crypto') return '<span class="asset-badge badge-crypto">🪙 Crypto</span>';
       var nm = (name || '').toUpperCase();
@@ -77,7 +85,7 @@
         '<h3>How the Model Got Here</h3>' +
         '<p><strong>Ensemble score:</strong> ' + (p.score !== undefined ? p.score : '—') +
         ' &nbsp; <strong>Geometric edge:</strong> ' + (p.geo_edge !== undefined ? p.geo_edge : '—') +
-        ' &nbsp; <strong>Regime:</strong> ' + esc(p.regime || '—') + '</p>' +
+        ' &nbsp; <strong>Regime:</strong> ' + esc(regimeLabel(p.regime)) + '</p>' +
         '<table class="feat-table"><tr><th>Model signal</th><th>Value</th></tr>' + feats + '</table>' +
         '<p class="live-stamp">Positive values push bullish, negative push bearish. Scores combine trend, momentum, volatility, mean-reversion, and risk models with geometric pattern matching.</p>' +
         (p.info_url ? '<p><a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">Research ' + esc(p.asset) + ' externally ↗</a></p>' : '') +
