@@ -121,6 +121,52 @@
       '</div>';
   }
 
+  // Movers + watch strips (intraday.json) — shared state for detail links
+  var lastIntraday = null;
+  var swingSides = {};  // asset -> 'long' | 'short', filled from latest.json
+
+  function moverCard(m) {
+    var up = m.direction === 'UP';
+    var cls = up ? 'alert-buy' : 'alert-sell';
+    var icon = up ? '🚀' : '📉';
+    var nm = m.name && m.name !== m.asset ? ' <span class="asset-name">' + m.name + '</span>' : '';
+    var link = m.info_url ? ' <a class="asset-link" href="' + m.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
+    // Full detail link only when the mover is also a model pick
+    var detail = '';
+    var intra = lastIntraday && ((lastIntraday.longs || []).concat(lastIntraday.shorts || []))
+      .some(function (s) { return s.asset === m.asset; });
+    if (intra) {
+      detail = '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(m.asset) + '&type=intraday">📄 Full detail page →</a></p>';
+    } else if (swingSides[m.asset]) {
+      detail = '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(m.asset) + '&type=swing&side=' + swingSides[m.asset] + '">📄 Full detail page →</a></p>';
+    }
+    var watchNote = m.watch_reason ? ' <span class="live-stamp">👀 ' + m.watch_reason + '</span>' : '';
+    return '<div class="alert-card ' + cls + '">' +
+      '<h4>' + icon + ' ' + m.asset + '</h4>' +
+      '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
+      '<p><strong>' + (m.chg_24h >= 0 ? '+' : '') + m.chg_24h + '% 24h</strong> · ' +
+      (m.chg_1h >= 0 ? '+' : '') + m.chg_1h + '% 1h · $' + Number(m.price).toLocaleString() + watchNote + '</p>' +
+      detail + '</div>';
+  }
+
+  function renderMovers() {
+    if (!lastIntraday) return;
+    function fill(id, list, heading, emptyText, tradableOnly) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var items = tradableOnly ? list.filter(isTradable) : list;
+      el.innerHTML = '<h3>' + heading + '</h3>' +
+        (items.length ? '<div class="grid">' + items.map(moverCard).join('') + '</div>'
+                      : '<p class="live-stamp">' + emptyText + '</p>');
+    }
+    var movers = lastIntraday.movers || [];
+    var watch = lastIntraday.watch || [];
+    fill('movers-tradable', movers, '🚀 Movers <span class="live-stamp">(top 1,000 scan)</span>', 'No tradable movers above threshold this hour.', true);
+    fill('watch-tradable', watch, '👀 Watching <span class="live-stamp">(early signs — volume surge or fresh turn)</span>', 'Nothing tradable showing early signs right now.', true);
+    fill('movers-all', movers, '🚀 Movers <span class="live-stamp">(top 1,000 scan)</span>', 'No movers above threshold this hour.', false);
+    fill('watch-all', watch, '👀 Watching <span class="live-stamp">(early signs — volume surge or fresh turn)</span>', 'Nothing showing early signs right now.', false);
+  }
+
   // Intraday signals (hourly engine)
   function loadIntraday() {
     var el = document.getElementById('picks-intraday');
@@ -130,6 +176,8 @@
     fetch('data/intraday.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (d) {
+        lastIntraday = d;
+        renderMovers();  // movers/watch render even when no signals fire
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
         if (stamp && d.generated) {
@@ -236,6 +284,10 @@
             ? d.shorts.map(function (p) { return pickCard(p, 'short'); }).join('')
             : '<div class="card"><p>No short signals right now.</p></div>';
         }
+        // Remember swing pick sides so mover cards can link to detail pages
+        (d.longs || []).forEach(function (p) { swingSides[p.asset] = 'long'; });
+        (d.shorts || []).forEach(function (p) { swingSides[p.asset] = 'short'; });
+        renderMovers();
         var ms = document.getElementById('model-stats');
         if (ms) {
           var tr = d.track_record || {};
