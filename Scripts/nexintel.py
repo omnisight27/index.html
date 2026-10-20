@@ -11,23 +11,38 @@ API keys (FRED, Finnhub, EIA) are read from environment variables = GitHub Secre
 If a key is absent, that feed is skipped gracefully — the engine degrades, never dies.
 """
 
-import json, os, math, urllib.request, urllib.parse
+import json, os, math, time, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
 os.makedirs(SNAP_DIR, exist_ok=True)
 
-def fetch_json(url, timeout=20, method='GET', body=None, headers=None):
+def _retryable_fetch_error(e):
+    """Retry timeouts, DNS/connection blips, 429s and 5xx — not other 4xx."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code == 429 or 500 <= e.code < 600
+    return True
+
+def fetch_json(url, timeout=20, method='GET', body=None, headers=None, retries=2):
     req = urllib.request.Request(url, method=method,
         data=json.dumps(body).encode() if body else None,
         headers=headers or {'User-Agent': 'NexIntel/1.0', 'Content-Type': 'application/json'})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return json.loads(r.read().decode())
-    except Exception as e:
-        print(f'  [warn] {url[:60]}... failed: {e}')
-        return None
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode())
+        except Exception as e:
+            last_err = e
+            if attempt < retries and _retryable_fetch_error(e):
+                wait = 2 ** attempt
+                print(f'  [retry {attempt + 1}/{retries}] {url[:60]}... ({e}) — waiting {wait}s')
+                time.sleep(wait)
+            elif attempt < retries:
+                break  # non-retryable client error — fail fast
+    print(f'  [warn] {url[:60]}... failed: {last_err}')
+    return None
 
 def fetch_text(url, timeout=20):
     req = urllib.request.Request(url, headers={'User-Agent': 'NexIntel/1.0'})
