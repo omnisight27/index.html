@@ -562,6 +562,23 @@ def think(data, history):
             for p in longs: p['confidence'] = max(40, p['confidence'] - 3)
 
     # --- Stocks (if Finnhub key present) — same feature model ---
+    # SEC EDGAR CIKs for deep-dive filing links (public domain data)
+    TICKER_CIK = {
+        'SPY': 884394, 'DIA': 1041130,
+        'AAPL': 320193, 'MSFT': 789019, 'NVDA': 1045810, 'AMZN': 1018724,
+        'META': 1326801, 'GOOGL': 1652044, 'TSLA': 1318605, 'AVGO': 1730168,
+        'JPM': 19617, 'V': 1403161, 'MA': 1141391, 'XOM': 2115436,
+        'CVX': 93410, 'UNH': 731766, 'LLY': 59478, 'COST': 909832,
+        'HD': 354950, 'PG': 80424, 'JNJ': 200406, 'BAC': 70858,
+        'WMT': 104169, 'DIS': 1744489, 'NFLX': 1065280, 'CRM': 1108524,
+        'ORCL': 1341439, 'PLTR': 1321655, 'MSTR': 1050446, 'COIN': 1679788,
+    }
+    def edgar_url(sym):
+        cik = TICKER_CIK.get(sym)
+        if cik:
+            return f'https://www.sec.gov/edgar/browse/?CIK={cik}&owner=exclude'
+        # Fallback: EDGAR company search for ETFs without direct CIK
+        return f'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company={sym}&type=&dateb=&owner=include&count=10'
     STOCK_NAMES = {
         'SPY': 'SPDR S&P 500 ETF', 'QQQ': 'Invesco QQQ (Nasdaq 100)', 'DIA': 'SPDR Dow Jones ETF',
         'IWM': 'iShares Russell 2000 ETF', 'XLK': 'Technology Select Sector SPDR', 'XLF': 'Financial Select Sector SPDR',
@@ -593,6 +610,8 @@ def think(data, history):
                 'confidence': round(conf), 'reason': reason, 'class': 'equity',
                 'name': STOCK_NAMES.get(sym, sym),
                 'info_url': f'https://finance.yahoo.com/quote/{sym}',
+                'edgar_url': edgar_url(sym),
+                'cik': TICKER_CIK.get(sym),
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}

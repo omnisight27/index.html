@@ -25,8 +25,9 @@
     var arrow = side === 'long' ? '▲ LONG' : (side === 'short' ? '▼ SHORT' : (p.direction === 'LONG' ? '▲' : '▼'));
     var nm = p.name && p.name !== p.asset ? ' <span class="asset-name">' + p.name + '</span>' : '';
     var link = p.info_url ? ' <a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
+    var edgar = p.edgar_url ? ' <a class="asset-link" href="' + p.edgar_url + '" target="_blank" rel="noopener">📄 SEC filings ↗</a>' : '';
     return '<h4>' + arrow + ' ' + p.asset + '</h4>' +
-      '<p class="asset-sub">' + assetBadge(p) + nm + link + tradableBadge(p) + '</p>';
+      '<p class="asset-sub">' + assetBadge(p) + nm + link + edgar + tradableBadge(p) + '</p>';
   }
 
   function modelDetails(p) {

@@ -81,6 +81,7 @@
         '<table class="feat-table"><tr><th>Model signal</th><th>Value</th></tr>' + feats + '</table>' +
         '<p class="live-stamp">Positive values push bullish, negative push bearish. Scores combine trend, momentum, volatility, mean-reversion, and risk models with geometric pattern matching.</p>' +
         (p.info_url ? '<p><a class="asset-link" href="' + p.info_url + '" target="_blank" rel="noopener">Research ' + esc(p.asset) + ' externally ↗</a></p>' : '') +
+        (p.edgar_url ? '<div id="edgar-deepdive"><p class="live-stamp">Loading SEC filings…</p></div>' : '') +
         '<p class="live-stamp">' + esc(p.reason || '') + '</p></div>';
     }
 
@@ -97,6 +98,37 @@
         '<p><strong>1h change:</strong> ' + t.chg_1h + '% &nbsp; <strong>RSI:</strong> ' + t.rsi + '</p>' +
         '<p><strong>Horizon:</strong> 1–4 hours</p>' +
         (s.info_url ? '<p><a class="asset-link" href="' + s.info_url + '" target="_blank" rel="noopener">Research ' + esc(s.asset) + ' externally ↗</a></p>' : '') + '</div>';
+    }
+
+    function loadEdgarFilings(cik, asset, edgarUrl) {
+      var el = document.getElementById('edgar-deepdive');
+      if (!el) return;
+      var cikPadded = String(cik).padStart(10, '0');
+      fetch('https://data.sec.gov/submissions/CIK' + cikPadded + '.json')
+        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function (d) {
+          var recent = d.filings.recent;
+          var KEY_FORMS = ['10-K', '10-Q', '8-K', '4'];
+          var rows = [];
+          for (var i = 0; i < recent.form.length && rows.length < 8; i++) {
+            var form = recent.form[i];
+            if (KEY_FORMS.indexOf(form) === -1) continue;
+            var date = recent.filingDate[i];
+            var acc = (recent.accessionNumber[i] || '').replace(/-/g, '');
+            var doc = recent.primaryDocument[i];
+            var docUrl = 'https://www.sec.gov/Archives/edgar/data/' + cik + '/' + acc + '/' + doc;
+            var label = form === '4' ? 'Form 4 (insider trade)' : 'Form ' + form;
+            rows.push('<tr><td><a class="asset-link" href="' + docUrl + '" target="_blank" rel="noopener">' + label + '</a></td><td>' + date + '</td></tr>');
+          }
+          el.innerHTML = '<h3>📄 SEC Filings Deep Dive</h3>' +
+            '<p class="live-stamp">Latest key filings for ' + esc(asset) + ' from SEC EDGAR — the primary source. 10-K = annual report, 10-Q = quarterly, 8-K = major events, Form 4 = insider trades.</p>' +
+            (rows.length ? '<table class="feat-table"><tr><th>Filing</th><th>Date</th></tr>' + rows.join('') + '</table>' : '<p class="live-stamp">No key filings found.</p>') +
+            (edgarUrl ? '<p><a class="asset-link" href="' + edgarUrl + '" target="_blank" rel="noopener">All filings on EDGAR ↗</a></p>' : '');
+        })
+        .catch(function () {
+          el.innerHTML = '<h3>📄 SEC Filings Deep Dive</h3>' +
+            '<p class="live-stamp">Could not load filings live — <a class="asset-link" href="' + (edgarUrl || '#') + '" target="_blank" rel="noopener">open EDGAR directly ↗</a></p>';
+        });
     }
 
     function load() {
@@ -120,6 +152,10 @@
           }
           el.innerHTML = isIntra ? renderIntraday(found) : renderSwing(found);
           document.title = found.asset + ' — OmniSight Pick Detail';
+          // EDGAR deep dive: fetch recent SEC filings for equity picks
+          if (!isIntra && found.cik) {
+            loadEdgarFilings(found.cik, found.asset, found.edgar_url);
+          }
         })
         .catch(function () {
           document.getElementById('pick-detail').innerHTML = '<p class="live-stamp">Could not load pick data.</p>';
