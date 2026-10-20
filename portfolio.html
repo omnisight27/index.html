@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .pf-charts { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .pf-chart-box { text-align: center; }
+  .pf-chart-box h3 { color: var(--accent); margin: 0 0 10px; font-size: 17px; }
+  .pf-chart-box canvas { max-width: 220px; width: 100%; height: auto; }
+  .pf-legend { margin-top: 10px; text-align: left; font-size: 13px; color: var(--text-light); }
+  .pf-legend div { margin: 3px 0; white-space: nowrap; }
+  .pf-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="picks.html">Picks</a>
+    <a href="alerts.html">Alerts</a>
+    <a href="reports.html">Reports</a>
+    <a href="engines.html">Engines</a>
+    <a href="debt.html">Debt Payoff</a>
+    <a href="portfolio.html" class="active">Portfolio</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>Portfolio Tracker</h1>
+  <p class="subtitle">Enter what you hold. We value it live and check every position against today's market conditions.</p>
+  <p class="hint">🔒 Private by design: your holdings live only in this browser, on this device. They are never sent anywhere. Crypto prices come from CoinGecko — stocks have no live feed here, so type in a current price for those.</p>
+
+  <section class="card">
+    <h2>Your Book vs Today's Conditions</h2>
+    <div id="pf-summary"><p class="hint">Loading…</p></div>
+    <div class="pf-charts" id="pf-charts" style="display:none">
+      <div class="pf-chart-box">
+        <h3>What you have now</h3>
+        <canvas id="pf-pie-now" width="220" height="220"></canvas>
+        <div class="pf-legend" id="pf-legend-now"></div>
+      </div>
+      <div class="pf-chart-box">
+        <h3>What today's conditions suggest</h3>
+        <canvas id="pf-pie-target" width="220" height="220"></canvas>
+        <div class="pf-legend" id="pf-legend-target"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card report">
+    <h2>Holdings at Live Prices</h2>
+    <div id="pf-table"><p class="hint">Loading prices…</p></div>
+    <p class="live-stamp" id="pf-stamp"></p>
+  </section>
+
+  <section class="card">
+    <h2>Your Holdings</h2>
+    <div id="pf-list"></div>
+    <button class="btn" id="pf-add">+ Add an asset</button>
+    <span class="live-stamp" id="pf-saved"></span>
+    <p class="hint">Every change saves automatically. Avg cost is optional — add it to see profit/loss. Manual price overrides the live feed (use it for stocks &amp; ETFs).</p>
+  </section>
+
+  <datalist id="pf-symbols">
+    <option value="BTC"></option>
+    <option value="ETH"></option>
+    <option value="SOL"></option>
+    <option value="XRP"></option>
+    <option value="XLM"></option>
+    <option value="ARB"></option>
+    <option value="AVAX"></option>
+    <option value="COMP"></option>
+    <option value="DOT"></option>
+    <option value="LINK"></option>
+    <option value="ADA"></option>
+    <option value="DOGE"></option>
+    <option value="LTC"></option>
+    <option value="UNI"></option>
+    <option value="AAVE"></option>
+    <option value="MORPHO"></option>
+    <option value="ZEC"></option>
+  </datalist>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice.</p></footer>
+<script src="nav.js"></script>
+<script src="portfolio.js"></script>
+</body>
+</html>
