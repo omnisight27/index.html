@@ -14,6 +14,7 @@
   }
 
   function tradableBadge(p) {
+    if ((p['class'] || '').toLowerCase() === 'equity') return ' <span class="trade-badge trade-yes">✅ Schwab</span>';
     if ((p['class'] || '').toLowerCase() !== 'crypto' && !(p.info_url && p.info_url.indexOf('coingecko') > -1)) return '';
     var t = p.tradable || [];
     if (!t.length) return ' <span class="trade-badge trade-none">⚠️ Not on your exchanges</span>';
