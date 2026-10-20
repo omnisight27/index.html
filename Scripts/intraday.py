@@ -121,21 +121,50 @@ def build_intraday_thesis(sym, f, score):
         'bear_case': bear or ['intraday momentum divergence'],
     }
 
-def build_mover_plan(cid, price):
+def sparkline_vol(prices, points=48):
+    """Hourly volatility (%) from a CoinGecko sparkline price series —
+    the same RMS-of-hourly-returns math as hourly_features, floored at
+    0.3. Uses the last `points` prices (~48h of hourly points). Returns
+    None when the series is missing or too short to trust."""
+    if not prices:
+        return None
+    closes = [p for p in prices[-points:] if p]
+    if len(closes) < 5:
+        return None
+    rets = [(closes[i] - closes[i-1]) / closes[i-1] * 100
+            for i in range(1, len(closes)) if closes[i-1]]
+    if not rets:
+        return None
+    vol = (sum(r * r for r in rets) / len(rets)) ** 0.5
+    return max(vol, 0.3)
+
+def sparkline_vol_map(universe):
+    """{coin_id: hourly vol %} from each coin's sparkline embedded in the
+    markets payload, plus the universe median — the fallback for coins
+    whose own sparkline is missing or too short. Returns ({}, None) when
+    no coin in the universe carries a usable sparkline."""
+    vol_by_id = {}
+    for c in universe:
+        v = sparkline_vol((c.get('sparkline_in_7d') or {}).get('price'))
+        if v:
+            vol_by_id[c.get('id')] = v
+    vols = sorted(vol_by_id.values())
+    median = vols[len(vols) // 2] if vols else None
+    return vol_by_id, median
+
+def build_mover_plan(price, vol):
     """LONG trade plan for an UP mover, using the same hourly-vol math as
     build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
-    (1 + vol x 1.2)). Returns None when the chart feed fails so one bad
-    coin can never break the run."""
+    (1 + vol x 1.2)). Volatility comes from the markets payload's sparkline
+    (sparkline_vol_map; the caller applies the universe-median fallback) —
+    never a per-coin chart fetch: CoinGecko's free tier throttles those,
+    and on 2026-10-20 every UP mover plan silently died that way. Returns
+    None when no volatility is available from anywhere, so the caller can
+    show the honest hiccup note instead of a fabricated plan."""
     from datetime import timedelta
-    chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
-        '?vs_currency=usd&days=1&interval=hourly')
-    if not chart or not chart.get('prices'):
+    if not price or not vol:
         return None
-    f = hourly_features(chart['prices'])
-    if not f:
-        return None
-    vol = f['vol']
-    entry = price or f['price']
+    entry = price
     stop = entry * (1 - vol / 100 * 0.8)
     target = entry * (1 + vol / 100 * 1.2)
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
@@ -482,7 +511,7 @@ def main():
     for page in range(1, 5):
         mkts_page = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
             f'?vs_currency=usd&order=market_cap_desc&per_page=250&page={page}'
-            '&price_change_percentage=1h,24h')
+            '&price_change_percentage=1h,24h&sparkline=true')
         if not mkts_page:
             break
         universe.extend(mkts_page)
@@ -492,6 +521,11 @@ def main():
     # Core market data for this run is in hand — stamp the pull time so the
     # frontend can show "Data pulled … ET" for cross-referencing.
     data_pulled_at = datetime.now(timezone.utc).isoformat()
+    # Hourly volatility per coin from the sparklines embedded in the
+    # markets payload — zero extra calls. Mover/watch plans read vol from
+    # this map (median fallback included); per-coin chart fetches are NOT
+    # used for plans (free-tier throttling killed them, 2026-10-20).
+    vol_by_id, median_vol = sparkline_vol_map(universe)
     mkts = universe[:50]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -634,7 +668,8 @@ def main():
             if with_note:
                 m['plan_note'] = 'Falling mover — no buy plan (long-only). Watch for reversal.'
             return
-        m['plan'] = build_mover_plan(m.get('id'), m.get('price') or 0)
+        vol = vol_by_id.get(m.get('id')) or median_vol
+        m['plan'] = build_mover_plan(m.get('price') or 0, vol)
         if m['plan'] is None and with_note:
             m['plan_note'] = 'Plan unavailable — price feed hiccup.'
     for m in movers:
