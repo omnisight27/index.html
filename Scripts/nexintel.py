@@ -824,7 +824,7 @@ def think(data, history):
         lt_outlook['thesis'].append(f'Inflation cool at {cpi_yoy:.1f}% — Fed has room to ease, bullish for duration.')
 
     return {
-        'longs': longs[:3], 'shorts': shorts[:3],
+        'longs': longs[:10], 'shorts': shorts[:10],
         'psychology': {'fear_greed': fg_now, 'delta': fg_delta, 'bias': psych_bias,
                        'notes': explanations},
         'weights': [round(w, 4) for w in weights],
