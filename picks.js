@@ -219,7 +219,6 @@
   function loadIntraday() {
     var el = document.getElementById('picks-intraday');
     var elAll = document.getElementById('picks-intraday-all');
-    var stamp = document.getElementById('intraday-stamp');
     if (!el) return;
     fetch('data/intraday.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
@@ -228,9 +227,10 @@
         renderMovers();  // movers/watch render even when no signals fire
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
-        if (stamp && d.generated) {
-          stamp.textContent = '(last ran ' + new Date(d.generated).toLocaleTimeString() + ')';
-        }
+        // Unified freshness stamp at the top of the page — the intraday
+        // file is this page's freshest surface, so it anchors the line
+        // (replaces the old per-section "last ran" texts).
+        if (window.nxStampInto) window.nxStampInto(document.getElementById('picks-stamp'), d);
         if (!all.length) {
           el.innerHTML = '<p class="live-stamp">No intraday signals this hour — market is quiet.</p>';
           if (elAll) elAll.innerHTML = '<p class="live-stamp">No intraday signals this hour.</p>';
@@ -248,6 +248,8 @@
       })
       .catch(function () {
         el.innerHTML = '<p class="live-stamp">Intraday engine not yet run — check back after the next hourly cycle.</p>';
+        var ps = document.getElementById('picks-stamp');
+        if (ps && !ps.getAttribute('data-stamped') && ps.textContent.indexOf('Loading') === 0) ps.textContent = '';
       });
   }
 
@@ -296,16 +298,8 @@
     fetch('data/latest.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
       .then(function (d) {
-        var stamp = document.getElementById('picks-stamp');
-        var swingStamp = document.getElementById('swing-stamp');
-        if (stamp) {
-          var dt = new Date(d.generated);
-          stamp.innerHTML = '<strong>Swing picks last ran:</strong> ' + dt.toLocaleString();
-        }
-        if (swingStamp) {
-          var dt2 = new Date(d.generated);
-          swingStamp.textContent = '(last ran ' + dt2.toLocaleTimeString() + ')';
-        }
+        // Freshness stamp: owned by loadIntraday() (unified data stamp) —
+        // the old "Swing picks last ran" write here was consolidated away.
         var longs = document.getElementById('picks-longs');
         var longsAll = document.getElementById('picks-longs-all');
         if (longs) {
@@ -382,28 +376,15 @@
       })
       .catch(function () {
         var stamp = document.getElementById('picks-stamp');
-        if (stamp) stamp.textContent = 'Picks not yet generated — the NexIntel loop runs every 6 hours.';
+        if (stamp && !stamp.getAttribute('data-stamped')) stamp.textContent = 'Picks not yet generated — the NexIntel loop runs every 6 hours.';
       });
     wireCalculator();
     loadIntraday();
     setupTabs();
-    // Auto-refresh every 5 minutes for live updates
-    setInterval(function () {
-      loadIntraday();
-      // Re-fetch swing picks silently
-      fetch('data/latest.json', { cache: 'no-store' })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var stamp = document.getElementById('picks-stamp');
-          var swingStamp = document.getElementById('swing-stamp');
-          if (stamp && d.generated) {
-            stamp.innerHTML = '<strong>Swing picks last ran:</strong> ' + new Date(d.generated).toLocaleString();
-          }
-          if (swingStamp && d.generated) {
-            swingStamp.textContent = '(last ran ' + new Date(d.generated).toLocaleTimeString() + ')';
-          }
-        }).catch(function () {});
-    }, 300000);
+    // Auto-refresh every 5 minutes for live updates — loadIntraday() also
+    // refreshes the unified data stamp. (The separate latest.json re-fetch
+    // that used to live here only rewrote "last ran" texts; consolidated.)
+    setInterval(loadIntraday, 300000);
     // Longs-only toggle (persisted)
     var loToggle = document.getElementById('longs-only');
     var shortsGrid = document.getElementById('picks-shorts');

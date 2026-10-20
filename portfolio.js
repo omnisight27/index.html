@@ -165,6 +165,8 @@
     return fetch('data/latest.json', { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw new Error('bad status'); return r.json(); })
       .then(function (d) {
+        // Unified freshness stamp (engine pull/publish times, ET)
+        if (window.nxStampInto) window.nxStampInto(document.getElementById('data-stamp'), d);
         if (d && d.regime && TARGETS[d.regime]) {
           regime = d.regime;
           regimeLabelText = d.regime_label || REGIME_LABELS[d.regime];

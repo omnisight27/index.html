@@ -24,12 +24,14 @@
 
   <main class="section">
     <p><a href="picks.html" class="asset-link">← Back to Picks</a></p>
+    <p class="live-stamp" id="data-stamp"></p>
     <div id="pick-detail"><p class="live-stamp">Loading pick detail…</p></div>
   </main>
 
   <script src="nav.js"></script>
   <script src="config.js"></script>
   <script src="auth.js"></script>
+  <script src="data-stamp.js"></script>
   <script>
   (function () {
     'use strict';
@@ -147,6 +149,9 @@
       fetch(url, { cache: 'no-store' })
         .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
         .then(function (d) {
+          // Unified freshness stamp from whichever engine file this page
+          // loaded (intraday detail → intraday.json, swing → latest.json)
+          if (window.nxStampInto) window.nxStampInto(document.getElementById('data-stamp'), d);
           var found = null, isIntra = false;
           if (type === 'intraday') {
             var all = (d.longs || []).concat(d.shorts || []);

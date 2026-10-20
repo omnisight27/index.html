@@ -66,6 +66,8 @@
       fetch('data/latest.json', { cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
+          // Unified freshness stamp (engine pull/publish times, ET)
+          if (d && window.nxStampInto) window.nxStampInto(document.getElementById('data-stamp'), d);
           var arts = d && d.fed_commentary;
           if (arts && arts.length) {
             fedEl.innerHTML = arts.map(function (a) {
