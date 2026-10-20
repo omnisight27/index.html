@@ -183,21 +183,35 @@
       detail + '</div>';
   }
 
+  // Setting Up card (pre-move accumulation): compact — name, price, reason.
+  function accumCard(m) {
+    var nm = m.name && m.name !== m.asset ? ' <span class="asset-name">' + m.name + '</span>' : '';
+    var link = m.info_url ? ' <a class="asset-link" href="' + m.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
+    return '<div class="alert-card alert-hold">' +
+      '<h4>🔭 ' + m.asset + '</h4>' +
+      '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
+      '<p>$' + Number(m.price).toLocaleString() + ' · <span class="live-stamp">' + (m.watch_reason || '') + '</span></p>' +
+      '</div>';
+  }
+
   function renderMovers() {
     if (!lastIntraday) return;
-    function fill(id, list, heading, emptyText, tradableOnly) {
+    function fill(id, list, heading, emptyText, tradableOnly, cardFn) {
       var el = document.getElementById(id);
       if (!el) return;
       var items = tradableOnly ? list.filter(isTradable) : list;
       el.innerHTML = '<h3>' + heading + '</h3>' +
-        (items.length ? '<div class="grid">' + items.map(moverCard).join('') + '</div>'
+        (items.length ? '<div class="grid">' + items.map(cardFn || moverCard).join('') + '</div>'
                       : '<p class="live-stamp">' + emptyText + '</p>');
     }
     var movers = lastIntraday.movers || [];
     var watch = lastIntraday.watch || [];
+    var accum = lastIntraday.accum || [];
     fill('movers-tradable', movers, '🚀 Movers <span class="live-stamp">(top 1,000 scan)</span>', 'No tradable movers above threshold this hour.', true);
+    fill('accum-tradable', accum, '🔭 Setting Up <span class="live-stamp">(volume building before price moves)</span>', 'Nothing tradable setting up right now.', true, accumCard);
     fill('watch-tradable', watch, '👀 Watching <span class="live-stamp">(early signs — volume surge or fresh turn)</span>', 'Nothing tradable showing early signs right now.', true);
     fill('movers-all', movers, '🚀 Movers <span class="live-stamp">(top 1,000 scan)</span>', 'No movers above threshold this hour.', false);
+    fill('accum-all', accum, '🔭 Setting Up <span class="live-stamp">(volume building before price moves)</span>', 'Nothing setting up right now.', false, accumCard);
     fill('watch-all', watch, '👀 Watching <span class="live-stamp">(early signs — volume surge or fresh turn)</span>', 'Nothing showing early signs right now.', false);
   }
 

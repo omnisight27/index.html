@@ -157,8 +157,61 @@ def build_mover_plan(cid, price):
         'max_loss_pct': round(abs(entry - stop) / entry * 100, 2),
     }
 
+def _sig(v):
+    """Round to 6 significant digits — keeps accum_history payloads lean."""
+    return float(f'{v:.6g}') if v else 0
+
+def accum_reason(hist, vol_ratio, vol_q90, chg_1h, now):
+    """Pre-move accumulation detector (pure function — unit-tested).
+    hist = stored observations for one coin INCLUDING the current run's
+    observation as the last element. Needs >= 3 observations spanning
+    >= 2 hours; returns (reason, vol_growth_pct, price_drift_pct) or None.
+    Patterns:
+      A) Quiet volume build — 24h volume up >= 20% vs the observation ~3h
+         ago while price over the same span stayed within +/-2.5%.
+      B) Ratio climb — vol_ratio in the top 10% of the universe AND above
+         the previous run's value, with |chg_1h| < 2% (price still calm).
+    """
+    if len(hist) < 3:
+        return None
+    def ts(o):
+        return datetime.fromisoformat(o['t'])
+    if (ts(hist[-1]) - ts(hist[0])).total_seconds() / 3600 < 2:
+        return None
+    cur = hist[-1]
+    # Reference observation ~3h back: oldest candidates are >= 2h old,
+    # pick the one whose age is closest to 3h.
+    cands = [o for o in hist[:-1] if (ts(cur) - ts(o)).total_seconds() / 3600 >= 2]
+    if not cands:
+        return None
+    ref = min(cands, key=lambda o: abs((ts(cur) - ts(o)).total_seconds() / 3600 - 3))
+    ref_age_h = (ts(cur) - ts(ref)).total_seconds() / 3600
+    growth = drift = None
+    if ref.get('vol24h'):
+        growth = (cur['vol24h'] - ref['vol24h']) / ref['vol24h'] * 100
+        drift = (cur['price'] - ref['price']) / ref['price'] * 100 if ref.get('price') else 0
+        if growth >= 20 and abs(drift) <= 2.5:
+            return (f"Volume building {growth:+.0f}% in {ref_age_h:.0f}h, price still quiet"
+                    " — accumulation pattern", round(growth, 1), round(drift, 2))
+    prev = hist[-2]
+    if vol_ratio >= vol_q90 and vol_ratio > (prev.get('vol_ratio') or 0) and abs(chg_1h) < 2:
+        return ("Volume in top 10% for its size and still climbing, price quiet"
+                " — accumulation pattern",
+                round(growth, 1) if growth is not None else 0.0,
+                round(drift, 2) if drift is not None else 0.0)
+    return None
+
 def main():
     print('INTRADAY: hourly signals...')
+    # Cross-run memory for the accumulation detector: the engine itself is
+    # stateless, but data/intraday.json is committed every run, so the
+    # observation history rides inside it (see accum_history below).
+    prior_history = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_history = (json.load(f) or {}).get('accum_history') or {}
+    except Exception:
+        pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
     BLOCKED = {'XMR',  # Monero — delisted from Coinbase
                }
@@ -263,6 +316,18 @@ def main():
     ratios = sorted((c.get('total_volume') or 0) / c['market_cap']
                     for c in scanned if c.get('market_cap'))
     vol_q3 = ratios[int(len(ratios) * 0.75)] if ratios else float('inf')
+    vol_q90 = ratios[int(len(ratios) * 0.90)] if ratios else float('inf')
+    # Accumulation history upkeep: append this run's observation for every
+    # scanned coin, keep the last 6, prune coins not in the latest scan.
+    now_iso = datetime.now(timezone.utc).isoformat()
+    new_history = {}
+    for c in scanned:
+        sym = (c['symbol'] or '').upper()
+        obs = {'t': now_iso,
+               'price': _sig(c.get('current_price') or 0),
+               'vol24h': _sig(c.get('total_volume') or 0),
+               'vol_ratio': _sig((c.get('total_volume') or 0) / c['market_cap'])}
+        new_history[sym] = ((prior_history.get(sym) or []) + [obs])[-6:]
     movers, watch = [], []
     for c in scanned:
         chg1 = c.get('price_change_percentage_1h_in_currency') or 0
@@ -312,6 +377,38 @@ def main():
     for w in watch[3:]:
         w['plan'] = None
 
+    # --- Pre-move accumulation (🔭 Setting Up) ---
+    # Fires BEFORE the jump: volume building while price is still quiet.
+    # Coins already flagged as movers are excluded (they already moved).
+    # History warms up over the first ~2-3 hourly runs after deploy —
+    # until a coin has >= 3 observations spanning >= 2h it cannot flag.
+    mover_syms = {m['asset'] for m in movers}
+    now_dt = datetime.now(timezone.utc)
+    accum = []
+    for c in scanned:
+        sym = (c['symbol'] or '').upper()
+        if sym in mover_syms:
+            continue
+        chg1 = c.get('price_change_percentage_1h_in_currency') or 0
+        vol_ratio = (c.get('total_volume') or 0) / c['market_cap'] if c.get('market_cap') else 0
+        res = accum_reason(new_history.get(sym) or [], vol_ratio, vol_q90, chg1, now_dt)
+        if not res:
+            continue
+        reason, growth, drift = res
+        a = mover_fields(c, 'UP' if chg1 >= 0 else 'DOWN')
+        a.pop('direction', None)  # accumulation has no direction call yet
+        a.update({
+            'chg_1h': round(chg1, 2),
+            'vol_growth_pct': growth,
+            'price_drift_pct': drift,
+            'vol_ratio': _sig(vol_ratio),
+            'watch_reason': reason,
+        })
+        accum.append(a)
+    accum.sort(key=lambda a: (not a['tradable'], -a['vol_growth_pct']))
+    accum = accum[:8]
+    print(f'  Accumulation scan: {len(accum)} setting up')
+
     out = {
         'generated': datetime.now(timezone.utc).isoformat(),
         'mode': 'intraday',
@@ -320,6 +417,8 @@ def main():
         'shorts': shorts,
         'movers': movers,
         'watch': watch,
+        'accum': accum,
+        'accum_history': new_history,
         'coins_scanned': len(mkts),
     }
     os.makedirs(DATA_DIR, exist_ok=True)
