@@ -140,6 +140,13 @@
   var lastIntraday = null;
   var swingSides = {};  // asset -> 'long' | 'short', filled from latest.json
 
+  function fmtPlanPrice(v) {
+    v = Number(v);
+    if (!isFinite(v)) return '—';
+    return v >= 1 ? v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : String(+v.toFixed(4));
+  }
+
   function moverCard(m) {
     var up = m.direction === 'UP';
     var cls = up ? 'alert-buy' : 'alert-sell';
@@ -156,11 +163,23 @@
       detail = '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(m.asset) + '&type=swing&side=' + swingSides[m.asset] + '">📄 Full detail page →</a></p>';
     }
     var watchNote = m.watch_reason ? ' <span class="live-stamp">👀 ' + m.watch_reason + '</span>' : '';
+    // Trade plan: buy / sell target / stop / out-by when the engine attached
+    // one; a muted note line when it deliberately didn't (falling movers).
+    var planLine = '';
+    if (m.plan) {
+      planLine = '<p><strong>Buy</strong> ~$' + fmtPlanPrice(m.plan.entry) +
+        ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(m.plan.take_profit) +
+        ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(m.plan.stop_loss) +
+        ' · <strong>Out by</strong> ' + m.plan.exit_by + '</p>';
+    } else if (m.plan_note) {
+      planLine = '<p class="live-stamp">' + m.plan_note + '</p>';
+    }
     return '<div class="alert-card ' + cls + '">' +
       '<h4>' + icon + ' ' + m.asset + '</h4>' +
       '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
       '<p><strong>' + (m.chg_24h >= 0 ? '+' : '') + m.chg_24h + '% 24h</strong> · ' +
       (m.chg_1h >= 0 ? '+' : '') + m.chg_1h + '% 1h · $' + Number(m.price).toLocaleString() + watchNote + '</p>' +
+      planLine +
       detail + '</div>';
   }
 

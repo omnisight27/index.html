@@ -121,6 +121,42 @@ def build_intraday_thesis(sym, f, score):
         'bear_case': bear or ['intraday momentum divergence'],
     }
 
+def build_mover_plan(cid, price):
+    """LONG trade plan for an UP mover, using the same hourly-vol math as
+    build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
+    (1 + vol x 1.2)). Returns None when the chart feed fails so one bad
+    coin can never break the run."""
+    from datetime import timedelta
+    chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
+        '?vs_currency=usd&days=1&interval=hourly')
+    if not chart or not chart.get('prices'):
+        return None
+    f = hourly_features(chart['prices'])
+    if not f:
+        return None
+    vol = f['vol']
+    entry = price or f['price']
+    stop = entry * (1 - vol / 100 * 0.8)
+    target = entry * (1 + vol / 100 * 1.2)
+    exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
+    # Same rounding as the thesis for normal prices; extra decimals for
+    # sub-cent coins (e.g. PEPE) so their plans don't round to $0.00.
+    if entry >= 10:
+        rnd = lambda v: round(v, 2)
+    elif entry >= 0.01:
+        rnd = lambda v: round(v, 4)
+    else:
+        rnd = lambda v: round(v, 8)
+    return {
+        'entry': rnd(entry),
+        'take_profit': rnd(target),
+        'stop_loss': rnd(stop),
+        'exit_by': exit_time.strftime('%H:%M UTC'),
+        'horizon': '1-4 hours',
+        'expected_return_pct': round(abs(target - entry) / entry * 100, 2),
+        'max_loss_pct': round(abs(entry - stop) / entry * 100, 2),
+    }
+
 def main():
     print('INTRADAY: hourly signals...')
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -208,6 +244,7 @@ def main():
     #   starting before the daily numbers confirm it.
     def mover_fields(c, direction):
         return {
+            'id': c['id'],
             'asset': (c['symbol'] or '').upper(),
             'name': c.get('name') or (c['symbol'] or '').upper(),
             'price': c.get('current_price') or 0,
@@ -251,6 +288,29 @@ def main():
     watch.sort(key=lambda m: -abs(m['chg_1h']))
     movers, watch = movers[:10], watch[:10]
     print(f'  Movers scan: {len(movers)} movers, {len(watch)} watching (of {len(scanned)} scanned)')
+
+    # --- Trade plans (Nic 2026-10-20: "Where is buy target, sell target and
+    # stop loss target?") ---
+    # UP movers get a LONG plan from build_mover_plan. DOWN movers get no buy
+    # plan (Nic trades long-only) plus a note. Watch items: only the top 3 by
+    # |chg_1h| (the list is already sorted that way) get plans the same way;
+    # the rest carry plan: null with no note — the plan appears when they
+    # graduate to movers.
+    def attach_plan(m, with_note=True):
+        if m['direction'] != 'UP':
+            m['plan'] = None
+            if with_note:
+                m['plan_note'] = 'Falling mover — no buy plan (long-only). Watch for reversal.'
+            return
+        m['plan'] = build_mover_plan(m.get('id'), m.get('price') or 0)
+        if m['plan'] is None and with_note:
+            m['plan_note'] = 'Plan unavailable — price feed hiccup.'
+    for m in movers:
+        attach_plan(m)
+    for w in watch[:3]:
+        attach_plan(w)
+    for w in watch[3:]:
+        w['plan'] = None
 
     out = {
         'generated': datetime.now(timezone.utc).isoformat(),
