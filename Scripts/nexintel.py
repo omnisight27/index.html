@@ -668,6 +668,40 @@ def think(data, history):
     longs.sort(key=lambda p: -p['score'])
     shorts.sort(key=lambda p: p['score'])
 
+    # --- News-risk cross-reference: flag picks named in risk headlines ---
+    # Motivated by the ZEC/NU7 miss (2026-10-20): the engine went long ZEC
+    # while a "22,309 ZEC stuck for good" headline sat unused in its own feed.
+    # If a pick's symbol or full name appears in a headline title that also
+    # carries a risk keyword, dock confidence 8 pts (floor 35) and mark it.
+    import re as _re
+    RISK_KEYWORDS = ['freeze', 'frozen', 'hack', 'hacked', 'exploit', 'breach',
+                     'delist', 'delisted', 'lawsuit', 'sued', 'sec', 'fraud',
+                     'scam', 'rug', 'bankrupt', 'insolvency', 'halt', 'suspended',
+                     'investigation', 'probe', 'crash', 'plunge', 'warning',
+                     'stuck', 'vulnerability']
+    def news_risk_title(pick):
+        sym = pick.get('asset', '')
+        name = (pick.get('name') or '').lower()
+        for h in data.get('headlines', []):
+            title = h.get('title') or ''
+            if not title:
+                continue
+            tl = title.lower()
+            if not any(_re.search(r'\b' + _re.escape(kw) + r'\b', tl) for kw in RISK_KEYWORDS):
+                continue
+            sym_hit = bool(sym) and _re.search(r'\b' + _re.escape(sym) + r'\b', title)
+            name_hit = len(name) >= 3 and name in tl
+            if sym_hit or name_hit:
+                return title
+        return None
+    for p in longs + shorts:
+        ntitle = news_risk_title(p)
+        if ntitle:
+            p['news_flag'] = ntitle
+            p['confidence'] = max(35, p['confidence'] - 8)
+            p['reason'] += f' ⚠️ News risk: {ntitle}'
+            print(f"  news risk flagged: {p['asset']} — {ntitle[:70]}")
+
     # --- Generate buy/sell alerts from high-conviction picks ---
     alerts = []
     for p in longs[:3] + shorts[:3]:

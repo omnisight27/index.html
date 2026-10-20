@@ -62,8 +62,10 @@
     var t = p.thesis || {};
     var bull = (t.bull_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
     var bear = (t.bear_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
+    var newsFlag = p.news_flag ? '<p style="color:var(--danger)"><strong>⚠️ News risk:</strong> ' + p.news_flag + '</p>' : '';
     return '<div class="alert-card ' + cls + '" data-entry="' + p.price + '" data-target="' + (t.take_profit || 0) + '" data-stop="' + (t.stop_loss || 0) + '" data-exp-ret="' + (t.expected_return_pct || 0) + '" data-max-loss="' + (t.max_loss_pct || 0) + '">' +
       assetHeader(p, side) +
+      newsFlag +
       '<p><strong>Buy:</strong> ' + (t.entry_date || 'today') + ' @ $' + Number(p.price).toLocaleString() +
       ' &nbsp; <strong>Sell target:</strong> ' + (t.projected_exit || '—') + ' @ $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') + '</p>' +
       '<p><strong>Stop:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') +
