@@ -844,9 +844,12 @@ def publish(data, signals, history):
     now = datetime.now(timezone.utc)
     stamp = now.strftime('%Y-%m-%dT%H-%M')
 
-    # Snapshot raw data
+    # Snapshot raw data (listings sets → lists so JSON can serialize)
+    snap_data = dict(data)
+    if 'listings' in snap_data:
+        snap_data['listings'] = {k: sorted(v) for k, v in snap_data['listings'].items()}
     with open(os.path.join(SNAP_DIR, f'{stamp}.json'), 'w') as f:
-        json.dump({'timestamp': now.isoformat(), 'data': data}, f)
+        json.dump({'timestamp': now.isoformat(), 'data': snap_data}, f)
 
     latest = {
         'generated': now.isoformat(),
