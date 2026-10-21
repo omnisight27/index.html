@@ -1,7 +1,7 @@
 {
-  "generated": "2026-10-20T23:51:24.356404+00:00",
-  "data_pulled_at": "2026-10-20T23:51:22.102018+00:00",
-  "published_at": "2026-10-20T23:51:24.356404+00:00",
+  "generated": "2026-10-21T04:42:36.185309+00:00",
+  "data_pulled_at": "2026-10-21T04:42:35.130915+00:00",
+  "published_at": "2026-10-21T04:42:36.185309+00:00",
   "mode": "intraday",
   "horizon": "1-4 hours",
   "longs": [],
@@ -12,9 +12,9 @@
       "asset": "GRX",
       "name": "GRX Chain",
       "price": 15.94,
-      "chg_1h": 0.0,
-      "chg_24h": -33.9,
-      "market_cap": 151669570,
+      "chg_1h": -0.01,
+      "chg_24h": -29.79,
+      "market_cap": 151642451,
       "direction": "DOWN",
       "tradable": [],
       "info_url": "https://www.coingecko.com/en/coins/grx-chain",
@@ -25,10 +25,10 @@
       "id": "compound-governance-token",
       "asset": "COMP",
       "name": "Compound",
-      "price": 25.75,
-      "chg_1h": -2.23,
-      "chg_24h": 19.0,
-      "market_cap": 257536406,
+      "price": 25.74,
+      "chg_1h": 1.14,
+      "chg_24h": 21.42,
+      "market_cap": 257449097,
       "direction": "UP",
       "tradable": [
         "coinbase",
@@ -36,65 +36,23 @@
       ],
       "info_url": "https://www.coingecko.com/en/coins/compound-governance-token",
       "plan": {
-        "entry": 25.75,
-        "take_profit": 26.52,
-        "stop_loss": 25.24,
-        "exit_by": "02:51 UTC",
+        "entry": 25.74,
+        "take_profit": 26.51,
+        "stop_loss": 25.22,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 2.97,
-        "max_loss_pct": 1.98
-      }
-    },
-    {
-      "id": "hash-2",
-      "asset": "HASH",
-      "name": "Provenance Blockchain",
-      "price": 0.00748606,
-      "chg_1h": -0.01,
-      "chg_24h": 15.47,
-      "market_cap": 443644042,
-      "direction": "UP",
-      "tradable": [],
-      "info_url": "https://www.coingecko.com/en/coins/hash-2",
-      "plan": {
-        "entry": 0.00748606,
-        "take_profit": 0.00797689,
-        "stop_loss": 0.00715884,
-        "exit_by": "02:51 UTC",
-        "horizon": "1-4 hours",
-        "expected_return_pct": 6.56,
-        "max_loss_pct": 4.37
-      }
-    },
-    {
-      "id": "sosovalue",
-      "asset": "SOSO",
-      "name": "SoSoValue",
-      "price": 0.32821,
-      "chg_1h": 1.09,
-      "chg_24h": 14.52,
-      "market_cap": 112240821,
-      "direction": "UP",
-      "tradable": [],
-      "info_url": "https://www.coingecko.com/en/coins/sosovalue",
-      "plan": {
-        "entry": 0.3282,
-        "take_profit": 0.3311,
-        "stop_loss": 0.3263,
-        "exit_by": "02:51 UTC",
-        "horizon": "1-4 hours",
-        "expected_return_pct": 0.88,
-        "max_loss_pct": 0.59
+        "expected_return_pct": 3.01,
+        "max_loss_pct": 2.0
       }
     },
     {
       "id": "convex-finance",
       "asset": "CVX",
       "name": "Convex Finance",
-      "price": 2.39,
-      "chg_1h": -0.77,
-      "chg_24h": 13.56,
-      "market_cap": 222410322,
+      "price": 2.56,
+      "chg_1h": 1.19,
+      "chg_24h": 20.04,
+      "market_cap": 238669518,
       "direction": "UP",
       "tradable": [
         "coinbase",
@@ -102,199 +60,386 @@
       ],
       "info_url": "https://www.coingecko.com/en/coins/convex-finance",
       "plan": {
-        "entry": 2.39,
-        "take_profit": 2.4369,
-        "stop_loss": 2.3588,
-        "exit_by": "02:51 UTC",
+        "entry": 2.56,
+        "take_profit": 2.614,
+        "stop_loss": 2.524,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 1.96,
-        "max_loss_pct": 1.31
+        "expected_return_pct": 2.11,
+        "max_loss_pct": 1.41
       }
     },
     {
-      "id": "aerodrome-finance",
-      "asset": "AERO",
-      "name": "Aerodrome Finance",
-      "price": 0.883184,
-      "chg_1h": -0.71,
-      "chg_24h": 11.04,
-      "market_cap": 868441488,
+      "id": "hash-2",
+      "asset": "HASH",
+      "name": "Provenance Blockchain",
+      "price": 0.00748854,
+      "chg_1h": -0.02,
+      "chg_24h": 15.55,
+      "market_cap": 443822251,
       "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/aerodrome-finance",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/hash-2",
       "plan": {
-        "entry": 0.8832,
-        "take_profit": 0.8956,
-        "stop_loss": 0.8749,
-        "exit_by": "02:51 UTC",
+        "entry": 0.00748854,
+        "take_profit": 0.00797949,
+        "stop_loss": 0.00716124,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 1.41,
-        "max_loss_pct": 0.94
+        "expected_return_pct": 6.56,
+        "max_loss_pct": 4.37
       }
     },
     {
-      "id": "worldcoin-wld",
-      "asset": "WLD",
-      "name": "Worldcoin",
-      "price": 0.588907,
-      "chg_1h": -0.55,
-      "chg_24h": 10.6,
-      "market_cap": 2247976342,
-      "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/worldcoin-wld",
-      "plan": {
-        "entry": 0.5889,
-        "take_profit": 0.5969,
-        "stop_loss": 0.5836,
-        "exit_by": "02:51 UTC",
-        "horizon": "1-4 hours",
-        "expected_return_pct": 1.36,
-        "max_loss_pct": 0.91
-      }
-    },
-    {
-      "id": "theta-token",
-      "asset": "THETA",
-      "name": "Theta Network",
-      "price": 0.206795,
-      "chg_1h": 0.08,
-      "chg_24h": 10.48,
-      "market_cap": 206792713,
+      "id": "zebec-network",
+      "asset": "ZBCN",
+      "name": "Zebec Network",
+      "price": 0.00237717,
+      "chg_1h": 7.9,
+      "chg_24h": 14.31,
+      "market_cap": 237769737,
       "direction": "UP",
       "tradable": [
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/theta-token",
+      "info_url": "https://www.coingecko.com/en/coins/zebec-network",
       "plan": {
-        "entry": 0.2068,
-        "take_profit": 0.2105,
-        "stop_loss": 0.2044,
-        "exit_by": "02:51 UTC",
+        "entry": 0.00237717,
+        "take_profit": 0.0024103,
+        "stop_loss": 0.00235508,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 1.77,
-        "max_loss_pct": 1.18
+        "expected_return_pct": 1.39,
+        "max_loss_pct": 0.93
       }
     },
     {
-      "id": "vaulta",
-      "asset": "A",
-      "name": "Vaulta",
-      "price": 0.097629,
-      "chg_1h": 0.85,
-      "chg_24h": 10.4,
-      "market_cap": 163529250,
+      "id": "sosovalue",
+      "asset": "SOSO",
+      "name": "SoSoValue",
+      "price": 0.326037,
+      "chg_1h": 0.71,
+      "chg_24h": 13.29,
+      "market_cap": 111492073,
+      "direction": "UP",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/sosovalue",
+      "plan": {
+        "entry": 0.326,
+        "take_profit": 0.329,
+        "stop_loss": 0.3241,
+        "exit_by": "07:42 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 0.91,
+        "max_loss_pct": 0.61
+      }
+    },
+    {
+      "id": "akedo",
+      "asset": "AKE",
+      "name": "Akedo",
+      "price": 0.03453326,
+      "chg_1h": 3.74,
+      "chg_24h": 13.2,
+      "market_cap": 788194894,
+      "direction": "UP",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/akedo",
+      "plan": {
+        "entry": 0.0345,
+        "take_profit": 0.0355,
+        "stop_loss": 0.0339,
+        "exit_by": "07:42 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 2.85,
+        "max_loss_pct": 1.9
+      }
+    },
+    {
+      "id": "bitway",
+      "asset": "BTW",
+      "name": "Bitway",
+      "price": 2.09,
+      "chg_1h": 0.29,
+      "chg_24h": 12.6,
+      "market_cap": 3139500835,
+      "direction": "UP",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/bitway",
+      "plan": {
+        "entry": 2.09,
+        "take_profit": 2.2179,
+        "stop_loss": 2.0047,
+        "exit_by": "07:42 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 6.12,
+        "max_loss_pct": 4.08
+      }
+    },
+    {
+      "id": "cash-cat",
+      "asset": "CASHCAT",
+      "name": "Cash Cat",
+      "price": 0.12017,
+      "chg_1h": 0.81,
+      "chg_24h": 11.4,
+      "market_cap": 118675786,
       "direction": "UP",
       "tradable": [
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/vaulta",
+      "info_url": "https://www.coingecko.com/en/coins/cash-cat",
       "plan": {
-        "entry": 0.0976,
-        "take_profit": 0.0992,
-        "stop_loss": 0.0966,
-        "exit_by": "02:51 UTC",
+        "entry": 0.1202,
+        "take_profit": 0.1225,
+        "stop_loss": 0.1186,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 1.61,
-        "max_loss_pct": 1.07
+        "expected_return_pct": 1.95,
+        "max_loss_pct": 1.3
       }
     },
     {
-      "id": "useless-3",
-      "asset": "USELESS",
-      "name": "Useless Coin",
-      "price": 0.157133,
-      "chg_1h": -0.61,
-      "chg_24h": 10.37,
-      "market_cap": 157129502,
+      "id": "pearl-2",
+      "asset": "PEARL",
+      "name": "Pearl",
+      "price": 2.18,
+      "chg_1h": 0.56,
+      "chg_24h": 11.39,
+      "market_cap": 768382965,
       "direction": "UP",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "info_url": "https://www.coingecko.com/en/coins/useless-3",
+      "tradable": [],
+      "info_url": "https://www.coingecko.com/en/coins/pearl-2",
       "plan": {
-        "entry": 0.1571,
-        "take_profit": 0.1608,
-        "stop_loss": 0.1547,
-        "exit_by": "02:51 UTC",
+        "entry": 2.18,
+        "take_profit": 2.2223,
+        "stop_loss": 2.1518,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 2.36,
-        "max_loss_pct": 1.58
+        "expected_return_pct": 1.94,
+        "max_loss_pct": 1.3
       }
     }
   ],
   "watch": [
     {
-      "id": "spacex-bstocks-tokenized-stock",
-      "asset": "SPCXB",
-      "name": "SpaceX (bStocks Tokenized Stock)",
-      "price": 159.13,
-      "chg_1h": 3.09,
-      "chg_24h": 6.93,
-      "market_cap": 150731395,
+      "id": "unibase",
+      "asset": "UB",
+      "name": "Unibase",
+      "price": 0.128903,
+      "chg_1h": 0.89,
+      "chg_24h": 9.27,
+      "market_cap": 322269476,
       "direction": "UP",
       "tradable": [],
-      "info_url": "https://www.coingecko.com/en/coins/spacex-bstocks-tokenized-stock",
-      "watch_reason": "volume surge",
+      "info_url": "https://www.coingecko.com/en/coins/unibase",
+      "watch_reason": "Strong day building \u2014 +9% in 24h and still rising this hour",
       "plan": {
-        "entry": 159.13,
-        "take_profit": 160.68,
-        "stop_loss": 158.1,
-        "exit_by": "02:51 UTC",
+        "entry": 0.1289,
+        "take_profit": 0.1305,
+        "stop_loss": 0.1279,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 0.97,
-        "max_loss_pct": 0.65
+        "expected_return_pct": 1.21,
+        "max_loss_pct": 0.81
       }
     },
     {
-      "id": "bedrock-token",
-      "asset": "BR",
-      "name": "Bedrock",
-      "price": 0.643091,
-      "chg_1h": -1.39,
-      "chg_24h": -8.05,
-      "market_cap": 190719342,
-      "direction": "DOWN",
-      "tradable": [],
-      "info_url": "https://www.coingecko.com/en/coins/bedrock-token",
-      "watch_reason": "Strong day building \u2014 -8% in 24h and still falling this hour",
-      "plan": null,
-      "plan_note": "Falling mover \u2014 no buy plan (long-only). Watch for reversal."
-    },
-    {
-      "id": "pepe",
-      "asset": "PEPE",
-      "name": "Pepe",
-      "price": 4.56e-06,
-      "chg_1h": 0.97,
-      "chg_24h": 9.81,
-      "market_cap": 1919110366,
+      "id": "superfarm",
+      "asset": "SUPER",
+      "name": "SuperVerse",
+      "price": 0.199938,
+      "chg_1h": 0.54,
+      "chg_24h": 8.8,
+      "market_cap": 130598611,
       "direction": "UP",
       "tradable": [
         "coinbase",
         "cryptocom"
       ],
-      "info_url": "https://www.coingecko.com/en/coins/pepe",
-      "watch_reason": "Strong day building \u2014 +10% in 24h and still rising this hour",
+      "info_url": "https://www.coingecko.com/en/coins/superfarm",
+      "watch_reason": "Strong day building \u2014 +9% in 24h and still rising this hour",
       "plan": {
-        "entry": 4.56e-06,
-        "take_profit": 4.62e-06,
-        "stop_loss": 4.52e-06,
-        "exit_by": "02:51 UTC",
+        "entry": 0.1999,
+        "take_profit": 0.2023,
+        "stop_loss": 0.1984,
+        "exit_by": "07:42 UTC",
         "horizon": "1-4 hours",
-        "expected_return_pct": 1.25,
-        "max_loss_pct": 0.83
+        "expected_return_pct": 1.19,
+        "max_loss_pct": 0.79
+      }
+    },
+    {
+      "id": "layerzero",
+      "asset": "ZRO",
+      "name": "LayerZero",
+      "price": 2.03,
+      "chg_1h": 0.52,
+      "chg_24h": 8.48,
+      "market_cap": 813696333,
+      "direction": "UP",
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/layerzero",
+      "watch_reason": "Strong day building \u2014 +8% in 24h and still rising this hour",
+      "plan": {
+        "entry": 2.03,
+        "take_profit": 2.0681,
+        "stop_loss": 2.0046,
+        "exit_by": "07:42 UTC",
+        "horizon": "1-4 hours",
+        "expected_return_pct": 1.88,
+        "max_loss_pct": 1.25
       }
     }
   ],
-  "accum": [],
+  "accum": [
+    {
+      "id": "debridge",
+      "asset": "DBR",
+      "name": "deBridge",
+      "price": 0.01802829,
+      "chg_1h": 0.13,
+      "chg_24h": -1.95,
+      "market_cap": 117767201,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/debridge",
+      "vol_growth_pct": 141.5,
+      "price_drift_pct": -0.51,
+      "vol_ratio": 0.0228733,
+      "watch_reason": "Volume building +142% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "geodnet",
+      "asset": "GEOD",
+      "name": "Geodnet",
+      "price": 0.279328,
+      "chg_1h": 0.45,
+      "chg_24h": 2.77,
+      "market_cap": 129206964,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/geodnet",
+      "vol_growth_pct": 51.9,
+      "price_drift_pct": -0.44,
+      "vol_ratio": 0.018542,
+      "watch_reason": "Volume building +52% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "aioz-network",
+      "asset": "AIOZ",
+      "name": "AIOZ Network",
+      "price": 0.106323,
+      "chg_1h": -0.43,
+      "chg_24h": 4.69,
+      "market_cap": 136738336,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/aioz-network",
+      "vol_growth_pct": 44.1,
+      "price_drift_pct": -1.47,
+      "vol_ratio": 0.0467493,
+      "watch_reason": "Volume building +44% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "zencash",
+      "asset": "ZEN",
+      "name": "Horizen",
+      "price": 6.15,
+      "chg_1h": -0.28,
+      "chg_24h": 1.9,
+      "market_cap": 113202938,
+      "tradable": [
+        "coinbase"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/zencash",
+      "vol_growth_pct": 23.7,
+      "price_drift_pct": 0.49,
+      "vol_ratio": 0.0675513,
+      "watch_reason": "Volume building +24% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "uniswap",
+      "asset": "UNI",
+      "name": "Uniswap",
+      "price": 7.52,
+      "chg_1h": -1.05,
+      "chg_24h": 3.11,
+      "market_cap": 4698639222,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/uniswap",
+      "vol_growth_pct": 21.8,
+      "price_drift_pct": 1.08,
+      "vol_ratio": 0.10695,
+      "watch_reason": "Volume building +22% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "usds",
+      "asset": "USDS",
+      "name": "USDS",
+      "price": 1.0,
+      "chg_1h": -0.05,
+      "chg_24h": -0.02,
+      "market_cap": 10018297461,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/usds",
+      "vol_growth_pct": 21.3,
+      "price_drift_pct": 0.0,
+      "vol_ratio": 0.0121052,
+      "watch_reason": "Volume building +21% in 5h, price still quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "starknet",
+      "asset": "STRK",
+      "name": "Starknet",
+      "price": 0.057235,
+      "chg_1h": -1.57,
+      "chg_24h": 0.29,
+      "market_cap": 434494870,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/starknet",
+      "vol_growth_pct": 11.3,
+      "price_drift_pct": 0.7,
+      "vol_ratio": 0.169089,
+      "watch_reason": "Volume in top 10% for its size and still climbing, price quiet \u2014 accumulation pattern"
+    },
+    {
+      "id": "injective-protocol",
+      "asset": "INJ",
+      "name": "Injective",
+      "price": 8.85,
+      "chg_1h": -0.78,
+      "chg_24h": 2.89,
+      "market_cap": 885118222,
+      "tradable": [
+        "coinbase",
+        "cryptocom"
+      ],
+      "info_url": "https://www.coingecko.com/en/coins/injective-protocol",
+      "vol_growth_pct": 7.5,
+      "price_drift_pct": -0.78,
+      "vol_ratio": 0.191164,
+      "watch_reason": "Volume in top 10% for its size and still climbing, price quiet \u2014 accumulation pattern"
+    }
+  ],
   "accum_history": {
     "BTC": [
       {
@@ -308,6 +453,12 @@
         "price": 82947.0,
         "vol24h": 27982700000.0,
         "vol_ratio": 0.0167827
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 82708.0,
+        "vol24h": 26752700000.0,
+        "vol_ratio": 0.0160928
       }
     ],
     "ETH": [
@@ -322,6 +473,12 @@
         "price": 2447.92,
         "vol24h": 11671500000.0,
         "vol_ratio": 0.0390278
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2441.7,
+        "vol24h": 11300400000.0,
+        "vol_ratio": 0.0378861
       }
     ],
     "USDT": [
@@ -336,6 +493,12 @@
         "price": 0.999273,
         "vol24h": 52148100000.0,
         "vol_ratio": 0.284895
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999127,
+        "vol24h": 49733000000.0,
+        "vol_ratio": 0.272088
       }
     ],
     "BNB": [
@@ -350,6 +513,12 @@
         "price": 740.74,
         "vol24h": 688746000.0,
         "vol_ratio": 0.0070699
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 740.76,
+        "vol24h": 652224000.0,
+        "vol_ratio": 0.00669491
       }
     ],
     "XRP": [
@@ -364,6 +533,12 @@
         "price": 1.34,
         "vol24h": 1576440000.0,
         "vol_ratio": 0.0187057
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.33,
+        "vol24h": 1411760000.0,
+        "vol_ratio": 0.0167963
       }
     ],
     "USDC": [
@@ -378,6 +553,12 @@
         "price": 0.999751,
         "vol24h": 15703200000.0,
         "vol_ratio": 0.217627
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999527,
+        "vol24h": 19207100000.0,
+        "vol_ratio": 0.266315
       }
     ],
     "SOL": [
@@ -392,6 +573,12 @@
         "price": 106.5,
         "vol24h": 2702990000.0,
         "vol_ratio": 0.0430516
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 105.68,
+        "vol24h": 2624360000.0,
+        "vol_ratio": 0.0421231
       }
     ],
     "TRX": [
@@ -406,6 +593,12 @@
         "price": 0.331001,
         "vol24h": 338046000.0,
         "vol_ratio": 0.0107495
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.330909,
+        "vol24h": 300625000.0,
+        "vol_ratio": 0.00956271
       }
     ],
     "FIGR_HELOC": [
@@ -420,6 +613,12 @@
         "price": 1.025,
         "vol24h": 116069000.0,
         "vol_ratio": 0.00469877
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.025,
+        "vol24h": 116087000.0,
+        "vol_ratio": 0.00469878
       }
     ],
     "ZEC": [
@@ -434,6 +633,12 @@
         "price": 1261.21,
         "vol24h": 1041130000.0,
         "vol_ratio": 0.0485704
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1257.63,
+        "vol24h": 1086690000.0,
+        "vol_ratio": 0.0508253
       }
     ],
     "HYPE": [
@@ -448,6 +653,12 @@
         "price": 80.35,
         "vol24h": 733537000.0,
         "vol_ratio": 0.0410293
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 80.83,
+        "vol24h": 871382000.0,
+        "vol_ratio": 0.048455
       }
     ],
     "DOGE": [
@@ -462,6 +673,12 @@
         "price": 0.081786,
         "vol24h": 455379000.0,
         "vol_ratio": 0.0355999
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.081422,
+        "vol24h": 424766000.0,
+        "vol_ratio": 0.0333515
       }
     ],
     "USDS": [
@@ -476,6 +693,12 @@
         "price": 1.0,
         "vol24h": 99979900.0,
         "vol_ratio": 0.00997244
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 121274000.0,
+        "vol_ratio": 0.0121052
       }
     ],
     "WBT": [
@@ -490,6 +713,12 @@
         "price": 81.06,
         "vol24h": 118893000.0,
         "vol_ratio": 0.0123444
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 80.86,
+        "vol24h": 110251000.0,
+        "vol_ratio": 0.0114787
       }
     ],
     "LINK": [
@@ -504,6 +733,12 @@
         "price": 12.33,
         "vol24h": 248382000.0,
         "vol_ratio": 0.0262731
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 12.33,
+        "vol24h": 248713000.0,
+        "vol_ratio": 0.0263142
       }
     ],
     "ADA": [
@@ -518,6 +753,12 @@
         "price": 0.223959,
         "vol24h": 250134000.0,
         "vol_ratio": 0.0297367
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.222796,
+        "vol24h": 250499000.0,
+        "vol_ratio": 0.0299312
       }
     ],
     "LEO": [
@@ -532,6 +773,12 @@
         "price": 9.05,
         "vol24h": 183209.0,
         "vol_ratio": 2.20196e-05
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 9.04,
+        "vol24h": 149775.0,
+        "vol_ratio": 1.80099e-05
       }
     ],
     "RAIN": [
@@ -546,6 +793,12 @@
         "price": 0.00954552,
         "vol24h": 16467000.0,
         "vol_ratio": 0.00243271
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00940725,
+        "vol24h": 17177300.0,
+        "vol_ratio": 0.00257443
       }
     ],
     "NEAR": [
@@ -560,6 +813,12 @@
         "price": 4.92,
         "vol24h": 1058850000.0,
         "vol_ratio": 0.164248
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 5.02,
+        "vol24h": 1128920000.0,
+        "vol_ratio": 0.171893
       }
     ],
     "XLM": [
@@ -574,6 +833,12 @@
         "price": 0.181868,
         "vol24h": 120810000.0,
         "vol_ratio": 0.018859
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.181195,
+        "vol24h": 128106000.0,
+        "vol_ratio": 0.0200685
       }
     ],
     "BCH": [
@@ -588,6 +853,12 @@
         "price": 283.09,
         "vol24h": 128482000.0,
         "vol_ratio": 0.0225719
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 284.15,
+        "vol24h": 143389000.0,
+        "vol_ratio": 0.0250986
       }
     ],
     "LTC": [
@@ -602,20 +873,12 @@
         "price": 61.53,
         "vol24h": 256193000.0,
         "vol_ratio": 0.0535604
-      }
-    ],
-    "USDE": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.999527,
-        "vol24h": 26546300.0,
-        "vol_ratio": 0.00567031
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.999653,
-        "vol24h": 27099600.0,
-        "vol_ratio": 0.0058043
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 61.23,
+        "vol24h": 276714000.0,
+        "vol_ratio": 0.0581368
       }
     ],
     "UNI": [
@@ -630,6 +893,32 @@
         "price": 7.44,
         "vol24h": 412583000.0,
         "vol_ratio": 0.0887865
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 7.52,
+        "vol24h": 502522000.0,
+        "vol_ratio": 0.10695
+      }
+    ],
+    "USDE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999527,
+        "vol24h": 26546300.0,
+        "vol_ratio": 0.00567031
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.999653,
+        "vol24h": 27099600.0,
+        "vol_ratio": 0.0058043
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999467,
+        "vol24h": 23661600.0,
+        "vol_ratio": 0.00507461
       }
     ],
     "DAI": [
@@ -644,6 +933,12 @@
         "price": 0.999916,
         "vol24h": 196201000.0,
         "vol_ratio": 0.0433532
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 150057000.0,
+        "vol_ratio": 0.0329586
       }
     ],
     "AVAX": [
@@ -658,6 +953,12 @@
         "price": 9.74,
         "vol24h": 244252000.0,
         "vol_ratio": 0.0564758
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 9.68,
+        "vol24h": 243132000.0,
+        "vol_ratio": 0.0565872
       }
     ],
     "SUI": [
@@ -672,6 +973,12 @@
         "price": 1.031,
         "vol24h": 461899000.0,
         "vol_ratio": 0.108825
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.024,
+        "vol24h": 447880000.0,
+        "vol_ratio": 0.106215
       }
     ],
     "CC": [
@@ -686,6 +993,12 @@
         "price": 0.104813,
         "vol24h": 13594200.0,
         "vol_ratio": 0.00324994
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.105581,
+        "vol24h": 13235400.0,
+        "vol_ratio": 0.00314342
       }
     ],
     "USD1": [
@@ -700,6 +1013,12 @@
         "price": 0.999013,
         "vol24h": 969179000.0,
         "vol_ratio": 0.242564
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998875,
+        "vol24h": 901845000.0,
+        "vol_ratio": 0.22569
       }
     ],
     "GRAM": [
@@ -714,6 +1033,12 @@
         "price": 1.35,
         "vol24h": 25902500.0,
         "vol_ratio": 0.00678287
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.35,
+        "vol24h": 25832700.0,
+        "vol_ratio": 0.00676074
       }
     ],
     "HBAR": [
@@ -728,6 +1053,12 @@
         "price": 0.084233,
         "vol24h": 97624700.0,
         "vol_ratio": 0.0263232
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.08331,
+        "vol24h": 97504300.0,
+        "vol_ratio": 0.0265852
       }
     ],
     "XAUT": [
@@ -742,48 +1073,12 @@
         "price": 4115.0,
         "vol24h": 192233000.0,
         "vol_ratio": 0.0577456
-      }
-    ],
-    "USDG": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.0,
-        "vol24h": 492345000.0,
-        "vol_ratio": 0.15727
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.0,
-        "vol24h": 520378000.0,
-        "vol_ratio": 0.166225
-      }
-    ],
-    "TAO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 273.57,
-        "vol24h": 134482000.0,
-        "vol_ratio": 0.0433549
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 273.88,
-        "vol24h": 139242000.0,
-        "vol_ratio": 0.0448351
-      }
-    ],
-    "SHIB": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 5.1e-06,
-        "vol24h": 45146800.0,
-        "vol_ratio": 0.0150138
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 5.13e-06,
-        "vol24h": 47639100.0,
-        "vol_ratio": 0.015754
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 4115.2,
+        "vol24h": 192822000.0,
+        "vol_ratio": 0.0579185
       }
     ],
     "BTW": [
@@ -798,6 +1093,72 @@
         "price": 1.99,
         "vol24h": 26940600.0,
         "vol_ratio": 0.00898964
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.09,
+        "vol24h": 26525700.0,
+        "vol_ratio": 0.00844901
+      }
+    ],
+    "USDG": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 492345000.0,
+        "vol_ratio": 0.15727
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.0,
+        "vol24h": 520378000.0,
+        "vol_ratio": 0.166225
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 511369000.0,
+        "vol_ratio": 0.163375
+      }
+    ],
+    "TAO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 273.57,
+        "vol24h": 134482000.0,
+        "vol_ratio": 0.0433549
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 273.88,
+        "vol24h": 139242000.0,
+        "vol_ratio": 0.0448351
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 270.77,
+        "vol24h": 137715000.0,
+        "vol_ratio": 0.0448455
+      }
+    ],
+    "SHIB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.1e-06,
+        "vol24h": 45146800.0,
+        "vol_ratio": 0.0150138
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 5.13e-06,
+        "vol24h": 47639100.0,
+        "vol_ratio": 0.015754
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 5.11e-06,
+        "vol24h": 45221700.0,
+        "vol_ratio": 0.0150101
       }
     ],
     "CRO": [
@@ -812,6 +1173,12 @@
         "price": 0.057624,
         "vol24h": 4852020.0,
         "vol_ratio": 0.00165986
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.05753,
+        "vol24h": 5021320.0,
+        "vol_ratio": 0.00172047
       }
     ],
     "PYUSD": [
@@ -826,6 +1193,12 @@
         "price": 1.0,
         "vol24h": 45087300.0,
         "vol_ratio": 0.0156074
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 50158600.0,
+        "vol_ratio": 0.0173223
       }
     ],
     "QNT": [
@@ -840,6 +1213,12 @@
         "price": 194.45,
         "vol24h": 64235300.0,
         "vol_ratio": 0.0226844
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 196.1,
+        "vol24h": 63481600.0,
+        "vol_ratio": 0.0222315
       }
     ],
     "ENA": [
@@ -854,6 +1233,12 @@
         "price": 0.196413,
         "vol24h": 382046000.0,
         "vol_ratio": 0.145092
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.199881,
+        "vol24h": 370843000.0,
+        "vol_ratio": 0.13835
       }
     ],
     "OKB": [
@@ -868,34 +1253,12 @@
         "price": 115.41,
         "vol24h": 20172500.0,
         "vol_ratio": 0.0083236
-      }
-    ],
-    "RLUSD": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.0,
-        "vol24h": 164803000.0,
-        "vol_ratio": 0.0685258
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.0,
-        "vol24h": 169657000.0,
-        "vol_ratio": 0.0705413
-      }
-    ],
-    "USYC": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.14,
-        "vol24h": 0,
-        "vol_ratio": 0
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.14,
-        "vol24h": 0,
-        "vol_ratio": 0
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 115.51,
+        "vol24h": 20138900.0,
+        "vol_ratio": 0.00830095
       }
     ],
     "AAVE": [
@@ -910,6 +1273,52 @@
         "price": 154.53,
         "vol24h": 251647000.0,
         "vol_ratio": 0.105507
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 155.38,
+        "vol24h": 250736000.0,
+        "vol_ratio": 0.104525
+      }
+    ],
+    "USYC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "RLUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 164803000.0,
+        "vol_ratio": 0.0685258
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.0,
+        "vol24h": 169657000.0,
+        "vol_ratio": 0.0705413
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 167271000.0,
+        "vol_ratio": 0.0704307
       }
     ],
     "USDY": [
@@ -924,6 +1333,12 @@
         "price": 1.15,
         "vol24h": 3997230.0,
         "vol_ratio": 0.00169605
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.15,
+        "vol24h": 5848150.0,
+        "vol_ratio": 0.00247861
       }
     ],
     "WLD": [
@@ -938,34 +1353,12 @@
         "price": 0.588907,
         "vol24h": 639300000.0,
         "vol_ratio": 0.284389
-      }
-    ],
-    "PUMP": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.00470058,
-        "vol24h": 169891000.0,
-        "vol_ratio": 0.0782622
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.00484883,
-        "vol24h": 180731000.0,
-        "vol_ratio": 0.0806468
-      }
-    ],
-    "ONDO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.452804,
-        "vol24h": 135762000.0,
-        "vol_ratio": 0.0615949
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.453455,
-        "vol24h": 117550000.0,
-        "vol_ratio": 0.0532376
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.592316,
+        "vol24h": 552030000.0,
+        "vol_ratio": 0.244093
       }
     ],
     "BUIDL": [
@@ -980,6 +1373,52 @@
         "price": 1.0,
         "vol24h": 0,
         "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "ONDO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.452804,
+        "vol24h": 135762000.0,
+        "vol_ratio": 0.0615949
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.453455,
+        "vol24h": 117550000.0,
+        "vol_ratio": 0.0532376
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.45,
+        "vol24h": 109407000.0,
+        "vol_ratio": 0.0499171
+      }
+    ],
+    "PUMP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00470058,
+        "vol24h": 169891000.0,
+        "vol_ratio": 0.0782622
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.00484883,
+        "vol24h": 180731000.0,
+        "vol_ratio": 0.0806468
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00473719,
+        "vol24h": 188299000.0,
+        "vol_ratio": 0.0860477
       }
     ],
     "DOT": [
@@ -994,6 +1433,12 @@
         "price": 1.15,
         "vol24h": 151713000.0,
         "vol_ratio": 0.0772256
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.16,
+        "vol24h": 140009000.0,
+        "vol_ratio": 0.0706405
       }
     ],
     "ASTER": [
@@ -1008,6 +1453,12 @@
         "price": 0.716064,
         "vol24h": 77262900.0,
         "vol_ratio": 0.0397149
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.720962,
+        "vol24h": 74589400.0,
+        "vol_ratio": 0.0380817
       }
     ],
     "PEPE": [
@@ -1022,6 +1473,12 @@
         "price": 4.56e-06,
         "vol24h": 510042000.0,
         "vol_ratio": 0.26577
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 4.49e-06,
+        "vol24h": 487442000.0,
+        "vol_ratio": 0.257782
       }
     ],
     "USDF": [
@@ -1036,6 +1493,12 @@
         "price": 0.997389,
         "vol24h": 183485.0,
         "vol_ratio": 0.00164852
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.997223,
+        "vol24h": 24264.0,
+        "vol_ratio": 0.000218036
       }
     ],
     "PAXG": [
@@ -1050,6 +1513,12 @@
         "price": 4120.62,
         "vol24h": 138192000.0,
         "vol_ratio": 0.0759042
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 4121.42,
+        "vol24h": 122631000.0,
+        "vol_ratio": 0.0673463
       }
     ],
     "SKY": [
@@ -1064,34 +1533,12 @@
         "price": 0.076066,
         "vol24h": 11740400.0,
         "vol_ratio": 0.00658744
-      }
-    ],
-    "M": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.760504,
-        "vol24h": 2720650.0,
-        "vol_ratio": 0.00156271
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.774279,
-        "vol24h": 1747740.0,
-        "vol_ratio": 0.000986497
-      }
-    ],
-    "USDD": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.998754,
-        "vol24h": 3676460.0,
-        "vol_ratio": 0.00208169
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.998927,
-        "vol24h": 3154720.0,
-        "vol_ratio": 0.00178461
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.075889,
+        "vol24h": 11997600.0,
+        "vol_ratio": 0.00674378
       }
     ],
     "MNT": [
@@ -1106,6 +1553,32 @@
         "price": 0.53503,
         "vol24h": 17325700.0,
         "vol_ratio": 0.00980621
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.536084,
+        "vol24h": 17576700.0,
+        "vol_ratio": 0.00992885
+      }
+    ],
+    "USDD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.998754,
+        "vol24h": 3676460.0,
+        "vol_ratio": 0.00208169
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.998927,
+        "vol24h": 3154720.0,
+        "vol_ratio": 0.00178461
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.997944,
+        "vol24h": 3397060.0,
+        "vol_ratio": 0.00192587
       }
     ],
     "WLFI": [
@@ -1120,6 +1593,32 @@
         "price": 0.055561,
         "vol24h": 39685400.0,
         "vol_ratio": 0.0224786
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.055053,
+        "vol24h": 38483900.0,
+        "vol_ratio": 0.0219942
+      }
+    ],
+    "M": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.760504,
+        "vol24h": 2720650.0,
+        "vol_ratio": 0.00156271
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.774279,
+        "vol24h": 1747740.0,
+        "vol_ratio": 0.000986497
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.757634,
+        "vol24h": 2527740.0,
+        "vol_ratio": 0.00145776
       }
     ],
     "EURSAFO": [
@@ -1134,20 +1633,12 @@
         "price": 1.14,
         "vol24h": 0,
         "vol_ratio": 0
-      }
-    ],
-    "MORPHO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.36,
-        "vol24h": 23680500.0,
-        "vol_ratio": 0.0142766
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.41,
-        "vol24h": 22533700.0,
-        "vol_ratio": 0.0133328
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.14,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "ICP": [
@@ -1162,6 +1653,32 @@
         "price": 2.91,
         "vol24h": 45521400.0,
         "vol_ratio": 0.0279979
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.91,
+        "vol24h": 47122400.0,
+        "vol_ratio": 0.0290636
+      }
+    ],
+    "MORPHO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.36,
+        "vol24h": 23680500.0,
+        "vol_ratio": 0.0142766
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 2.41,
+        "vol24h": 22533700.0,
+        "vol_ratio": 0.0133328
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.29,
+        "vol24h": 27163400.0,
+        "vol_ratio": 0.016917
       }
     ],
     "U": [
@@ -1176,6 +1693,12 @@
         "price": 0.999523,
         "vol24h": 146735000.0,
         "vol_ratio": 0.0924955
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999321,
+        "vol24h": 134850000.0,
+        "vol_ratio": 0.0849682
       }
     ],
     "HTX": [
@@ -1190,6 +1713,12 @@
         "price": 1.65e-06,
         "vol24h": 53151400.0,
         "vol_ratio": 0.0361639
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.65e-06,
+        "vol24h": 55532400.0,
+        "vol_ratio": 0.0377881
       }
     ],
     "BGB": [
@@ -1204,6 +1733,12 @@
         "price": 1.91,
         "vol24h": 11983900.0,
         "vol_ratio": 0.00898118
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.9,
+        "vol24h": 12296300.0,
+        "vol_ratio": 0.00922981
       }
     ],
     "BFUSD": [
@@ -1218,20 +1753,12 @@
         "price": 0.998976,
         "vol24h": 1031120.0,
         "vol_ratio": 0.000781955
-      }
-    ],
-    "USDGO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.0,
-        "vol24h": 26359300.0,
-        "vol_ratio": 0.0204234
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.0,
-        "vol24h": 33205000.0,
-        "vol_ratio": 0.025726
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998802,
+        "vol24h": 897550.0,
+        "vol_ratio": 0.000680777
       }
     ],
     "ARB": [
@@ -1246,6 +1773,32 @@
         "price": 0.186957,
         "vol24h": 259905000.0,
         "vol_ratio": 0.201699
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.191105,
+        "vol24h": 264650000.0,
+        "vol_ratio": 0.2008
+      }
+    ],
+    "USDGO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 26359300.0,
+        "vol_ratio": 0.0204234
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.0,
+        "vol24h": 33205000.0,
+        "vol_ratio": 0.025726
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 31958600.0,
+        "vol_ratio": 0.0247616
       }
     ],
     "ETC": [
@@ -1260,6 +1813,12 @@
         "price": 7.93,
         "vol24h": 40895600.0,
         "vol_ratio": 0.0324644
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 7.94,
+        "vol24h": 38000100.0,
+        "vol_ratio": 0.0301459
       }
     ],
     "VVV": [
@@ -1274,6 +1833,12 @@
         "price": 25.5,
         "vol24h": 44390000.0,
         "vol_ratio": 0.0358639
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 25.94,
+        "vol24h": 38745800.0,
+        "vol_ratio": 0.0307484
       }
     ],
     "JST": [
@@ -1288,6 +1853,12 @@
         "price": 0.139969,
         "vol24h": 23891700.0,
         "vol_ratio": 0.0212891
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.140627,
+        "vol24h": 21546300.0,
+        "vol_ratio": 0.0191078
       }
     ],
     "GT": [
@@ -1302,20 +1873,12 @@
         "price": 10.17,
         "vol24h": 2561920.0,
         "vol_ratio": 0.0024076
-      }
-    ],
-    "JUP": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.31664,
-        "vol24h": 77591700.0,
-        "vol_ratio": 0.0738253
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.314576,
-        "vol24h": 77317600.0,
-        "vol_ratio": 0.0740532
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 10.17,
+        "vol24h": 1072800.0,
+        "vol_ratio": 0.00100744
       }
     ],
     "KAS": [
@@ -1330,20 +1893,32 @@
         "price": 0.0374611,
         "vol24h": 21603100.0,
         "vol_ratio": 0.0207697
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.037553,
+        "vol24h": 21385000.0,
+        "vol_ratio": 0.0205066
       }
     ],
-    "KCS": [
+    "JUP": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 7.38,
-        "vol24h": 12398500.0,
-        "vol_ratio": 0.0120352
+        "price": 0.31664,
+        "vol24h": 77591700.0,
+        "vol_ratio": 0.0738253
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 7.37,
-        "vol24h": 12371500.0,
-        "vol_ratio": 0.0120177
+        "price": 0.314576,
+        "vol24h": 77317600.0,
+        "vol_ratio": 0.0740532
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.312457,
+        "vol24h": 76705900.0,
+        "vol_ratio": 0.0739554
       }
     ],
     "ALGO": [
@@ -1358,6 +1933,32 @@
         "price": 0.113397,
         "vol24h": 51398700.0,
         "vol_ratio": 0.0499536
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.113288,
+        "vol24h": 50287100.0,
+        "vol_ratio": 0.0489173
+      }
+    ],
+    "KCS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 7.38,
+        "vol24h": 12398500.0,
+        "vol_ratio": 0.0120352
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 7.37,
+        "vol24h": 12371500.0,
+        "vol_ratio": 0.0120177
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 7.36,
+        "vol24h": 8619140.0,
+        "vol_ratio": 0.00839035
       }
     ],
     "POL": [
@@ -1372,6 +1973,12 @@
         "price": 0.094726,
         "vol24h": 47731400.0,
         "vol_ratio": 0.0473797
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.095024,
+        "vol24h": 45200200.0,
+        "vol_ratio": 0.0447208
       }
     ],
     "RENDER": [
@@ -1386,6 +1993,12 @@
         "price": 1.85,
         "vol24h": 48877500.0,
         "vol_ratio": 0.050803
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.84,
+        "vol24h": 47717700.0,
+        "vol_ratio": 0.0499319
       }
     ],
     "ATOM": [
@@ -1400,20 +2013,12 @@
         "price": 1.75,
         "vol24h": 42953200.0,
         "vol_ratio": 0.0457093
-      }
-    ],
-    "INJ": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 8.59,
-        "vol24h": 138793000.0,
-        "vol_ratio": 0.161644
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 8.92,
-        "vol24h": 157412000.0,
-        "vol_ratio": 0.176368
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.74,
+        "vol24h": 44934300.0,
+        "vol_ratio": 0.0480561
       }
     ],
     "PI": [
@@ -1428,20 +2033,32 @@
         "price": 0.078917,
         "vol24h": 3535920.0,
         "vol_ratio": 0.0039743
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.079479,
+        "vol24h": 3410660.0,
+        "vol_ratio": 0.00380574
       }
     ],
-    "AERO": [
+    "INJ": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.85594,
-        "vol24h": 76054900.0,
-        "vol_ratio": 0.0904125
+        "price": 8.59,
+        "vol24h": 138793000.0,
+        "vol_ratio": 0.161644
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.883184,
-        "vol24h": 86109200.0,
-        "vol_ratio": 0.0991537
+        "price": 8.92,
+        "vol24h": 157412000.0,
+        "vol_ratio": 0.176368
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 8.85,
+        "vol24h": 169203000.0,
+        "vol_ratio": 0.191164
       }
     ],
     "FIL": [
@@ -1456,6 +2073,12 @@
         "price": 1.031,
         "vol24h": 116715000.0,
         "vol_ratio": 0.135418
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.034,
+        "vol24h": 106669000.0,
+        "vol_ratio": 0.123364
       }
     ],
     "LIT": [
@@ -1470,6 +2093,32 @@
         "price": 3.38,
         "vol24h": 88562300.0,
         "vol_ratio": 0.1046
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 3.4,
+        "vol24h": 86301400.0,
+        "vol_ratio": 0.101634
+      }
+    ],
+    "AERO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.85594,
+        "vol24h": 76054900.0,
+        "vol_ratio": 0.0904125
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.883184,
+        "vol24h": 86109200.0,
+        "vol_ratio": 0.0991537
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.858573,
+        "vol24h": 79610300.0,
+        "vol_ratio": 0.094317
       }
     ],
     "OUSD": [
@@ -1484,20 +2133,12 @@
         "price": 0.998733,
         "vol24h": 212700.0,
         "vol_ratio": 0.000256405
-      }
-    ],
-    "NEXO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.815664,
-        "vol24h": 2453160.0,
-        "vol_ratio": 0.00300854
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.815873,
-        "vol24h": 2548560.0,
-        "vol_ratio": 0.00312769
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.99955,
+        "vol24h": 222506.0,
+        "vol_ratio": 0.000268003
       }
     ],
     "ZRO": [
@@ -1512,6 +2153,52 @@
         "price": 2.01,
         "vol24h": 127397000.0,
         "vol_ratio": 0.158329
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.03,
+        "vol24h": 126442000.0,
+        "vol_ratio": 0.155392
+      }
+    ],
+    "NEXO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.815664,
+        "vol24h": 2453160.0,
+        "vol_ratio": 0.00300854
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.815873,
+        "vol24h": 2548560.0,
+        "vol_ratio": 0.00312769
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.811656,
+        "vol24h": 4186860.0,
+        "vol_ratio": 0.00515864
+      }
+    ],
+    "AKE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0308934,
+        "vol24h": 13548000.0,
+        "vol_ratio": 0.0192344
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0325314,
+        "vol24h": 15087400.0,
+        "vol_ratio": 0.0203551
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0345333,
+        "vol24h": 17717900.0,
+        "vol_ratio": 0.022479
       }
     ],
     "USTB": [
@@ -1523,6 +2210,12 @@
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 11.25,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
         "price": 11.25,
         "vol24h": 0,
         "vol_ratio": 0
@@ -1540,20 +2233,12 @@
         "price": 2.14,
         "vol24h": 9146200.0,
         "vol_ratio": 0.0121349
-      }
-    ],
-    "AKE": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0308934,
-        "vol24h": 13548000.0,
-        "vol_ratio": 0.0192344
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0325314,
-        "vol24h": 15087400.0,
-        "vol_ratio": 0.0203551
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.18,
+        "vol24h": 9897320.0,
+        "vol_ratio": 0.0128807
       }
     ],
     "APT": [
@@ -1568,6 +2253,12 @@
         "price": 0.82598,
         "vol24h": 76242600.0,
         "vol_ratio": 0.104484
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.827731,
+        "vol24h": 79345700.0,
+        "vol_ratio": 0.108503
       }
     ],
     "CAKE": [
@@ -1582,6 +2273,12 @@
         "price": 2.22,
         "vol24h": 51683900.0,
         "vol_ratio": 0.0731959
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.24,
+        "vol24h": 46505000.0,
+        "vol_ratio": 0.065243
       }
     ],
     "GHO": [
@@ -1596,20 +2293,12 @@
         "price": 0.998368,
         "vol24h": 3820800.0,
         "vol_ratio": 0.00547503
-      }
-    ],
-    "ETHFI": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.7142,
-        "vol24h": 37684000.0,
-        "vol_ratio": 0.0546756
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.713644,
-        "vol24h": 38601700.0,
-        "vol_ratio": 0.056017
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998549,
+        "vol24h": 3070330.0,
+        "vol_ratio": 0.00439883
       }
     ],
     "STX": [
@@ -1624,6 +2313,32 @@
         "price": 0.35593,
         "vol24h": 25248800.0,
         "vol_ratio": 0.0378212
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.357829,
+        "vol24h": 27271800.0,
+        "vol_ratio": 0.0405919
+      }
+    ],
+    "ETHFI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.7142,
+        "vol24h": 37684000.0,
+        "vol_ratio": 0.0546756
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.713644,
+        "vol24h": 38601700.0,
+        "vol_ratio": 0.056017
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.692484,
+        "vol24h": 37200000.0,
+        "vol_ratio": 0.0556477
       }
     ],
     "NIGHT": [
@@ -1638,20 +2353,12 @@
         "price": 0.0396324,
         "vol24h": 13693600.0,
         "vol_ratio": 0.0208026
-      }
-    ],
-    "DASH": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 49.91,
-        "vol24h": 54748500.0,
-        "vol_ratio": 0.0852568
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 50.44,
-        "vol24h": 55265200.0,
-        "vol_ratio": 0.0851428
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0394534,
+        "vol24h": 13809600.0,
+        "vol_ratio": 0.0210735
       }
     ],
     "XDC": [
@@ -1666,6 +2373,32 @@
         "price": 0.0322658,
         "vol24h": 8492420.0,
         "vol_ratio": 0.0131946
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0324026,
+        "vol24h": 9215460.0,
+        "vol_ratio": 0.0142568
+      }
+    ],
+    "DASH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 49.91,
+        "vol24h": 54748500.0,
+        "vol_ratio": 0.0852568
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 50.44,
+        "vol24h": 55265200.0,
+        "vol_ratio": 0.0851428
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 50.0,
+        "vol24h": 55646200.0,
+        "vol_ratio": 0.0864549
       }
     ],
     "PYTH": [
@@ -1680,6 +2413,12 @@
         "price": 0.079822,
         "vol24h": 47307000.0,
         "vol_ratio": 0.0752433
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.08068,
+        "vol24h": 43955600.0,
+        "vol_ratio": 0.0691937
       }
     ],
     "VET": [
@@ -1694,6 +2433,12 @@
         "price": 0.00717391,
         "vol24h": 7147980.0,
         "vol_ratio": 0.0115824
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00720943,
+        "vol24h": 7895170.0,
+        "vol_ratio": 0.0127294
       }
     ],
     "CRV": [
@@ -1708,6 +2453,12 @@
         "price": 0.390442,
         "vol24h": 86363400.0,
         "vol_ratio": 0.139975
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.390579,
+        "vol24h": 88517800.0,
+        "vol_ratio": 0.143435
       }
     ],
     "TIA": [
@@ -1722,34 +2473,12 @@
         "price": 0.621338,
         "vol24h": 125933000.0,
         "vol_ratio": 0.206076
-      }
-    ],
-    "JAAA": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.053,
-        "vol24h": 0,
-        "vol_ratio": 0
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.053,
-        "vol24h": 0,
-        "vol_ratio": 0
-      }
-    ],
-    "Q": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.12569,
-        "vol24h": 32107300.0,
-        "vol_ratio": 0.0542755
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.123127,
-        "vol24h": 16253300.0,
-        "vol_ratio": 0.0280492
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.6118,
+        "vol24h": 123784000.0,
+        "vol_ratio": 0.205685
       }
     ],
     "BDX": [
@@ -1764,6 +2493,32 @@
         "price": 0.073683,
         "vol24h": 2647730.0,
         "vol_ratio": 0.00457008
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.073893,
+        "vol24h": 2658500.0,
+        "vol_ratio": 0.00455654
+      }
+    ],
+    "JAAA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.053,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.053,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.053,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "FLR": [
@@ -1778,20 +2533,32 @@
         "price": 0.0064194,
         "vol24h": 2359020.0,
         "vol_ratio": 0.00420124
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00640227,
+        "vol24h": 2386300.0,
+        "vol_ratio": 0.00426053
       }
     ],
-    "RAY": [
+    "Q": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.08,
-        "vol24h": 46902400.0,
-        "vol_ratio": 0.0836707
+        "price": 0.12569,
+        "vol24h": 32107300.0,
+        "vol_ratio": 0.0542755
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.01,
-        "vol24h": 46856200.0,
-        "vol_ratio": 0.0862582
+        "price": 0.123127,
+        "vol24h": 16253300.0,
+        "vol_ratio": 0.0280492
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.115682,
+        "vol24h": 25706600.0,
+        "vol_ratio": 0.0472418
       }
     ],
     "USD0": [
@@ -1806,6 +2573,32 @@
         "price": 0.998865,
         "vol24h": 120569.0,
         "vol_ratio": 0.000222712
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998854,
+        "vol24h": 116940.0,
+        "vol_ratio": 0.000216011
+      }
+    ],
+    "RAY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.08,
+        "vol24h": 46902400.0,
+        "vol_ratio": 0.0836707
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 2.01,
+        "vol24h": 46856200.0,
+        "vol_ratio": 0.0862582
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.96,
+        "vol24h": 46676200.0,
+        "vol_ratio": 0.0880954
       }
     ],
     "KAU": [
@@ -1820,6 +2613,12 @@
         "price": 132.5,
         "vol24h": 261058.0,
         "vol_ratio": 0.000494716
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 132.1,
+        "vol24h": 356689.0,
+        "vol_ratio": 0.000677965
       }
     ],
     "EUTBL": [
@@ -1834,34 +2633,12 @@
         "price": 1.19,
         "vol24h": 0,
         "vol_ratio": 0
-      }
-    ],
-    "YLDS": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.999581,
-        "vol24h": 18523100.0,
-        "vol_ratio": 0.0365547
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.999657,
-        "vol24h": 18588400.0,
-        "vol_ratio": 0.0366808
-      }
-    ],
-    "EURC": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.12,
-        "vol24h": 26404100.0,
-        "vol_ratio": 0.0524784
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.12,
-        "vol24h": 26957600.0,
-        "vol_ratio": 0.053582
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.19,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "TRUMP": [
@@ -1876,6 +2653,32 @@
         "price": 1.78,
         "vol24h": 129819000.0,
         "vol_ratio": 0.25836
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.79,
+        "vol24h": 133915000.0,
+        "vol_ratio": 0.265911
+      }
+    ],
+    "EURC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.12,
+        "vol24h": 26404100.0,
+        "vol_ratio": 0.0524784
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.12,
+        "vol24h": 26957600.0,
+        "vol_ratio": 0.053582
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.12,
+        "vol24h": 25653000.0,
+        "vol_ratio": 0.050992
       }
     ],
     "PENGU": [
@@ -1890,6 +2693,32 @@
         "price": 0.0079827,
         "vol24h": 131269000.0,
         "vol_ratio": 0.261611
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00799615,
+        "vol24h": 129378000.0,
+        "vol_ratio": 0.257438
+      }
+    ],
+    "YLDS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.999581,
+        "vol24h": 18523100.0,
+        "vol_ratio": 0.0365547
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.999657,
+        "vol24h": 18588400.0,
+        "vol_ratio": 0.0366808
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.99958,
+        "vol24h": 18448900.0,
+        "vol_ratio": 0.0370264
       }
     ],
     "\u5e01\u5b89\u4eba\u751f": [
@@ -1904,6 +2733,12 @@
         "price": 0.498095,
         "vol24h": 2774680.0,
         "vol_ratio": 0.00557049
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.497216,
+        "vol24h": 2902550.0,
+        "vol_ratio": 0.00583701
       }
     ],
     "TUSD": [
@@ -1918,6 +2753,12 @@
         "price": 0.998683,
         "vol24h": 17160300.0,
         "vol_ratio": 0.034747
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998587,
+        "vol24h": 6203240.0,
+        "vol_ratio": 0.0125618
       }
     ],
     "STABLE": [
@@ -1932,6 +2773,12 @@
         "price": 0.026314,
         "vol24h": 11003800.0,
         "vol_ratio": 0.0232267
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0272409,
+        "vol24h": 10767900.0,
+        "vol_ratio": 0.0219501
       }
     ],
     "A7A5": [
@@ -1946,6 +2793,12 @@
         "price": 0.0117095,
         "vol24h": 316.13,
         "vol_ratio": 6.87991e-07
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0117077,
+        "vol24h": 278.95,
+        "vol_ratio": 6.07172e-07
       }
     ],
     "FET": [
@@ -1960,6 +2813,12 @@
         "price": 0.196621,
         "vol24h": 82531700.0,
         "vol_ratio": 0.181578
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.196934,
+        "vol24h": 82181500.0,
+        "vol_ratio": 0.180517
       }
     ],
     "VIRTUAL": [
@@ -1974,20 +2833,12 @@
         "price": 0.679673,
         "vol24h": 36141300.0,
         "vol_ratio": 0.0807408
-      }
-    ],
-    "HASH": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.00748392,
-        "vol24h": 40412.0,
-        "vol_ratio": 9.11254e-05
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.00748606,
-        "vol24h": 41719.0,
-        "vol_ratio": 9.40371e-05
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.67831,
+        "vol24h": 35604900.0,
+        "vol_ratio": 0.0797223
       }
     ],
     "GRASS": [
@@ -2002,6 +2853,32 @@
         "price": 0.633632,
         "vol24h": 27510900.0,
         "vol_ratio": 0.0620543
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.63533,
+        "vol24h": 26875300.0,
+        "vol_ratio": 0.0605026
+      }
+    ],
+    "HASH": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00748392,
+        "vol24h": 40412.0,
+        "vol_ratio": 9.11254e-05
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.00748606,
+        "vol24h": 41719.0,
+        "vol_ratio": 9.40371e-05
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00748854,
+        "vol24h": 42010.0,
+        "vol_ratio": 9.4655e-05
       }
     ],
     "STRK": [
@@ -2016,6 +2893,12 @@
         "price": 0.056838,
         "vol24h": 66035800.0,
         "vol_ratio": 0.153034
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.057235,
+        "vol24h": 73468300.0,
+        "vol_ratio": 0.169089
       }
     ],
     "SEI": [
@@ -2030,6 +2913,12 @@
         "price": 0.061223,
         "vol24h": 42599200.0,
         "vol_ratio": 0.103334
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.061137,
+        "vol24h": 40094100.0,
+        "vol_ratio": 0.0973685
       }
     ],
     "DRV": [
@@ -2044,20 +2933,12 @@
         "price": 0.399227,
         "vol24h": 9251210.0,
         "vol_ratio": 0.0231817
-      }
-    ],
-    "PENDLE": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.15,
-        "vol24h": 57134200.0,
-        "vol_ratio": 0.152662
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.16,
-        "vol24h": 56979200.0,
-        "vol_ratio": 0.151926
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.399234,
+        "vol24h": 9742330.0,
+        "vol_ratio": 0.0244115
       }
     ],
     "FF": [
@@ -2072,20 +2953,32 @@
         "price": 0.111456,
         "vol24h": 4949440.0,
         "vol_ratio": 0.0132846
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.113716,
+        "vol24h": 6419900.0,
+        "vol_ratio": 0.016889
       }
     ],
-    "BSV": [
+    "PENDLE": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 17.95,
-        "vol24h": 5920480.0,
-        "vol_ratio": 0.0163934
+        "price": 2.15,
+        "vol24h": 57134200.0,
+        "vol_ratio": 0.152662
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 18.04,
-        "vol24h": 5602760.0,
-        "vol_ratio": 0.0154493
+        "price": 2.16,
+        "vol24h": 56979200.0,
+        "vol_ratio": 0.151926
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.16,
+        "vol24h": 56494300.0,
+        "vol_ratio": 0.150676
       }
     ],
     "BTT": [
@@ -2100,6 +2993,32 @@
         "price": 3.68573e-07,
         "vol24h": 11327300.0,
         "vol_ratio": 0.0318435
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 3.77549e-07,
+        "vol24h": 13367900.0,
+        "vol_ratio": 0.0366668
+      }
+    ],
+    "BSV": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 17.95,
+        "vol24h": 5920480.0,
+        "vol_ratio": 0.0163934
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 18.04,
+        "vol24h": 5602760.0,
+        "vol_ratio": 0.0154493
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 18.02,
+        "vol24h": 5770350.0,
+        "vol_ratio": 0.0159328
       }
     ],
     "XPL": [
@@ -2114,6 +3033,12 @@
         "price": 0.078233,
         "vol24h": 30749000.0,
         "vol_ratio": 0.0867033
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.078366,
+        "vol24h": 27238300.0,
+        "vol_ratio": 0.0766747
       }
     ],
     "SPX": [
@@ -2128,6 +3053,12 @@
         "price": 0.379293,
         "vol24h": 8884010.0,
         "vol_ratio": 0.025159
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.379951,
+        "vol24h": 9001020.0,
+        "vol_ratio": 0.0254463
       }
     ],
     "SOFID": [
@@ -2142,6 +3073,12 @@
         "price": 0.999624,
         "vol24h": 7661540.0,
         "vol_ratio": 0.0221059
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998126,
+        "vol24h": 6860540.0,
+        "vol_ratio": 0.0198025
       }
     ],
     "XTZ": [
@@ -2156,6 +3093,12 @@
         "price": 0.313146,
         "vol24h": 7597180.0,
         "vol_ratio": 0.0220576
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.314295,
+        "vol24h": 7832270.0,
+        "vol_ratio": 0.0226661
       }
     ],
     "REUSD": [
@@ -2170,6 +3113,12 @@
         "price": 1.11,
         "vol24h": 2314520.0,
         "vol_ratio": 0.00673646
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.11,
+        "vol24h": 2226700.0,
+        "vol_ratio": 0.00647557
       }
     ],
     "LDO": [
@@ -2184,6 +3133,12 @@
         "price": 0.410997,
         "vol24h": 49946600.0,
         "vol_ratio": 0.146455
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.409188,
+        "vol24h": 49505000.0,
+        "vol_ratio": 0.145823
       }
     ],
     "JTRSY": [
@@ -2198,6 +3153,52 @@
         "price": 1.12,
         "vol24h": 0,
         "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.12,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "UB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.121368,
+        "vol24h": 9793570.0,
+        "vol_ratio": 0.0322795
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.126953,
+        "vol24h": 11058100.0,
+        "vol_ratio": 0.034861
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.128903,
+        "vol24h": 11960900.0,
+        "vol_ratio": 0.0371146
+      }
+    ],
+    "CARDS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.360834,
+        "vol24h": 36170100.0,
+        "vol_ratio": 0.111378
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.340483,
+        "vol24h": 32092000.0,
+        "vol_ratio": 0.104381
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.35647,
+        "vol24h": 20703900.0,
+        "vol_ratio": 0.0643344
       }
     ],
     "OUSG": [
@@ -2209,6 +3210,12 @@
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 116.97,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
         "price": 116.97,
         "vol24h": 0,
         "vol_ratio": 0
@@ -2226,34 +3233,12 @@
         "price": 0.0165646,
         "vol24h": 14782800.0,
         "vol_ratio": 0.0464263
-      }
-    ],
-    "UB": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.121368,
-        "vol24h": 9793570.0,
-        "vol_ratio": 0.0322795
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.126953,
-        "vol24h": 11058100.0,
-        "vol_ratio": 0.034861
-      }
-    ],
-    "CARDS": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.360834,
-        "vol24h": 36170100.0,
-        "vol_ratio": 0.111378
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.340483,
-        "vol24h": 32092000.0,
-        "vol_ratio": 0.104381
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.016538,
+        "vol24h": 14831200.0,
+        "vol_ratio": 0.0466483
       }
     ],
     "APXUSD": [
@@ -2268,6 +3253,12 @@
         "price": 0.988791,
         "vol24h": 1346390.0,
         "vol_ratio": 0.00439807
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.989621,
+        "vol24h": 1325680.0,
+        "vol_ratio": 0.00432679
       }
     ],
     "FDUSD": [
@@ -2282,6 +3273,12 @@
         "price": 0.998021,
         "vol24h": 108834000.0,
         "vol_ratio": 0.357946
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998029,
+        "vol24h": 102513000.0,
+        "vol_ratio": 0.337178
       }
     ],
     "GNO": [
@@ -2296,6 +3293,12 @@
         "price": 114.23,
         "vol24h": 827982.0,
         "vol_ratio": 0.00274723
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 114.34,
+        "vol24h": 674702.0,
+        "vol_ratio": 0.00223563
       }
     ],
     "OP": [
@@ -2310,6 +3313,12 @@
         "price": 0.129455,
         "vol24h": 105706000.0,
         "vol_ratio": 0.355077
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.130173,
+        "vol24h": 101549000.0,
+        "vol_ratio": 0.338786
       }
     ],
     "OHM": [
@@ -2324,20 +3333,12 @@
         "price": 19.74,
         "vol24h": 111377.0,
         "vol_ratio": 0.000377713
-      }
-    ],
-    "BAT": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.199477,
-        "vol24h": 61736700.0,
-        "vol_ratio": 0.20695
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.194625,
-        "vol24h": 53497700.0,
-        "vol_ratio": 0.183674
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 19.79,
+        "vol24h": 90267.0,
+        "vol_ratio": 0.000305415
       }
     ],
     "KITE": [
@@ -2352,6 +3353,12 @@
         "price": 0.121357,
         "vol24h": 7801930.0,
         "vol_ratio": 0.0268854
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.122235,
+        "vol24h": 7383340.0,
+        "vol_ratio": 0.0252457
       }
     ],
     "PIEVERSE": [
@@ -2366,6 +3373,12 @@
         "price": 1.054,
         "vol24h": 2890080.0,
         "vol_ratio": 0.00998464
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.056,
+        "vol24h": 2870470.0,
+        "vol_ratio": 0.00988889
       }
     ],
     "CFX": [
@@ -2380,6 +3393,32 @@
         "price": 0.0549,
         "vol24h": 5735160.0,
         "vol_ratio": 0.0199016
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.054874,
+        "vol24h": 6316500.0,
+        "vol_ratio": 0.0219249
+      }
+    ],
+    "BAT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.199477,
+        "vol24h": 61736700.0,
+        "vol_ratio": 0.20695
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.194625,
+        "vol24h": 53497700.0,
+        "vol_ratio": 0.183674
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.184809,
+        "vol24h": 52984500.0,
+        "vol_ratio": 0.191668
       }
     ],
     "BP": [
@@ -2394,6 +3433,12 @@
         "price": 1.099,
         "vol24h": 3761650.0,
         "vol_ratio": 0.0137069
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.096,
+        "vol24h": 3487960.0,
+        "vol_ratio": 0.0127293
       }
     ],
     "BONK": [
@@ -2408,6 +3453,12 @@
         "price": 3.07e-06,
         "vol24h": 36647100.0,
         "vol_ratio": 0.135549
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 3.06e-06,
+        "vol24h": 34705600.0,
+        "vol_ratio": 0.129036
       }
     ],
     "GRT": [
@@ -2422,6 +3473,12 @@
         "price": 0.0246689,
         "vol24h": 13785100.0,
         "vol_ratio": 0.0510746
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0244137,
+        "vol24h": 13579900.0,
+        "vol_ratio": 0.0508187
       }
     ],
     "KAIA": [
@@ -2436,6 +3493,12 @@
         "price": 0.041689,
         "vol24h": 10743500.0,
         "vol_ratio": 0.039962
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0414069,
+        "vol24h": 10889400.0,
+        "vol_ratio": 0.0407906
       }
     ],
     "USDAI": [
@@ -2450,6 +3513,12 @@
         "price": 0.999421,
         "vol24h": 3921390.0,
         "vol_ratio": 0.014969
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999273,
+        "vol24h": 3891260.0,
+        "vol_ratio": 0.0148561
       }
     ],
     "MON": [
@@ -2464,6 +3533,12 @@
         "price": 0.0221228,
         "vol24h": 18542700.0,
         "vol_ratio": 0.0708325
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0220659,
+        "vol24h": 20543600.0,
+        "vol_ratio": 0.0787348
       }
     ],
     "DCR": [
@@ -2478,20 +3553,12 @@
         "price": 14.75,
         "vol24h": 709443.0,
         "vol_ratio": 0.00272396
-      }
-    ],
-    "LUNC": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 4.678e-05,
-        "vol24h": 6686840.0,
-        "vol_ratio": 0.0259016
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 4.69e-05,
-        "vol24h": 5569560.0,
-        "vol_ratio": 0.0215377
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 14.75,
+        "vol24h": 314431.0,
+        "vol_ratio": 0.00120765
       }
     ],
     "COMP": [
@@ -2506,6 +3573,32 @@
         "price": 25.75,
         "vol24h": 123450000.0,
         "vol_ratio": 0.47935
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 25.74,
+        "vol24h": 131757000.0,
+        "vol_ratio": 0.511778
+      }
+    ],
+    "LUNC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 4.678e-05,
+        "vol24h": 6686840.0,
+        "vol_ratio": 0.0259016
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 4.69e-05,
+        "vol24h": 5569560.0,
+        "vol_ratio": 0.0215377
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 4.647e-05,
+        "vol24h": 6182520.0,
+        "vol_ratio": 0.0240964
       }
     ],
     "JTO": [
@@ -2520,6 +3613,12 @@
         "price": 0.481521,
         "vol24h": 28059600.0,
         "vol_ratio": 0.109047
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.479655,
+        "vol24h": 21177300.0,
+        "vol_ratio": 0.0825631
       }
     ],
     "AR": [
@@ -2534,6 +3633,12 @@
         "price": 3.85,
         "vol24h": 10680500.0,
         "vol_ratio": 0.0422399
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 3.83,
+        "vol24h": 10707500.0,
+        "vol_ratio": 0.0425644
       }
     ],
     "APEPE": [
@@ -2548,6 +3653,12 @@
         "price": 1.17e-06,
         "vol24h": 5911670.0,
         "vol_ratio": 0.023962
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.18e-06,
+        "vol24h": 6543950.0,
+        "vol_ratio": 0.0264926
       }
     ],
     "SHFL": [
@@ -2562,146 +3673,12 @@
         "price": 0.497481,
         "vol24h": 604323.0,
         "vol_ratio": 0.00245301
-      }
-    ],
-    "JASMY": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0049464,
-        "vol24h": 12557600.0,
-        "vol_ratio": 0.0513538
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.00487177,
-        "vol24h": 11614100.0,
-        "vol_ratio": 0.048219
-      }
-    ],
-    "FLOKI": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.455e-05,
-        "vol24h": 17014200.0,
-        "vol_ratio": 0.0718883
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.463e-05,
-        "vol24h": 16901700.0,
-        "vol_ratio": 0.0711587
-      }
-    ],
-    "NFT": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.37685e-07,
-        "vol24h": 4778330.0,
-        "vol_ratio": 0.0203044
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.38991e-07,
-        "vol24h": 4888360.0,
-        "vol_ratio": 0.0206618
-      }
-    ],
-    "SAFO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.025,
-        "vol24h": 0,
-        "vol_ratio": 0
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.025,
-        "vol24h": 0,
-        "vol_ratio": 0
-      }
-    ],
-    "ENS": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 5.56,
-        "vol24h": 11299400.0,
-        "vol_ratio": 0.0480814
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 5.59,
-        "vol24h": 10637000.0,
-        "vol_ratio": 0.0449841
-      }
-    ],
-    "SYRUP": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.197838,
-        "vol24h": 8481280.0,
-        "vol_ratio": 0.0367341
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.201872,
-        "vol24h": 9147640.0,
-        "vol_ratio": 0.0388212
-      }
-    ],
-    "EIGEN": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.240044,
-        "vol24h": 23251800.0,
-        "vol_ratio": 0.0995172
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.235916,
-        "vol24h": 21788100.0,
-        "vol_ratio": 0.0948715
-      }
-    ],
-    "KMNO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0392153,
-        "vol24h": 8712470.0,
-        "vol_ratio": 0.0383021
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0393894,
-        "vol24h": 8790620.0,
-        "vol_ratio": 0.0384539
-      }
-    ],
-    "PC0000031": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.0,
-        "vol24h": 0,
-        "vol_ratio": 0
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.0,
-        "vol24h": 0,
-        "vol_ratio": 0
-      }
-    ],
-    "S": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.056718,
-        "vol24h": 52868300.0,
-        "vol_ratio": 0.239901
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.057402,
-        "vol24h": 49700400.0,
-        "vol_ratio": 0.222838
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.496198,
+        "vol24h": 627484.0,
+        "vol_ratio": 0.00255561
       }
     ],
     "CVX": [
@@ -2716,76 +3693,12 @@
         "price": 2.39,
         "vol24h": 16728300.0,
         "vol_ratio": 0.0752137
-      }
-    ],
-    "RUNE": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.666329,
-        "vol24h": 50595200.0,
-        "vol_ratio": 0.231111
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.672566,
-        "vol24h": 57493100.0,
-        "vol_ratio": 0.260207
-      }
-    ],
-    "IOTA": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0467855,
-        "vol24h": 7153860.0,
-        "vol_ratio": 0.0325376
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0466299,
-        "vol24h": 6571640.0,
-        "vol_ratio": 0.029981
-      }
-    ],
-    "AKT": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.732615,
-        "vol24h": 6572950.0,
-        "vol_ratio": 0.0300078
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.732281,
-        "vol24h": 6895940.0,
-        "vol_ratio": 0.0315031
-      }
-    ],
-    "FRAX": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.991436,
-        "vol24h": 159225.0,
-        "vol_ratio": 0.000732293
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.991419,
-        "vol24h": 159951.0,
-        "vol_ratio": 0.000735649
-      }
-    ],
-    "KOGE": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 63.39,
-        "vol24h": 8092.87,
-        "vol_ratio": 3.77705e-05
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 63.39,
-        "vol24h": 15461.2,
-        "vol_ratio": 7.2163e-05
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.56,
+        "vol24h": 26263200.0,
+        "vol_ratio": 0.11004
       }
     ],
     "ZBCN": [
@@ -2800,6 +3713,312 @@
         "price": 0.00213716,
         "vol24h": 7843120.0,
         "vol_ratio": 0.0367053
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00237717,
+        "vol24h": 9381270.0,
+        "vol_ratio": 0.0394553
+      }
+    ],
+    "FLOKI": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.455e-05,
+        "vol24h": 17014200.0,
+        "vol_ratio": 0.0718883
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 2.463e-05,
+        "vol24h": 16901700.0,
+        "vol_ratio": 0.0711587
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.464e-05,
+        "vol24h": 15744500.0,
+        "vol_ratio": 0.0662603
+      }
+    ],
+    "ENS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.56,
+        "vol24h": 11299400.0,
+        "vol_ratio": 0.0480814
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 5.59,
+        "vol24h": 10637000.0,
+        "vol_ratio": 0.0449841
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 5.61,
+        "vol24h": 9834310.0,
+        "vol_ratio": 0.0414543
+      }
+    ],
+    "SAFO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.025,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.025,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.025,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "NFT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 2.37685e-07,
+        "vol24h": 4778330.0,
+        "vol_ratio": 0.0203044
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 2.38991e-07,
+        "vol24h": 4888360.0,
+        "vol_ratio": 0.0206618
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.38179e-07,
+        "vol24h": 5331410.0,
+        "vol_ratio": 0.0225826
+      }
+    ],
+    "SYRUP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.197838,
+        "vol24h": 8481280.0,
+        "vol_ratio": 0.0367341
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.201872,
+        "vol24h": 9147640.0,
+        "vol_ratio": 0.0388212
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.20119,
+        "vol24h": 8601290.0,
+        "vol_ratio": 0.0366234
+      }
+    ],
+    "JASMY": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0049464,
+        "vol24h": 12557600.0,
+        "vol_ratio": 0.0513538
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.00487177,
+        "vol24h": 11614100.0,
+        "vol_ratio": 0.048219
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.004724,
+        "vol24h": 11683800.0,
+        "vol_ratio": 0.0500397
+      }
+    ],
+    "KMNO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0392153,
+        "vol24h": 8712470.0,
+        "vol_ratio": 0.0383021
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0393894,
+        "vol24h": 8790620.0,
+        "vol_ratio": 0.0384539
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0398646,
+        "vol24h": 8521610.0,
+        "vol_ratio": 0.0368338
+      }
+    ],
+    "EIGEN": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.240044,
+        "vol24h": 23251800.0,
+        "vol_ratio": 0.0995172
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.235916,
+        "vol24h": 21788100.0,
+        "vol_ratio": 0.0948715
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.235164,
+        "vol24h": 22561200.0,
+        "vol_ratio": 0.098468
+      }
+    ],
+    "PC0000031": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "AKT": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.732615,
+        "vol24h": 6572950.0,
+        "vol_ratio": 0.0300078
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.732281,
+        "vol24h": 6895940.0,
+        "vol_ratio": 0.0315031
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.742099,
+        "vol24h": 6621900.0,
+        "vol_ratio": 0.0298387
+      }
+    ],
+    "RUNE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.666329,
+        "vol24h": 50595200.0,
+        "vol_ratio": 0.231111
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.672566,
+        "vol24h": 57493100.0,
+        "vol_ratio": 0.260207
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.671382,
+        "vol24h": 59754900.0,
+        "vol_ratio": 0.270889
+      }
+    ],
+    "S": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.056718,
+        "vol24h": 52868300.0,
+        "vol_ratio": 0.239901
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.057402,
+        "vol24h": 49700400.0,
+        "vol_ratio": 0.222838
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.056477,
+        "vol24h": 45958100.0,
+        "vol_ratio": 0.209408
+      }
+    ],
+    "FRAX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.991436,
+        "vol24h": 159225.0,
+        "vol_ratio": 0.000732293
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.991419,
+        "vol24h": 159951.0,
+        "vol_ratio": 0.000735649
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.991436,
+        "vol24h": 168242.0,
+        "vol_ratio": 0.000773631
+      }
+    ],
+    "IOTA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0467855,
+        "vol24h": 7153860.0,
+        "vol_ratio": 0.0325376
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0466299,
+        "vol24h": 6571640.0,
+        "vol_ratio": 0.029981
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0461047,
+        "vol24h": 6552680.0,
+        "vol_ratio": 0.030231
+      }
+    ],
+    "KOGE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 63.39,
+        "vol24h": 8092.87,
+        "vol_ratio": 3.77705e-05
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 63.39,
+        "vol24h": 15461.2,
+        "vol_ratio": 7.2163e-05
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 63.37,
+        "vol24h": 18097.9,
+        "vol_ratio": 8.45003e-05
       }
     ],
     "CRVUSD": [
@@ -2814,6 +4033,12 @@
         "price": 0.999115,
         "vol24h": 16707900.0,
         "vol_ratio": 0.0782429
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999116,
+        "vol24h": 14855800.0,
+        "vol_ratio": 0.069541
       }
     ],
     "KAG": [
@@ -2828,6 +4053,12 @@
         "price": 57.94,
         "vol24h": 308099.0,
         "vol_ratio": 0.00145015
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 57.54,
+        "vol24h": 353516.0,
+        "vol_ratio": 0.00167555
       }
     ],
     "USX": [
@@ -2842,20 +4073,12 @@
         "price": 0.999456,
         "vol24h": 270689.0,
         "vol_ratio": 0.00129316
-      }
-    ],
-    "THETA": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.207199,
-        "vol24h": 17006000.0,
-        "vol_ratio": 0.0820754
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.206795,
-        "vol24h": 16539900.0,
-        "vol_ratio": 0.0799828
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999397,
+        "vol24h": 277271.0,
+        "vol_ratio": 0.00132469
       }
     ],
     "WIF": [
@@ -2870,6 +4093,32 @@
         "price": 0.205793,
         "vol24h": 41003500.0,
         "vol_ratio": 0.199586
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.205396,
+        "vol24h": 39835500.0,
+        "vol_ratio": 0.194149
+      }
+    ],
+    "THETA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.207199,
+        "vol24h": 17006000.0,
+        "vol_ratio": 0.0820754
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.206795,
+        "vol24h": 16539900.0,
+        "vol_ratio": 0.0799828
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.203841,
+        "vol24h": 17249700.0,
+        "vol_ratio": 0.0846261
       }
     ],
     "FLUID": [
@@ -2884,6 +4133,12 @@
         "price": 2.41,
         "vol24h": 3754730.0,
         "vol_ratio": 0.0185835
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.4,
+        "vol24h": 3464950.0,
+        "vol_ratio": 0.0172845
       }
     ],
     "TWT": [
@@ -2898,34 +4153,12 @@
         "price": 0.465695,
         "vol24h": 5814240.0,
         "vol_ratio": 0.02997
-      }
-    ],
-    "ZAMA": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.074384,
-        "vol24h": 10591300.0,
-        "vol_ratio": 0.0558367
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.075197,
-        "vol24h": 9450290.0,
-        "vol_ratio": 0.0492607
-      }
-    ],
-    "BR": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.680018,
-        "vol24h": 44824000.0,
-        "vol_ratio": 0.221888
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.643091,
-        "vol24h": 18013200.0,
-        "vol_ratio": 0.0944485
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.464224,
+        "vol24h": 5262300.0,
+        "vol_ratio": 0.0272064
       }
     ],
     "EURCV": [
@@ -2940,20 +4173,32 @@
         "price": 1.12,
         "vol24h": 24716400.0,
         "vol_ratio": 0.130188
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.12,
+        "vol24h": 22469300.0,
+        "vol_ratio": 0.118395
       }
     ],
-    "MET": [
+    "ZAMA": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.342932,
-        "vol24h": 9568990.0,
-        "vol_ratio": 0.0499352
+        "price": 0.074384,
+        "vol24h": 10591300.0,
+        "vol_ratio": 0.0558367
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.338542,
-        "vol24h": 9394000.0,
-        "vol_ratio": 0.0496525
+        "price": 0.075197,
+        "vol24h": 9450290.0,
+        "vol_ratio": 0.0492607
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.074042,
+        "vol24h": 8744080.0,
+        "vol_ratio": 0.0463092
       }
     ],
     "PONS": [
@@ -2968,6 +4213,32 @@
         "price": 0.277754,
         "vol24h": 24370800.0,
         "vol_ratio": 0.130363
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.280073,
+        "vol24h": 24408300.0,
+        "vol_ratio": 0.129456
+      }
+    ],
+    "MET": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.342932,
+        "vol24h": 9568990.0,
+        "vol_ratio": 0.0499352
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.338542,
+        "vol24h": 9394000.0,
+        "vol_ratio": 0.0496525
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.336847,
+        "vol24h": 9182560.0,
+        "vol_ratio": 0.048771
       }
     ],
     "AXS": [
@@ -2982,6 +4253,12 @@
         "price": 1.044,
         "vol24h": 33594200.0,
         "vol_ratio": 0.183184
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.047,
+        "vol24h": 31817900.0,
+        "vol_ratio": 0.173087
       }
     ],
     "USAT": [
@@ -2996,6 +4273,12 @@
         "price": 0.998864,
         "vol24h": 1354370.0,
         "vol_ratio": 0.00739649
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998643,
+        "vol24h": 159791.0,
+        "vol_ratio": 0.000872887
       }
     ],
     "AUSD": [
@@ -3010,6 +4293,12 @@
         "price": 0.999316,
         "vol24h": 5735150.0,
         "vol_ratio": 0.0318613
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999029,
+        "vol24h": 5745620.0,
+        "vol_ratio": 0.0318985
       }
     ],
     "TRAC": [
@@ -3024,20 +4313,12 @@
         "price": 0.3955,
         "vol24h": 2979780.0,
         "vol_ratio": 0.0168443
-      }
-    ],
-    "ANVL": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.00197558,
-        "vol24h": 106732.0,
-        "vol_ratio": 0.000613369
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.00197918,
-        "vol24h": 104786.0,
-        "vol_ratio": 0.0006011
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.39242,
+        "vol24h": 2698480.0,
+        "vol_ratio": 0.0153736
       }
     ],
     "MANA": [
@@ -3052,20 +4333,52 @@
         "price": 0.088303,
         "vol24h": 10703400.0,
         "vol_ratio": 0.061898
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.088727,
+        "vol24h": 12277800.0,
+        "vol_ratio": 0.0706408
       }
     ],
-    "SAND": [
+    "BR": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.058398,
-        "vol24h": 48445200.0,
-        "vol_ratio": 0.282366
+        "price": 0.680018,
+        "vol24h": 44824000.0,
+        "vol_ratio": 0.221888
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.058534,
-        "vol24h": 58173600.0,
-        "vol_ratio": 0.338338
+        "price": 0.643091,
+        "vol24h": 18013200.0,
+        "vol_ratio": 0.0944485
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.581663,
+        "vol24h": 30734700.0,
+        "vol_ratio": 0.177112
+      }
+    ],
+    "ANVL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.00197558,
+        "vol24h": 106732.0,
+        "vol_ratio": 0.000613369
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.00197918,
+        "vol24h": 104786.0,
+        "vol_ratio": 0.0006011
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0019573,
+        "vol24h": 100978.0,
+        "vol_ratio": 0.000585728
       }
     ],
     "BTSE": [
@@ -3080,6 +4393,52 @@
         "price": 1.052,
         "vol24h": 330648.0,
         "vol_ratio": 0.00193942
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.06,
+        "vol24h": 319540.0,
+        "vol_ratio": 0.00185849
+      }
+    ],
+    "SAND": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.058398,
+        "vol24h": 48445200.0,
+        "vol_ratio": 0.282366
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.058534,
+        "vol24h": 58173600.0,
+        "vol_ratio": 0.338338
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.057567,
+        "vol24h": 53800100.0,
+        "vol_ratio": 0.318133
+      }
+    ],
+    "ZK": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0149781,
+        "vol24h": 14744000.0,
+        "vol_ratio": 0.0893233
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0147893,
+        "vol24h": 13161300.0,
+        "vol_ratio": 0.0807569
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.015153,
+        "vol24h": 15135900.0,
+        "vol_ratio": 0.0906317
       }
     ],
     "USTBL": [
@@ -3091,6 +4450,12 @@
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.099,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
         "price": 1.099,
         "vol24h": 0,
         "vol_ratio": 0
@@ -3108,34 +4473,20 @@
         "price": 0.00319635,
         "vol24h": 19664900.0,
         "vol_ratio": 0.119945
-      }
-    ],
-    "A": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.097243,
-        "vol24h": 24066500.0,
-        "vol_ratio": 0.147774
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.097629,
-        "vol24h": 19356800.0,
-        "vol_ratio": 0.118369
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0031719,
+        "vol24h": 14922700.0,
+        "vol_ratio": 0.0917092
       }
     ],
-    "ZK": [
+    "PC0000033": [
       {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0149781,
-        "vol24h": 14744000.0,
-        "vol_ratio": 0.0893233
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0147893,
-        "vol24h": 13161300.0,
-        "vol_ratio": 0.0807569
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "XCN": [
@@ -3150,48 +4501,12 @@
         "price": 0.00409486,
         "vol24h": 2667340.0,
         "vol_ratio": 0.0164535
-      }
-    ],
-    "CRCLB": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 86.09,
-        "vol24h": 31219900.0,
-        "vol_ratio": 0.193966
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 86.03,
-        "vol24h": 31089700.0,
-        "vol_ratio": 0.193192
-      }
-    ],
-    "BORG": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.163022,
-        "vol24h": 149607.0,
-        "vol_ratio": 0.000940703
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.163732,
-        "vol24h": 151469.0,
-        "vol_ratio": 0.000942681
-      }
-    ],
-    "NEO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 2.25,
-        "vol24h": 2892420.0,
-        "vol_ratio": 0.0182048
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 2.28,
-        "vol24h": 2745760.0,
-        "vol_ratio": 0.0171022
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00406384,
+        "vol24h": 2682220.0,
+        "vol_ratio": 0.0166733
       }
     ],
     "STRCX": [
@@ -3206,48 +4521,52 @@
         "price": 108.45,
         "vol24h": 350291.0,
         "vol_ratio": 0.00218323
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 108.51,
+        "vol24h": 342960.0,
+        "vol_ratio": 0.00213614
       }
     ],
-    "MX": [
+    "BORG": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.67,
-        "vol24h": 7942360.0,
-        "vol_ratio": 0.0516806
+        "price": 0.163022,
+        "vol24h": 149607.0,
+        "vol_ratio": 0.000940703
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.74,
-        "vol24h": 7158630.0,
-        "vol_ratio": 0.0448261
+        "price": 0.163732,
+        "vol24h": 151469.0,
+        "vol_ratio": 0.000942681
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.163415,
+        "vol24h": 143398.0,
+        "vol_ratio": 0.000894181
       }
     ],
-    "APYUSD": [
+    "NEO": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.4,
-        "vol24h": 905671.0,
-        "vol_ratio": 0.00575131
+        "price": 2.25,
+        "vol24h": 2892420.0,
+        "vol_ratio": 0.0182048
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.4,
-        "vol24h": 649966.0,
-        "vol_ratio": 0.0041281
-      }
-    ],
-    "USELESS": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.156106,
-        "vol24h": 14958800.0,
-        "vol_ratio": 0.0958407
+        "price": 2.28,
+        "vol24h": 2745760.0,
+        "vol_ratio": 0.0171022
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.157133,
-        "vol24h": 16106900.0,
-        "vol_ratio": 0.102507
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.27,
+        "vol24h": 2947060.0,
+        "vol_ratio": 0.018404
       }
     ],
     "SENT": [
@@ -3262,6 +4581,12 @@
         "price": 0.021643,
         "vol24h": 5962190.0,
         "vol_ratio": 0.0380532
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0220466,
+        "vol24h": 6321390.0,
+        "vol_ratio": 0.0396011
       }
     ],
     "2Z": [
@@ -3276,6 +4601,112 @@
         "price": 0.0300889,
         "vol24h": 3788340.0,
         "vol_ratio": 0.0242046
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0305937,
+        "vol24h": 4479000.0,
+        "vol_ratio": 0.0281215
+      }
+    ],
+    "USELESS": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.156106,
+        "vol24h": 14958800.0,
+        "vol_ratio": 0.0958407
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.157133,
+        "vol24h": 16106900.0,
+        "vol_ratio": 0.102507
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.158845,
+        "vol24h": 16860000.0,
+        "vol_ratio": 0.106097
+      }
+    ],
+    "A": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.097243,
+        "vol24h": 24066500.0,
+        "vol_ratio": 0.147774
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.097629,
+        "vol24h": 19356800.0,
+        "vol_ratio": 0.118369
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.094869,
+        "vol24h": 13746200.0,
+        "vol_ratio": 0.0865647
+      }
+    ],
+    "APYUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.4,
+        "vol24h": 905671.0,
+        "vol_ratio": 0.00575131
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.4,
+        "vol24h": 649966.0,
+        "vol_ratio": 0.0041281
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.4,
+        "vol24h": 645606.0,
+        "vol_ratio": 0.00409286
+      }
+    ],
+    "MX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.67,
+        "vol24h": 7942360.0,
+        "vol_ratio": 0.0516806
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.74,
+        "vol24h": 7158630.0,
+        "vol_ratio": 0.0448261
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.71,
+        "vol24h": 9230230.0,
+        "vol_ratio": 0.0586707
+      }
+    ],
+    "CRCLB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 86.09,
+        "vol24h": 31219900.0,
+        "vol_ratio": 0.193966
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 86.03,
+        "vol24h": 31089700.0,
+        "vol_ratio": 0.193192
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 85.67,
+        "vol24h": 29464100.0,
+        "vol_ratio": 0.189101
       }
     ],
     "COCO": [
@@ -3290,20 +4721,12 @@
         "price": 0.155576,
         "vol24h": 41498.0,
         "vol_ratio": 0.000266734
-      }
-    ],
-    "NPC": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.019101,
-        "vol24h": 3239360.0,
-        "vol_ratio": 0.0210658
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0190002,
-        "vol24h": 3224050.0,
-        "vol_ratio": 0.0210783
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.155669,
+        "vol24h": 41178.0,
+        "vol_ratio": 0.000264524
       }
     ],
     "VSN": [
@@ -3318,6 +4741,32 @@
         "price": 0.0399819,
         "vol24h": 3977070.0,
         "vol_ratio": 0.026209
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.040205,
+        "vol24h": 3437650.0,
+        "vol_ratio": 0.0225291
+      }
+    ],
+    "NPC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.019101,
+        "vol24h": 3239360.0,
+        "vol_ratio": 0.0210658
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0190002,
+        "vol24h": 3224050.0,
+        "vol_ratio": 0.0210783
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0189341,
+        "vol24h": 3320650.0,
+        "vol_ratio": 0.0217854
       }
     ],
     "GRX": [
@@ -3332,34 +4781,12 @@
         "price": 15.94,
         "vol24h": 2668520.0,
         "vol_ratio": 0.0175943
-      }
-    ],
-    "SPCXB": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 151.16,
-        "vol24h": 62000400.0,
-        "vol_ratio": 0.43342
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 159.13,
-        "vol24h": 82121200.0,
-        "vol_ratio": 0.544818
-      }
-    ],
-    "GUSD": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.997581,
-        "vol24h": 187582.0,
-        "vol_ratio": 0.00125533
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.997739,
-        "vol24h": 192829.0,
-        "vol_ratio": 0.00129025
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 15.94,
+        "vol24h": 2668040.0,
+        "vol_ratio": 0.0175943
       }
     ],
     "GOMINING": [
@@ -3374,6 +4801,52 @@
         "price": 0.368908,
         "vol24h": 15974400.0,
         "vol_ratio": 0.107531
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.373674,
+        "vol24h": 18140200.0,
+        "vol_ratio": 0.120533
+      }
+    ],
+    "GUSD": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.997581,
+        "vol24h": 187582.0,
+        "vol_ratio": 0.00125533
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.997739,
+        "vol24h": 192829.0,
+        "vol_ratio": 0.00129025
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.99748,
+        "vol24h": 200798.0,
+        "vol_ratio": 0.00134391
+      }
+    ],
+    "SPCXB": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 151.16,
+        "vol24h": 62000400.0,
+        "vol_ratio": 0.43342
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 159.13,
+        "vol24h": 82121200.0,
+        "vol_ratio": 0.544818
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 161.35,
+        "vol24h": 98789300.0,
+        "vol_ratio": 0.666614
       }
     ],
     "SN51": [
@@ -3388,6 +4861,12 @@
         "price": 29.97,
         "vol24h": 1818390.0,
         "vol_ratio": 0.0122716
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 29.82,
+        "vol24h": 1685920.0,
+        "vol_ratio": 0.0114166
       }
     ],
     "FARTCOIN": [
@@ -3402,6 +4881,12 @@
         "price": 0.147086,
         "vol24h": 26059400.0,
         "vol_ratio": 0.177182
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.147458,
+        "vol24h": 26411000.0,
+        "vol_ratio": 0.179191
       }
     ],
     "CHZ": [
@@ -3416,6 +4901,12 @@
         "price": 0.0138719,
         "vol24h": 11373400.0,
         "vol_ratio": 0.077641
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0138446,
+        "vol24h": 12888000.0,
+        "vol_ratio": 0.0881626
       }
     ],
     "APE": [
@@ -3430,6 +4921,12 @@
         "price": 0.146201,
         "vol24h": 12297000.0,
         "vol_ratio": 0.0841115
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.146026,
+        "vol24h": 10718900.0,
+        "vol_ratio": 0.0734019
       }
     ],
     "RAIL": [
@@ -3444,6 +4941,12 @@
         "price": 2.4,
         "vol24h": 365918.0,
         "vol_ratio": 0.00253853
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 2.37,
+        "vol24h": 352973.0,
+        "vol_ratio": 0.00247861
       }
     ],
     "0G": [
@@ -3458,6 +4961,12 @@
         "price": 0.235618,
         "vol24h": 4672090.0,
         "vol_ratio": 0.0328638
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.235191,
+        "vol24h": 4632190.0,
+        "vol_ratio": 0.0326254
       }
     ],
     "IMX": [
@@ -3472,20 +4981,12 @@
         "price": 0.153422,
         "vol24h": 5171430.0,
         "vol_ratio": 0.0372655
-      }
-    ],
-    "AIOZ": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.105447,
-        "vol24h": 5991310.0,
-        "vol_ratio": 0.0441734
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.107905,
-        "vol24h": 4437160.0,
-        "vol_ratio": 0.0319884
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.153381,
+        "vol24h": 4738230.0,
+        "vol_ratio": 0.034173
       }
     ],
     "DGAI": [
@@ -3500,20 +5001,40 @@
         "price": 0.919365,
         "vol24h": 24184500.0,
         "vol_ratio": 0.17538
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.9119,
+        "vol24h": 22452700.0,
+        "vol_ratio": 0.164138
       }
     ],
-    "AWE": [
+    "AIOZ": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.06884,
-        "vol24h": 2466280.0,
-        "vol_ratio": 0.0184654
+        "price": 0.105447,
+        "vol24h": 5991310.0,
+        "vol_ratio": 0.0441734
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.068957,
-        "vol24h": 1683000.0,
-        "vol_ratio": 0.0125649
+        "price": 0.107905,
+        "vol24h": 4437160.0,
+        "vol_ratio": 0.0319884
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.106323,
+        "vol24h": 6392420.0,
+        "vol_ratio": 0.0467493
+      }
+    ],
+    "PC0000097": [
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "JPYC": [
@@ -3528,6 +5049,12 @@
         "price": 0.00628139,
         "vol24h": 758081.0,
         "vol_ratio": 0.00566696
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00628121,
+        "vol24h": 559011.0,
+        "vol_ratio": 0.00418112
       }
     ],
     "B": [
@@ -3542,6 +5069,12 @@
         "price": 0.132782,
         "vol24h": 3764560.0,
         "vol_ratio": 0.0283539
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.133363,
+        "vol24h": 3664080.0,
+        "vol_ratio": 0.0274727
       }
     ],
     "XEC": [
@@ -3556,6 +5089,12 @@
         "price": 6.59e-06,
         "vol24h": 3106980.0,
         "vol_ratio": 0.023466
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 6.58e-06,
+        "vol24h": 3062180.0,
+        "vol_ratio": 0.0231465
       }
     ],
     "1INCH": [
@@ -3570,6 +5109,52 @@
         "price": 0.093767,
         "vol24h": 21645000.0,
         "vol_ratio": 0.164231
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.093726,
+        "vol24h": 21215900.0,
+        "vol_ratio": 0.161044
+      }
+    ],
+    "AWE": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.06884,
+        "vol24h": 2466280.0,
+        "vol_ratio": 0.0184654
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.068957,
+        "vol24h": 1683000.0,
+        "vol_ratio": 0.0125649
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.067563,
+        "vol24h": 1532680.0,
+        "vol_ratio": 0.0116807
+      }
+    ],
+    "SUPER": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.190726,
+        "vol24h": 7012300.0,
+        "vol_ratio": 0.0562763
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.192552,
+        "vol24h": 7084000.0,
+        "vol_ratio": 0.0563265
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.199938,
+        "vol24h": 8784480.0,
+        "vol_ratio": 0.0672632
       }
     ],
     "SNX": [
@@ -3584,6 +5169,12 @@
         "price": 0.223586,
         "vol24h": 5246040.0,
         "vol_ratio": 0.0403861
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.223729,
+        "vol24h": 5119890.0,
+        "vol_ratio": 0.0393825
       }
     ],
     "GEOD": [
@@ -3598,6 +5189,12 @@
         "price": 0.280553,
         "vol24h": 1577580.0,
         "vol_ratio": 0.0121568
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.279328,
+        "vol24h": 2395760.0,
+        "vol_ratio": 0.018542
       }
     ],
     "JPYSC": [
@@ -3610,6 +5207,12 @@
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
         "price": 0.00631788,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0063243,
         "vol24h": 0,
         "vol_ratio": 0
       }
@@ -3626,6 +5229,12 @@
         "price": 1.16,
         "vol24h": 1787000.0,
         "vol_ratio": 0.0140417
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.16,
+        "vol24h": 1662300.0,
+        "vol_ratio": 0.0130496
       }
     ],
     "CASH": [
@@ -3640,6 +5249,12 @@
         "price": 0.999114,
         "vol24h": 3519230.0,
         "vol_ratio": 0.0277693
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998955,
+        "vol24h": 3811500.0,
+        "vol_ratio": 0.0300813
       }
     ],
     "SFP": [
@@ -3654,6 +5269,12 @@
         "price": 0.252636,
         "vol24h": 787417.0,
         "vol_ratio": 0.00623363
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.252601,
+        "vol24h": 744038.0,
+        "vol_ratio": 0.00589123
       }
     ],
     "OZO": [
@@ -3668,48 +5289,12 @@
         "price": 0.130848,
         "vol24h": 220271.0,
         "vol_ratio": 0.00175096
-      }
-    ],
-    "SUPER": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.190726,
-        "vol24h": 7012300.0,
-        "vol_ratio": 0.0562763
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.192552,
-        "vol24h": 7084000.0,
-        "vol_ratio": 0.0563265
-      }
-    ],
-    "MSTRX": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 142.98,
-        "vol24h": 5018020.0,
-        "vol_ratio": 0.0409864
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 144.2,
-        "vol24h": 5129560.0,
-        "vol_ratio": 0.0415062
-      }
-    ],
-    "ULTIMA": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1419.77,
-        "vol24h": 4148330.0,
-        "vol_ratio": 0.0344932
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1428.56,
-        "vol24h": 3927220.0,
-        "vol_ratio": 0.0324538
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.130877,
+        "vol24h": 217816.0,
+        "vol_ratio": 0.00173287
       }
     ],
     "PLUME": [
@@ -3724,20 +5309,12 @@
         "price": 0.0183053,
         "vol24h": 14992100.0,
         "vol_ratio": 0.123972
-      }
-    ],
-    "AVUSD": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.998224,
-        "vol24h": 34.71,
-        "vol_ratio": 2.88806e-07
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.998392,
-        "vol24h": 35.57,
-        "vol_ratio": 2.95423e-07
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0182392,
+        "vol24h": 15393800.0,
+        "vol_ratio": 0.123763
       }
     ],
     "H": [
@@ -3752,6 +5329,52 @@
         "price": 0.056777,
         "vol24h": 1152460.0,
         "vol_ratio": 0.00957286
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.058616,
+        "vol24h": 1240100.0,
+        "vol_ratio": 0.00997677
+      }
+    ],
+    "MSTRX": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 142.98,
+        "vol24h": 5018020.0,
+        "vol_ratio": 0.0409864
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 144.2,
+        "vol24h": 5129560.0,
+        "vol_ratio": 0.0415062
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 143.48,
+        "vol24h": 5057200.0,
+        "vol_ratio": 0.0411416
+      }
+    ],
+    "ULTIMA": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1419.77,
+        "vol24h": 4148330.0,
+        "vol_ratio": 0.0344932
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1428.56,
+        "vol24h": 3927220.0,
+        "vol_ratio": 0.0324538
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1423.14,
+        "vol24h": 4373030.0,
+        "vol_ratio": 0.0362753
       }
     ],
     "RSR": [
@@ -3766,20 +5389,32 @@
         "price": 0.00190901,
         "vol24h": 13877900.0,
         "vol_ratio": 0.116237
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00192233,
+        "vol24h": 10739500.0,
+        "vol_ratio": 0.0893113
       }
     ],
-    "BC": [
+    "AVUSD": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0370203,
-        "vol24h": 116763.0,
-        "vol_ratio": 0.000982299
+        "price": 0.998224,
+        "vol24h": 34.71,
+        "vol_ratio": 2.88806e-07
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0371582,
-        "vol24h": 114990.0,
-        "vol_ratio": 0.000963794
+        "price": 0.998392,
+        "vol24h": 35.57,
+        "vol_ratio": 2.95423e-07
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.998254,
+        "vol24h": 28.77,
+        "vol_ratio": 2.39701e-07
       }
     ],
     "MGLO": [
@@ -3794,76 +5429,32 @@
         "price": 1.006,
         "vol24h": 0,
         "vol_ratio": 0
-      }
-    ],
-    "DBR": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0181844,
-        "vol24h": 2443080.0,
-        "vol_ratio": 0.0205669
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0181211,
-        "vol24h": 1115190.0,
-        "vol_ratio": 0.00942041
-      }
-    ],
-    "GLM": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.116254,
-        "vol24h": 2136590.0,
-        "vol_ratio": 0.0183786
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.118162,
-        "vol24h": 2200590.0,
-        "vol_ratio": 0.018624
-      }
-    ],
-    "THBILL": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.015,
-        "vol24h": 1247.45,
-        "vol_ratio": 1.06055e-05
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.015,
-        "vol24h": 1211.93,
-        "vol_ratio": 1.03023e-05
-      }
-    ],
-    "META": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 5.04,
-        "vol24h": 809649.0,
-        "vol_ratio": 0.00707707
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 5.18,
-        "vol24h": 983184.0,
-        "vol_ratio": 0.00835937
-      }
-    ],
-    "NOPAL": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.11,
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.006,
         "vol24h": 0,
         "vol_ratio": 0
+      }
+    ],
+    "BC": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0370203,
+        "vol24h": 116763.0,
+        "vol_ratio": 0.000982299
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.11,
-        "vol24h": 0,
-        "vol_ratio": 0
+        "price": 0.0371582,
+        "vol24h": 114990.0,
+        "vol_ratio": 0.000963794
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0370468,
+        "vol24h": 117830.0,
+        "vol_ratio": 0.000990647
       }
     ],
     "CASHCAT": [
@@ -3878,6 +5469,112 @@
         "price": 0.117615,
         "vol24h": 13144000.0,
         "vol_ratio": 0.113137
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.12017,
+        "vol24h": 13938200.0,
+        "vol_ratio": 0.117448
+      }
+    ],
+    "META": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 5.04,
+        "vol24h": 809649.0,
+        "vol_ratio": 0.00707707
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 5.18,
+        "vol24h": 983184.0,
+        "vol_ratio": 0.00835937
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 5.21,
+        "vol24h": 965136.0,
+        "vol_ratio": 0.00816278
+      }
+    ],
+    "DBR": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0181844,
+        "vol24h": 2443080.0,
+        "vol_ratio": 0.0205669
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0181211,
+        "vol24h": 1115190.0,
+        "vol_ratio": 0.00942041
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0180283,
+        "vol24h": 2693720.0,
+        "vol_ratio": 0.0228733
+      }
+    ],
+    "THBILL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.015,
+        "vol24h": 1247.45,
+        "vol_ratio": 1.06055e-05
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.015,
+        "vol24h": 1211.93,
+        "vol_ratio": 1.03023e-05
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.016,
+        "vol24h": 153.98,
+        "vol_ratio": 1.3087e-06
+      }
+    ],
+    "GLM": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.116254,
+        "vol24h": 2136590.0,
+        "vol_ratio": 0.0183786
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.118162,
+        "vol24h": 2200590.0,
+        "vol_ratio": 0.018624
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.117119,
+        "vol24h": 2171160.0,
+        "vol_ratio": 0.018536
+      }
+    ],
+    "NOPAL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.11,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.11,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.11,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "EGLD": [
@@ -3892,6 +5589,12 @@
         "price": 3.71,
         "vol24h": 2150130.0,
         "vol_ratio": 0.0186816
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 3.72,
+        "vol24h": 2376980.0,
+        "vol_ratio": 0.0206004
       }
     ],
     "PC0000023": [
@@ -3906,20 +5609,12 @@
         "price": 1.0,
         "vol24h": 0,
         "vol_ratio": 0
-      }
-    ],
-    "SN64": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 18.24,
-        "vol24h": 1083620.0,
-        "vol_ratio": 0.00957198
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 18.44,
-        "vol24h": 1561700.0,
-        "vol_ratio": 0.0136426
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "ALFW": [
@@ -3931,6 +5626,12 @@
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 3.2,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
         "price": 3.2,
         "vol24h": 0,
         "vol_ratio": 0
@@ -3948,6 +5649,12 @@
         "price": 0.00563983,
         "vol24h": 8142560.0,
         "vol_ratio": 0.0717288
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00564311,
+        "vol24h": 8330310.0,
+        "vol_ratio": 0.0733513
       }
     ],
     "RLB": [
@@ -3962,6 +5669,32 @@
         "price": 0.072944,
         "vol24h": 104507.0,
         "vol_ratio": 0.000923253
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.073188,
+        "vol24h": 105715.0,
+        "vol_ratio": 0.000930876
+      }
+    ],
+    "SN64": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 18.24,
+        "vol24h": 1083620.0,
+        "vol_ratio": 0.00957198
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 18.44,
+        "vol24h": 1561700.0,
+        "vol_ratio": 0.0136426
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 18.26,
+        "vol24h": 1628290.0,
+        "vol_ratio": 0.0143476
       }
     ],
     "ZEN": [
@@ -3976,48 +5709,12 @@
         "price": 6.12,
         "vol24h": 6183040.0,
         "vol_ratio": 0.0548516
-      }
-    ],
-    "SOSO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.315544,
-        "vol24h": 5120420.0,
-        "vol_ratio": 0.0474479
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.32821,
-        "vol24h": 5393190.0,
-        "vol_ratio": 0.0480501
-      }
-    ],
-    "PC0000085": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.0,
-        "vol24h": 0,
-        "vol_ratio": 0
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.0,
-        "vol24h": 0,
-        "vol_ratio": 0
-      }
-    ],
-    "CRCLX": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 86.14,
-        "vol24h": 13284800.0,
-        "vol_ratio": 0.119674
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 86.01,
-        "vol24h": 13332800.0,
-        "vol_ratio": 0.120058
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 6.15,
+        "vol24h": 7647000.0,
+        "vol_ratio": 0.0675513
       }
     ],
     "KNTQ": [
@@ -4032,6 +5729,52 @@
         "price": 0.350934,
         "vol24h": 5959710.0,
         "vol_ratio": 0.0539138
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.356723,
+        "vol24h": 4603980.0,
+        "vol_ratio": 0.0409745
+      }
+    ],
+    "PC0000085": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "SOSO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.315544,
+        "vol24h": 5120420.0,
+        "vol_ratio": 0.0474479
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.32821,
+        "vol24h": 5393190.0,
+        "vol_ratio": 0.0480501
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.326037,
+        "vol24h": 3917800.0,
+        "vol_ratio": 0.0351397
       }
     ],
     "SKR": [
@@ -4046,34 +5789,32 @@
         "price": 0.0150358,
         "vol24h": 2314090.0,
         "vol_ratio": 0.021462
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0152477,
+        "vol24h": 2383440.0,
+        "vol_ratio": 0.0215116
       }
     ],
-    "CAP": [
+    "CRCLX": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.067691,
-        "vol24h": 9459550.0,
-        "vol_ratio": 0.0895813
+        "price": 86.14,
+        "vol24h": 13284800.0,
+        "vol_ratio": 0.119674
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.068647,
-        "vol24h": 9518130.0,
-        "vol_ratio": 0.0889072
-      }
-    ],
-    "AUTO": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.027,
-        "vol24h": 99479.0,
-        "vol_ratio": 0.000929086
+        "price": 86.01,
+        "vol24h": 13332800.0,
+        "vol_ratio": 0.120058
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.027,
-        "vol24h": 82424.0,
-        "vol_ratio": 0.000769967
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 85.74,
+        "vol24h": 13144500.0,
+        "vol_ratio": 0.11878
       }
     ],
     "ORCA": [
@@ -4088,6 +5829,40 @@
         "price": 1.76,
         "vol24h": 9325460.0,
         "vol_ratio": 0.087123
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.81,
+        "vol24h": 11845700.0,
+        "vol_ratio": 0.107475
+      }
+    ],
+    "AUTO": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.027,
+        "vol24h": 99479.0,
+        "vol_ratio": 0.000929086
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.027,
+        "vol24h": 82424.0,
+        "vol_ratio": 0.000769967
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.027,
+        "vol24h": 36603.0,
+        "vol_ratio": 0.000341948
+      }
+    ],
+    "PC0000015": [
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 0,
+        "vol_ratio": 0
       }
     ],
     "USDAT": [
@@ -4102,6 +5877,12 @@
         "price": 0.999153,
         "vol24h": 351309.0,
         "vol_ratio": 0.00332022
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.999132,
+        "vol24h": 484398.0,
+        "vol_ratio": 0.00457814
       }
     ],
     "SHX": [
@@ -4116,34 +5897,12 @@
         "price": 0.00567916,
         "vol24h": 832209.0,
         "vol_ratio": 0.0078765
-      }
-    ],
-    "STAC": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1036.82,
-        "vol24h": 0,
-        "vol_ratio": 0
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1036.69,
-        "vol24h": 0,
-        "vol_ratio": 0
-      }
-    ],
-    "WAL": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.0408624,
-        "vol24h": 11731700.0,
-        "vol_ratio": 0.109695
-      },
-      {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.0398037,
-        "vol24h": 11506500.0,
-        "vol_ratio": 0.11044
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.00566148,
+        "vol24h": 769145.0,
+        "vol_ratio": 0.00730555
       }
     ],
     "EDGE": [
@@ -4158,20 +5917,72 @@
         "price": 0.297181,
         "vol24h": 1362740.0,
         "vol_ratio": 0.013101
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.299626,
+        "vol24h": 1340580.0,
+        "vol_ratio": 0.0127842
       }
     ],
-    "USD3": [
+    "STAC": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 1.2,
-        "vol24h": 272397.0,
-        "vol_ratio": 0.00266038
+        "price": 1036.82,
+        "vol24h": 0,
+        "vol_ratio": 0
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 1.2,
-        "vol24h": 312517.0,
-        "vol_ratio": 0.00304794
+        "price": 1036.69,
+        "vol24h": 0,
+        "vol_ratio": 0
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1036.69,
+        "vol24h": 0,
+        "vol_ratio": 0
+      }
+    ],
+    "CAP": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.067691,
+        "vol24h": 9459550.0,
+        "vol_ratio": 0.0895813
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.068647,
+        "vol24h": 9518130.0,
+        "vol_ratio": 0.0889072
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.066887,
+        "vol24h": 16370500.0,
+        "vol_ratio": 0.156878
+      }
+    ],
+    "WAL": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 0.0408624,
+        "vol24h": 11731700.0,
+        "vol_ratio": 0.109695
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 0.0398037,
+        "vol24h": 11506500.0,
+        "vol_ratio": 0.11044
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.0395628,
+        "vol24h": 11966500.0,
+        "vol_ratio": 0.115542
       }
     ],
     "GENIUS": [
@@ -4186,6 +5997,32 @@
         "price": 0.304957,
         "vol24h": 2187890.0,
         "vol_ratio": 0.0213866
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.306618,
+        "vol24h": 2213710.0,
+        "vol_ratio": 0.0215362
+      }
+    ],
+    "USD3": [
+      {
+        "t": "2026-10-20T20:34:17.909098+00:00",
+        "price": 1.2,
+        "vol24h": 272397.0,
+        "vol_ratio": 0.00266038
+      },
+      {
+        "t": "2026-10-20T23:51:24.354925+00:00",
+        "price": 1.2,
+        "vol24h": 312517.0,
+        "vol_ratio": 0.00304794
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.2,
+        "vol24h": 418322.0,
+        "vol_ratio": 0.00407848
       }
     ],
     "FRXUSD": [
@@ -4200,20 +6037,12 @@
         "price": 1.0,
         "vol24h": 3109910.0,
         "vol_ratio": 0.0303996
-      }
-    ],
-    "CRCLON": [
-      {
-        "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 86.14,
-        "vol24h": 1022820.0,
-        "vol_ratio": 0.0100562
       },
       {
-        "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 86.0,
-        "vol24h": 1003710.0,
-        "vol_ratio": 0.00988727
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 1.0,
+        "vol24h": 3528280.0,
+        "vol_ratio": 0.0344875
       }
     ],
     "SOON": [
@@ -4228,20 +6057,32 @@
         "price": 0.298589,
         "vol24h": 7057060.0,
         "vol_ratio": 0.0695921
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.298869,
+        "vol24h": 7538000.0,
+        "vol_ratio": 0.0741996
       }
     ],
-    "GALA": [
+    "CRCLON": [
       {
         "t": "2026-10-20T20:34:17.909098+00:00",
-        "price": 0.00198368,
-        "vol24h": 22811500.0,
-        "vol_ratio": 0.226562
+        "price": 86.14,
+        "vol24h": 1022820.0,
+        "vol_ratio": 0.0100562
       },
       {
         "t": "2026-10-20T23:51:24.354925+00:00",
-        "price": 0.00197802,
-        "vol24h": 22258100.0,
-        "vol_ratio": 0.221698
+        "price": 86.0,
+        "vol24h": 1003710.0,
+        "vol_ratio": 0.00988727
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 85.73,
+        "vol24h": 998041.0,
+        "vol_ratio": 0.00986138
       }
     ],
     "DYDX": [
@@ -4250,11 +6091,112 @@
         "price": 0.118272,
         "vol24h": 2095750.0,
         "vol_ratio": 0.0209437
+      },
+      {
+        "t": "2026-10-21T04:42:36.032739+00:00",
+        "price": 0.118707,
+        "vol24h": 2053400.0,
+        "vol_ratio": 0.0204461
       }
     ]
   },
   "proof": {
     "record": [
+      {
+        "id": "mover:ZBCN:1792557756",
+        "ts_open": "2026-10-21T04:42:36.036276+00:00",
+        "kind": "mover",
+        "asset": "ZBCN",
+        "name": "Zebec Network",
+        "direction": "LONG",
+        "entry": 0.00237717,
+        "take_profit": 0.0024103,
+        "stop_loss": 0.00235508,
+        "exit_by": "2026-10-21T07:42:36.036276+00:00",
+        "expected_return_pct": 1.39,
+        "max_loss_pct": 0.93,
+        "status": "open",
+        "result_pct": null,
+        "paper_pnl": null,
+        "ts_closed": null,
+        "last_price": 0.00237717
+      },
+      {
+        "id": "mover:AKE:1792557756",
+        "ts_open": "2026-10-21T04:42:36.036276+00:00",
+        "kind": "mover",
+        "asset": "AKE",
+        "name": "Akedo",
+        "direction": "LONG",
+        "entry": 0.0345,
+        "take_profit": 0.0355,
+        "stop_loss": 0.0339,
+        "exit_by": "2026-10-21T07:42:36.036276+00:00",
+        "expected_return_pct": 2.85,
+        "max_loss_pct": 1.9,
+        "status": "open",
+        "result_pct": null,
+        "paper_pnl": null,
+        "ts_closed": null,
+        "last_price": 0.0345
+      },
+      {
+        "id": "mover:BTW:1792557756",
+        "ts_open": "2026-10-21T04:42:36.036276+00:00",
+        "kind": "mover",
+        "asset": "BTW",
+        "name": "Bitway",
+        "direction": "LONG",
+        "entry": 2.09,
+        "take_profit": 2.2179,
+        "stop_loss": 2.0047,
+        "exit_by": "2026-10-21T07:42:36.036276+00:00",
+        "expected_return_pct": 6.12,
+        "max_loss_pct": 4.08,
+        "status": "open",
+        "result_pct": null,
+        "paper_pnl": null,
+        "ts_closed": null,
+        "last_price": 2.09
+      },
+      {
+        "id": "mover:CASHCAT:1792557756",
+        "ts_open": "2026-10-21T04:42:36.036276+00:00",
+        "kind": "mover",
+        "asset": "CASHCAT",
+        "name": "Cash Cat",
+        "direction": "LONG",
+        "entry": 0.1202,
+        "take_profit": 0.1225,
+        "stop_loss": 0.1186,
+        "exit_by": "2026-10-21T07:42:36.036276+00:00",
+        "expected_return_pct": 1.95,
+        "max_loss_pct": 1.3,
+        "status": "open",
+        "result_pct": null,
+        "paper_pnl": null,
+        "ts_closed": null,
+        "last_price": 0.1202
+      },
+      {
+        "id": "mover:PEARL:1792557756",
+        "ts_open": "2026-10-21T04:42:36.036276+00:00",
+        "kind": "mover",
+        "asset": "PEARL",
+        "name": "Pearl",
+        "direction": "LONG",
+        "entry": 2.18,
+        "take_profit": 2.2223,
+        "stop_loss": 2.1518,
+        "exit_by": "2026-10-21T07:42:36.036276+00:00",
+        "expected_return_pct": 1.94,
+        "max_loss_pct": 1.3,
+        "status": "open",
+        "result_pct": null,
+        "paper_pnl": null,
+        "ts_closed": null,
+        "last_price": 2.18
+      },
       {
         "id": "mover:COMP:1792540284",
         "ts_open": "2026-10-20T23:51:24.356026+00:00",
@@ -4272,7 +6214,9 @@
         "result_pct": null,
         "paper_pnl": null,
         "ts_closed": null,
-        "last_price": 25.75
+        "last_price": 25.74,
+        "obs_hi": 25.74,
+        "obs_lo": 25.74
       },
       {
         "id": "mover:HASH:1792540284",
@@ -4291,7 +6235,9 @@
         "result_pct": null,
         "paper_pnl": null,
         "ts_closed": null,
-        "last_price": 0.00748606
+        "last_price": 0.00748854,
+        "obs_hi": 0.00748854,
+        "obs_lo": 0.00748854
       },
       {
         "id": "mover:SOSO:1792540284",
@@ -4306,11 +6252,13 @@
         "exit_by": "2026-10-21T02:51:24.356026+00:00",
         "expected_return_pct": 0.88,
         "max_loss_pct": 0.59,
-        "status": "open",
-        "result_pct": null,
-        "paper_pnl": null,
-        "ts_closed": null,
-        "last_price": 0.3282
+        "status": "lost",
+        "result_pct": -0.59,
+        "paper_pnl": -5.9,
+        "ts_closed": "2026-10-21T04:42:36.036276+00:00",
+        "last_price": 0.326037,
+        "obs_hi": 0.326037,
+        "obs_lo": 0.326037
       },
       {
         "id": "mover:CVX:1792540284",
@@ -4325,11 +6273,13 @@
         "exit_by": "2026-10-21T02:51:24.356026+00:00",
         "expected_return_pct": 1.96,
         "max_loss_pct": 1.31,
-        "status": "open",
-        "result_pct": null,
-        "paper_pnl": null,
-        "ts_closed": null,
-        "last_price": 2.39
+        "status": "won",
+        "result_pct": 1.96,
+        "paper_pnl": 19.6,
+        "ts_closed": "2026-10-21T04:42:36.036276+00:00",
+        "last_price": 2.56,
+        "obs_hi": 2.56,
+        "obs_lo": 2.56
       },
       {
         "id": "mover:AERO:1792540284",
@@ -4344,11 +6294,13 @@
         "exit_by": "2026-10-21T02:51:24.356026+00:00",
         "expected_return_pct": 1.41,
         "max_loss_pct": 0.94,
-        "status": "open",
-        "result_pct": null,
-        "paper_pnl": null,
-        "ts_closed": null,
-        "last_price": 0.8832
+        "status": "lost",
+        "result_pct": -0.94,
+        "paper_pnl": -9.4,
+        "ts_closed": "2026-10-21T04:42:36.036276+00:00",
+        "last_price": 0.858573,
+        "obs_hi": 0.858573,
+        "obs_lo": 0.858573
       },
       {
         "id": "mover:WLD:1792540284",
@@ -4367,7 +6319,9 @@
         "result_pct": null,
         "paper_pnl": null,
         "ts_closed": null,
-        "last_price": 0.5889
+        "last_price": 0.592316,
+        "obs_hi": 0.592316,
+        "obs_lo": 0.592316
       },
       {
         "id": "mover:THETA:1792540284",
@@ -4382,11 +6336,13 @@
         "exit_by": "2026-10-21T02:51:24.356026+00:00",
         "expected_return_pct": 1.77,
         "max_loss_pct": 1.18,
-        "status": "open",
-        "result_pct": null,
-        "paper_pnl": null,
-        "ts_closed": null,
-        "last_price": 0.2068
+        "status": "lost",
+        "result_pct": -1.18,
+        "paper_pnl": -11.8,
+        "ts_closed": "2026-10-21T04:42:36.036276+00:00",
+        "last_price": 0.203841,
+        "obs_hi": 0.203841,
+        "obs_lo": 0.203841
       },
       {
         "id": "mover:A:1792540284",
@@ -4401,11 +6357,13 @@
         "exit_by": "2026-10-21T02:51:24.356026+00:00",
         "expected_return_pct": 1.61,
         "max_loss_pct": 1.07,
-        "status": "open",
-        "result_pct": null,
-        "paper_pnl": null,
-        "ts_closed": null,
-        "last_price": 0.0976
+        "status": "lost",
+        "result_pct": -1.07,
+        "paper_pnl": -10.7,
+        "ts_closed": "2026-10-21T04:42:36.036276+00:00",
+        "last_price": 0.094869,
+        "obs_hi": 0.094869,
+        "obs_lo": 0.094869
       },
       {
         "id": "mover:USELESS:1792540284",
@@ -4424,17 +6382,19 @@
         "result_pct": null,
         "paper_pnl": null,
         "ts_closed": null,
-        "last_price": 0.1571
+        "last_price": 0.158845,
+        "obs_hi": 0.158845,
+        "obs_lo": 0.158845
       }
     ],
     "stats": {
-      "graded": 0,
-      "wins": 0,
-      "losses": 0,
+      "graded": 5,
+      "wins": 1,
+      "losses": 4,
       "expired": 0,
       "open": 9,
-      "win_rate": null,
-      "paper_pnl_total": 0,
+      "win_rate": 20.0,
+      "paper_pnl_total": -18.2,
       "by_kind": {
         "signal": {
           "graded": 0,
@@ -4446,13 +6406,13 @@
           "paper_pnl_total": 0
         },
         "mover": {
-          "graded": 0,
-          "wins": 0,
-          "losses": 0,
+          "graded": 5,
+          "wins": 1,
+          "losses": 4,
           "expired": 0,
           "open": 9,
-          "win_rate": null,
-          "paper_pnl_total": 0
+          "win_rate": 20.0,
+          "paper_pnl_total": -18.2
         }
       }
     }
