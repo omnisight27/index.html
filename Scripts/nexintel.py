@@ -252,6 +252,43 @@ def ingest():
 def clamp(x, lo=0, hi=100):
     return max(lo, min(hi, x))
 
+def round_price(p):
+    """Adaptive price precision: sub-cent coins keep enough decimals to be
+    non-zero and scoreable (a $0.0012 coin rounded to 2dp is $0.00 and can
+    never be scored, since remember() treats 0 as missing)."""
+    if not p: return 0
+    if p >= 100: return round(p, 2)
+    if p >= 1: return round(p, 4)
+    if p >= 0.01: return round(p, 6)
+    return round(p, 8)
+
+# Confidence bands shared by the calibration table (remember) and the
+# empirical calibration layer (think). A band's stated label (e.g. "80+")
+# is only as honest as its realized win rate — calibration pulls stated
+# confidence toward the band's empirical rate once enough samples exist.
+CONF_BANDS = [('50-59', 50, 59), ('60-69', 60, 69), ('70-79', 70, 79), ('80+', 80, 999)]
+CALIB_MIN_N = 10    # bands with fewer scored picks keep the raw confidence
+CALIB_MAX_PULL = 0.5  # cap the blend so a noisy band can't snap the value
+
+def calibrate_confidence(raw, calibration_rows):
+    """Shrink a raw confidence toward its band's empirical win rate.
+
+    Evidence-gated: returns the raw value unchanged when the band has
+    fewer than CALIB_MIN_N scored picks or no realized rate yet. The pull
+    weight grows with sample size (n/60) up to CALIB_MAX_PULL, so the
+    mapping can't whipsaw on small-sample noise.
+    Returns (calibrated, band_label, n, empirical_rate)."""
+    label = next((b[0] for b in CONF_BANDS if b[1] <= raw <= b[2]), None)
+    rows = {c.get('band'): c for c in (calibration_rows or [])}
+    row = rows.get(label) or {}
+    n = row.get('n') or 0
+    emp = row.get('win_rate')
+    if label is None or n < CALIB_MIN_N or emp is None:
+        return int(round(raw)), label, n, emp
+    w = min(CALIB_MAX_PULL, n / 60.0)
+    cal = raw * (1 - w) + emp * w
+    return int(round(clamp(cal, 35, 97))), label, n, emp
+
 # Plain-English regime labels for user-facing display (internal values stay
 # RISK_ON / RISK_OFF / NEUTRAL for all logic)
 REGIME_LABELS = {
@@ -476,8 +513,8 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
         'direction': direction,
         'bull_case': bull or ['no strong bullish factors'],
         'bear_case': bear or ['no strong bearish factors'],
-        'stop_loss': round(stop, 2),
-        'take_profit': round(target, 2),
+        'stop_loss': round_price(stop),
+        'take_profit': round_price(target),
         'risk_reward': round(rr, 2),
         'time_horizon': '1-5 days (swing)',
         'entry_date': today.isoformat(),
@@ -577,7 +614,7 @@ def think(data, history):
         thesis = build_thesis(sym, chg24, chg7d, price, score, conf, regime, fg_now, g_edge, 'crypto')
         reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ ${price:,.0f}. '
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
-        pick = {'asset': sym, 'price': round(price, 2), 'score': round(score, 1),
+        pick = {'asset': sym, 'price': round_price(price), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
@@ -680,7 +717,7 @@ def think(data, history):
         conf = clamp(50 + abs(score) * 2)
         thesis = build_thesis(sym, dp, dp * 2, c, score, conf, regime, fg_now, g_edge, 'equity')
         reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Ensemble score {score:+.1f} (w·x + geo + {regime}).'
-        pick = {'asset': sym, 'price': round(c, 2), 'score': round(score, 1),
+        pick = {'asset': sym, 'price': round_price(c), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'equity',
                 'name': STOCK_NAMES.get(sym, sym),
                 'info_url': f'https://finance.yahoo.com/quote/{sym}',
@@ -770,6 +807,26 @@ def think(data, history):
             p['confidence'] = max(35, p['confidence'] - 8)
             p['reason'] += f' ⚠️ News risk: {ntitle}'
             print(f"  news risk flagged: {p['asset']} — {ntitle[:70]}")
+
+    # --- Empirical calibration ("no fake calibration") ---
+    # Pull stated confidence toward the band's REALIZED win rate so a pick
+    # stamped 86% isn't really a 59% proposition. Evidence-gated: bands
+    # with < 10 scored picks keep the raw value. Runs before alert
+    # generation so alerts and pick cards use the same honest number.
+    calib_applied = []
+    for p in longs + shorts:
+        raw = p['confidence']
+        cal, label, n, emp = calibrate_confidence(raw, history.get('calibration'))
+        p['conf_raw'] = raw  # pre-calibration value, kept for audit
+        if cal != raw:
+            p['confidence'] = cal
+            p['calib_band'] = label
+            calib_applied.append(f"{p['asset']} {raw}%→{cal}% ({label}: n={n}, {emp}%)")
+    if calib_applied:
+        explanations.append('Calibration: ' + '; '.join(calib_applied[:6]))
+        print(f"  calibration: {len(calib_applied)} picks adjusted")
+    else:
+        print('  calibration: no band has enough samples yet — raw confidence kept')
 
     # --- Generate buy/sell alerts from high-conviction picks ---
     alerts = []
@@ -933,7 +990,7 @@ def remember(data, signals):
             if not cur or not p.get('price'): continue
             ret = (cur - p['price']) / p['price'] * 100
             if p in run.get('shorts', []): ret = -ret
-            p['exit'] = round(cur, 2); p['return_pct'] = round(ret, 2)
+            p['exit'] = round_price(cur); p['return_pct'] = round(ret, 2)
             p['win'] = ret > 0
             # Error metric: how far was |predicted score| from |actual return|?
             abs_err = abs(abs(p.get('score') or 0) - abs(ret))
@@ -960,7 +1017,7 @@ def remember(data, signals):
     s['win_rate'] = round(100 * s['wins'] / s['total'], 1) if s['total'] else None
     # Calibration: bucket scored picks by stated confidence band and compare
     # against realized win rate — "says 70-79% → actually wins X%"
-    bands = [('50-59', 50, 59), ('60-69', 60, 69), ('70-79', 70, 79), ('80+', 80, 999)]
+    bands = CONF_BANDS
     calib = {b[0]: {'n': 0, 'wins': 0} for b in bands}
     for run in history['picks']:
         for p in run.get('longs', []) + run.get('shorts', []):
@@ -995,6 +1052,26 @@ def publish(data, signals, history, data_pulled_at=None):
     with open(os.path.join(SNAP_DIR, f'{stamp}.json'), 'w') as f:
         json.dump({'timestamp': now.isoformat(), 'data': snap_data}, f)
 
+    # Key-gated feeds (FRED macro/rates) are skipped on keyless local runs.
+    # Don't publish an empty dashboard section because of that: carry the
+    # previous run's values forward so the site never regresses to blank
+    # between keyed runs. Flags let the frontend label them as carried.
+    macro = data.get('macro') or {}
+    rates = data.get('rates') or {}
+    macro_carried = rates_carried = False
+    if not macro or not rates:
+        try:
+            with open(os.path.join(DATA_DIR, 'latest.json')) as f:
+                prev = json.load(f)
+            if not macro and prev.get('macro'):
+                macro = prev['macro']; macro_carried = True
+            if not rates and prev.get('rates'):
+                rates = prev['rates']; rates_carried = True
+            if macro_carried or rates_carried:
+                print(f'  publish: carried forward macro={macro_carried} rates={rates_carried} from previous run')
+        except Exception as e:
+            print(f'  publish: carry-forward unavailable ({e})')
+
     latest = {
         'generated': now.isoformat(),
         'data_pulled_at': data_pulled_at,
@@ -1016,8 +1093,10 @@ def publish(data, signals, history, data_pulled_at=None):
         'buy_pct': signals.get('buy_pct'),
         'buy_text': signals.get('buy_text'),
         'kelly_pct': signals.get('kelly_pct'),
-        'macro': data.get('macro', {}),
-        'rates': data.get('rates', {}),
+        'macro': macro,
+        'macro_carried': macro_carried,
+        'rates': rates,
+        'rates_carried': rates_carried,
         'alerts': signals.get('alerts', []),
         'long_term': signals.get('long_term', {}),
     }
