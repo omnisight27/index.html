@@ -1,4 +1,4 @@
-// Govgistics — Contract Intel.
+// Contract Intel.
 // Two data sources, both real:
 //  1. "From the engine" strip — contracts_watch inside data/latest.json,
 //     produced by the NexIntel engine's USASpending pull.

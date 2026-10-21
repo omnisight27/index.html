@@ -7,7 +7,7 @@
     if (!toggle || !menu) return;
     // Pages added after the static menus were written: inject their links
     // into every page's menu (skipped where a page already links them).
-    [['govgistics.html', 'Govgistics'], ['hub.html', 'Command Hub']].forEach(function (pair) {
+    [['govgistics.html', 'Contract Intel'], ['hub.html', 'Command Hub']].forEach(function (pair) {
       if (menu.querySelector('a[href="' + pair[0] + '"]')) return;
       var a = document.createElement('a');
       a.href = pair[0];

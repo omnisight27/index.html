@@ -767,7 +767,7 @@ def think(data, history):
                                        f'in 90d — see SEC deep dive.')
         (longs if score > 0 else shorts).append(pick)
 
-    # --- Contracts watch (Govgistics): flag mega-awards with tickers ---
+    # --- Contracts watch (Contract Intel): flag mega-awards with tickers ---
     # Major government contractors → ticker mapping
     CONTRACTOR_TICKERS = {
         'lockheed martin': 'LMT', 'boeing': 'BA', 'raytheon': 'RTX', 'rtx corp': 'RTX',
