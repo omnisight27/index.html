@@ -291,6 +291,12 @@ def round_price(p):
     if p >= 0.01: return round(p, 6)
     return round(p, 8)
 
+# Nic's actual crypto holdings (Coinbase, 2026-10-21). SELL alerts fire
+# ONLY for assets in this set — a sell signal on something he doesn't
+# hold is noise to a long-only trader. Keep in sync with the same
+# constant in scripts/intraday-sms.py (the WhatsApp selector).
+NIC_HOLDINGS = {'BTC', 'XRP', 'ETH', 'SOL', 'XLM', 'ARB', 'AVAX'}
+
 # Confidence bands shared by the calibration table (remember) and the
 # empirical calibration layer (think). A band's stated label (e.g. "80+")
 # is only as honest as its realized win rate — calibration pulls stated
@@ -885,10 +891,23 @@ def think(data, history):
         print('  calibration: no band has enough samples yet — raw confidence kept')
 
     # --- Generate buy/sell alerts from high-conviction picks ---
+    # Nic's rule (2026-10-21): the alerts feed is a push surface, not a
+    # research surface. A BUY alert fires only for something he can
+    # actually buy on his own venues (the pick carries a Coinbase /
+    # Crypto.com listing, or it is a US-listed equity for Schwab); a
+    # SELL alert fires only for an asset he actually holds
+    # (NIC_HOLDINGS). Everything else stays on the Picks page, badged,
+    # and out of his alert stream. The reason string carries the entry
+    # price — a signal without a buy price is not actionable.
     alerts = []
     for p in longs[:3] + shorts[:3]:
         if p['confidence'] >= 65:
             action = 'BUY' if p in longs else 'SELL'
+            if action == 'BUY':
+                if p.get('class') != 'equity' and not (p.get('tradable') or []):
+                    continue
+            elif p['asset'] not in NIC_HOLDINGS:
+                continue
             t = p.get('thesis', {})
             alerts.append({
                 'type': action,
@@ -896,7 +915,7 @@ def think(data, history):
                 'price': p['price'],
                 'confidence': p['confidence'],
                 'asset_class': p.get('class', 'crypto'),
-                'reason': f"{action} signal: {p['asset']} (confidence {p['confidence']}%). " +
+                'reason': f"{action} signal: {p['asset']} @ ${round_price(p['price'])} (confidence {p['confidence']}%). " +
                           f"Stop ${t.get('stop_loss', '?')}, target ${t.get('take_profit', '?')}.",
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             })
