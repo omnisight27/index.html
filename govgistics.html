@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Govgistics — Contract Intel · OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="picks.html">Picks</a>
+    <a href="alerts.html">Alerts</a>
+    <a href="reports.html">Reports</a>
+    <a href="engines.html">Engines</a>
+    <a href="debt.html">Debt Payoff</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="govgistics.html" class="active">Govgistics</a>
+    <a href="hub.html">Command Hub</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1>Govgistics — Contract Intel</h1>
+  <p class="subtitle">Federal contract awards, live from USASpending.gov — the government's own award records.</p>
+
+  <section class="card" id="engine-strip" style="display:none">
+    <h2>🏆 Largest Awards — From the Engine</h2>
+    <div id="engine-awards"></div>
+    <p class="hint" id="engine-stamp"></p>
+  </section>
+
+  <section class="card">
+    <h2>🔎 Live Awards Explorer</h2>
+    <p class="hint">Contract awards with activity in the last 90 days, largest first. Data goes straight from USASpending to your browser — nothing cached, nothing made up.</p>
+    <div class="debt-grid">
+      <input type="text" id="gv-keyword" placeholder="Keyword (e.g. aircraft, logistics)">
+      <select id="gv-agency">
+        <option value="">All agencies</option>
+        <option>Department of Defense</option>
+        <option>Department of Veterans Affairs</option>
+        <option>Department of Homeland Security</option>
+        <option>National Aeronautics and Space Administration</option>
+        <option>Department of Transportation</option>
+        <option>Department of Health and Human Services</option>
+        <option>Department of Agriculture</option>
+        <option>Department of Energy</option>
+        <option>General Services Administration</option>
+        <option>Department of Commerce</option>
+      </select>
+      <select id="gv-state">
+        <option value="">All states (place of performance)</option>
+        <option value="OR">Oregon</option>
+        <option value="FL">Florida</option>
+        <option value="CA">California</option>
+        <option value="TX">Texas</option>
+        <option value="VA">Virginia</option>
+        <option value="WA">Washington</option>
+      </select>
+    </div>
+    <p style="margin-top:10px">
+      <button id="gv-search">Search awards</button>
+      <button class="btn-small" id="gv-or">Quick view: Oregon</button>
+      <button class="btn-small" id="gv-fl">Quick view: Florida</button>
+      <button class="btn-small" id="gv-clear">Clear filters</button>
+    </p>
+    <p class="hint" id="gv-status">Loading the latest awards…</p>
+    <div id="gv-results"></div>
+  </section>
+
+  <section class="card">
+    <h2>📋 SAM.gov Opportunities</h2>
+    <div class="result-hero">⏳ Built — waiting on the key</div>
+    <p>Live federal bid opportunities (solicitations, not just past awards) activate here as soon as Nic adds his free SAM.gov API key — the engine code that pulls them is already built and ready.</p>
+  </section>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice. Award data: USASpending.gov.</p></footer>
+<script src="nav.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="govgistics.js"></script>
+</body>
+</html>
