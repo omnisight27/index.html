@@ -518,6 +518,13 @@ input[type="radio"] {
 .ticker-item .down { color: var(--danger); }
 .ticker-sep { color: var(--text-muted); }
 
+/* Picks tape — same roll as the price tape, accent underline, slower scroll */
+.picks-tape { border-bottom: 2px solid var(--accent); }
+.picks-tape .ticker-track { animation-duration: 80s; }
+.picks-tape .long { color: var(--primary); font-weight: 600; }
+.picks-tape .short { color: var(--danger); font-weight: 600; }
+.picks-tape a { color: var(--accent); text-decoration: none; }
+
 /* Hamburger nav (mobile dropdown) */
 .nav-toggle {
   display: none;
