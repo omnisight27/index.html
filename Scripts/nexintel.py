@@ -471,9 +471,9 @@ def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
     reasons = []
     if fg_now >= 55: score += 1; reasons.append('greed')
     elif fg_now <= 35: score -= 1; reasons.append('fear')
-    if xau_price and xau_price > 4100: score -= 1; reasons.append('gold bid (risk-off)')
-    if usd_jpy and usd_jpy > 155: score -= 1; reasons.append('strong USD (risk-off)')
-    if usd_jpy and usd_jpy < 145: score += 1; reasons.append('weak USD (risk-on)')
+    if xau_price and xau_price > 4100: score -= 1; reasons.append('gold bid (safe-haven demand)')
+    if usd_jpy and usd_jpy > 155: score -= 1; reasons.append('strong USD (dollar strength)')
+    if usd_jpy and usd_jpy < 145: score += 1; reasons.append('weak USD (dollar weakness)')
     # Macro overlays (FRED)
     cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
     if cpi_yoy and cpi_yoy > 4: score -= 1; reasons.append(f'inflation hot ({cpi_yoy:.1f}% YoY)')
@@ -501,9 +501,9 @@ def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
 def regime_adjustment(regime):
     return {
         'RISK_ON':  {'long_boost': 1.2, 'short_damp': 0.7,
-                     'note': 'Risk-on: favor longs, demand stronger short signals'},
+                     'note': 'Conditions favor buying: lean into longs, demand stronger short signals'},
         'RISK_OFF': {'long_boost': 0.7, 'short_damp': 1.2,
-                     'note': 'Risk-off: favor shorts/hedges, demand stronger long signals'},
+                     'note': 'Conditions favor caution: lean into shorts/hedges, demand stronger long signals'},
         'NEUTRAL':  {'long_boost': 1.0, 'short_damp': 1.0,
                      'note': 'Neutral: no directional tilt'},
     }[regime]
@@ -536,8 +536,8 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
     if fg_now >= 75: bear.append('extreme greed — contrarian headwind')
     if geo_edge > 0.15: bull.append('pattern matches historical winners')
     if geo_edge < -0.15: bear.append('pattern resembles historical losers')
-    if regime == 'RISK_ON' and direction == 'LONG': bull.append('risk-on regime favors longs')
-    if regime == 'RISK_OFF' and direction == 'SHORT': bear.append('risk-off regime favors shorts')
+    if regime == 'RISK_ON' and direction == 'LONG': bull.append('conditions favor buying, which helps longs')
+    if regime == 'RISK_OFF' and direction == 'SHORT': bear.append('conditions favor caution, which helps shorts')
     return {
         'direction': direction,
         'bull_case': bull or ['no strong bullish factors'],
@@ -661,7 +661,7 @@ def think(data, history):
         # Gold strength = risk-off → temper crypto longs
         risk_off = xau > 4000
         if risk_off:
-            explanations.append(f'Gold ${xau:,.0f} — risk-off bid, trimming long confidence')
+            explanations.append(f'Gold ${xau:,.0f} — safe-haven bid, trimming long confidence')
             for p in longs: p['confidence'] = max(40, p['confidence'] - 5)
 
     # --- Forex: USD strength = risk-off for crypto ---
@@ -907,7 +907,7 @@ def think(data, history):
             'asset': 'MARKET',
             'price': 0,
             'confidence': 70,
-            'reason': f"Regime: {regime} — {', '.join(regime_reasons[:3])}.",
+            'reason': f"Regime: {REGIME_LABELS.get(regime, regime)} — {', '.join(regime_reasons[:3])}.",
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 
@@ -935,14 +935,14 @@ def think(data, history):
             alerts.append({
                 'type': 'MACRO', 'asset': 'CPI', 'price': cpi_v, 'confidence': 75,
                 'asset_class': 'macro',
-                'reason': f"CPI YoY at {cpi_v}% — above 4% (hot inflation, risk-off tilt).",
+                'reason': f"CPI YoY at {cpi_v}% — above 4% (hot inflation — tilts conditions toward caution).",
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             })
         elif cpi_v < 2:
             alerts.append({
                 'type': 'MACRO', 'asset': 'CPI', 'price': cpi_v, 'confidence': 75,
                 'asset_class': 'macro',
-                'reason': f"CPI YoY at {cpi_v}% — below 2% (cool inflation, risk-on tilt).",
+                'reason': f"CPI YoY at {cpi_v}% — below 2% (cool inflation — tilts conditions toward buying).",
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             })
     # Liquidity Engine alert — jobless claims spike (>10% vs prior week)
@@ -951,7 +951,7 @@ def think(data, history):
         alerts.append({
             'type': 'MACRO', 'asset': 'ICSA', 'price': icsa['value'], 'confidence': 80,
             'asset_class': 'macro',
-            'reason': f"Jobless claims jumped {icsa['change_pct']:+.1f}% to {icsa['value']:,.0f} — labor market cooling fast (risk-off tilt).",
+            'reason': f"Jobless claims jumped {icsa['change_pct']:+.1f}% to {icsa['value']:,.0f} — labor market cooling fast, tilts conditions toward caution.",
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
 
@@ -965,13 +965,13 @@ def think(data, history):
         pass
     regime_flipped = prev_regime and prev_regime != regime
     if regime_flipped:
-        flip_dir = 'BULLISH' if regime == 'RISK_ON' else 'BEARISH' if regime == 'RISK_OFF' else 'NEUTRAL'
         alerts.append({
             'type': 'REGIME_FLIP',
             'asset': 'MARKET',
             'price': 0,
             'confidence': 85,
-            'reason': f"🔄 REGIME FLIP: {prev_regime} → {regime} ({flip_dir}). {buy_text}.",
+            'reason': f"🔄 REGIME FLIP: {REGIME_LABELS.get(prev_regime, prev_regime)} → "
+                      f"{REGIME_LABELS.get(regime, regime)}. {buy_text}.",
             'timestamp': datetime.now(timezone.utc).isoformat(),
         })
         print(f"  REGIME FLIP: {prev_regime} → {regime}")

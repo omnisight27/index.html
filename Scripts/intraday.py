@@ -325,6 +325,17 @@ def strong_day(chg24, chg1, vol_ratio, vol_med):
 # call is graded a loss: the book never credits an ambiguous win.
 # Simplification: the hourly path is hourly closes, so a spike that
 # fully reverted inside a single hour can be missed.
+#
+# Scenario cells (2026-10-21): every record is tagged type x direction
+# x confidence band x regime at entry; proof_cells reports win/loss
+# per cell, all-time, by merging the visible ledger with `cumulative`
+# — per-cell counters stored in this same payload that absorb graded
+# entries when the 100-record cap trims them, so the cell record
+# never stops growing. Setting-up (accum) entries carrying a trigger
+# plan record as kind 'setup': a setup whose trigger never fills
+# inside its window expires at result 0 (never a loss — no position
+# was taken); once triggered it grades like a LONG call entered at
+# the trigger.
 # ---------------------------------------------------------------------------
 PAPER_USD = 1000
 
@@ -334,10 +345,64 @@ def _iso_parse(s):
     except Exception:
         return None
 
-def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h):
-    """Normalize a signal thesis / mover plan into a ledger entry.
-    horizon_h matches the builders: signals exit at +2h
-    (build_intraday_thesis), mover plans at +3h (build_mover_plan)."""
+# --- Scenario cells -------------------------------------------------------
+# Every Proof Book record is tagged into a scenario cell:
+#   type (signal / mover / setup) x direction x confidence band x regime.
+# Win/loss is reported PER CELL (proof_cells) so the daily review can see
+# WHICH scenario families actually pay — the aggregate win rate hides
+# exactly the thing Nic asked to improve (2026-10-21: "running as many
+# scenarios as possible to bring the win/loss ratio higher"). Live alerts
+# are never changed by this build; cells only feed the review's
+# recommendation log.
+def conf_band(conf):
+    """Confidence band label for a 0-100 confidence value. Movers and
+    setups carry no confidence — their band is 'na'."""
+    if conf is None:
+        return 'na'
+    if conf < 50: return '40s'
+    if conf < 60: return '50s'
+    if conf < 70: return '60s'
+    if conf < 80: return '70s'
+    return '80+'
+
+# Swing-engine regime tokens -> Proof Book cell tags (lowercase). The
+# DISPLAY labels live in nexintel.REGIME_LABELS and are applied at
+# render time — raw codes never reach the page (site language rule).
+PROOF_REGIME_TAGS = {'RISK_ON': 'risk_on', 'NEUTRAL': 'neutral',
+                     'RISK_OFF': 'risk_off'}
+
+def current_regime_tag(now):
+    """The market regime in force, read from the swing engine's
+    data/latest.json (published every ~6h): the intraday engine keeps
+    no regime model of its own, so a new scenario is tagged with the
+    swing regime at entry. 'unknown' when the file is missing or
+    older than 12h."""
+    try:
+        with open(os.path.join(DATA_DIR, 'latest.json')) as f:
+            latest = json.load(f)
+        gen = _iso_parse(latest.get('generated') or '')
+        if gen and (now - gen).total_seconds() <= 12 * 3600:
+            return PROOF_REGIME_TAGS.get(latest.get('regime'), 'unknown')
+    except Exception:
+        pass
+    return 'unknown'
+
+def proof_cell_key(e):
+    """(type, direction, band, regime) for a ledger entry. Legacy
+    entries predate the tags: missing band reads 'na', missing regime
+    reads 'unknown' — never guessed after the fact."""
+    return (e.get('kind') or 'signal',
+            e.get('direction') or 'LONG',
+            e.get('band') or 'na',
+            e.get('regime') or 'unknown')
+
+def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
+                     tags=None):
+    """Normalize a signal thesis / mover plan / accum trigger plan into
+    a ledger entry. horizon_h matches the builders: signals exit at +2h
+    (build_intraday_thesis), mover and accum plans at +3h
+    (build_mover_plan / build_accum_plan). `tags` carries the scenario
+    cell tags ({'band': ..., 'regime': ...}) stamped at entry."""
     from datetime import timedelta
     if not plan:
         return None
@@ -355,7 +420,7 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h):
     max_loss = plan.get('max_loss_pct')
     if max_loss is None:
         max_loss = round(abs(entry - sl) / entry * 100, 2)
-    return {
+    entry_out = {
         'id': f'{kind}:{asset}:{int(now.timestamp())}',
         'ts_open': now.isoformat(),
         'kind': kind,
@@ -374,6 +439,17 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h):
         'ts_closed': None,
         'last_price': entry,
     }
+    tags = tags or {}
+    entry_out['band'] = tags.get('band') or 'na'
+    entry_out['regime'] = tags.get('regime') or 'unknown'
+    if kind == 'setup':
+        # A setup is a resting limit buy at the trigger: entry IS the
+        # trigger price, and grading must know whether price ever got
+        # there (see _proof_grade_setup).
+        entry_out['trigger_price'] = plan.get('trigger_price') or entry
+        entry_out['triggered'] = False
+        entry_out['never_triggered'] = False
+    return entry_out
 
 def proof_record_new(record, candidates, now):
     """Prepend fresh calls to the ledger (kept newest-first). Dedup: the
@@ -400,6 +476,101 @@ def proof_record_new(record, candidates, now):
     record[:] = fresh + record
     return len(fresh)
 
+def _proof_grade_setup(e, mkt, charts_by_sym, now, opened, cur):
+    """Grade one setup (accumulation trigger) entry — a resting limit
+    buy at the trigger, LONG-only. Returns (status, result_pct) or
+    (None, None) to stay open.
+
+    Phase 1 — not triggered: if the plan window closes (exit_by + 2h
+    grace, the same convention as every other call; 7-day hard cap)
+    with price never reaching the trigger, the scenario EXPIRES with
+    result 0 and never_triggered set. No position was ever taken, so
+    it is never a loss — 'expired' is its own bucket and stays out of
+    the win-rate denominator.
+
+    Phase 2 — triggered: from the first observation at/above the
+    trigger, target/stop first-touch decides, exactly like a LONG call
+    entered at the trigger; window end grades at the exit drift from
+    the trigger. Once triggered, only observations at/after the
+    trigger count — a pre-trigger dip can never grade as a stop-out
+    (the stop sits between spot and trigger by construction)."""
+    from datetime import timedelta
+    tp, sl = e['take_profit'], e['stop_loss']
+    trigger = e.get('trigger_price') or e['entry']
+    exit_by = _iso_parse(e.get('exit_by') or '')
+    window_over = bool(exit_by and now > exit_by + timedelta(hours=2)) or \
+        bool(opened and (now - opened).total_seconds() > 7 * 86400)
+    pts = []
+    chart = charts_by_sym.get(e['asset'])
+    if chart and opened:
+        opened_ms = opened.timestamp() * 1000
+        pts = [pr for ts, pr in chart if ts >= opened_ms]
+        if e.get('triggered') and e.get('ts_triggered'):
+            trig = _iso_parse(e['ts_triggered'])
+            if trig:
+                trig_ms = trig.timestamp() * 1000
+                pts = [pr for ts, pr in chart if ts >= trig_ms]
+    series = pts + ([cur] if cur else [])
+    if not e.get('triggered'):
+        if series:
+            hit_at = next((i for i, p in enumerate(series) if p >= trigger), None)
+            if hit_at is None:
+                if window_over:
+                    e['never_triggered'] = True
+                    return 'expired', 0.0
+                return None, None
+            e['triggered'] = True
+            e['ts_triggered'] = now.isoformat()
+            series = series[hit_at:]
+        else:
+            # No price path at all: extremes actually observed since
+            # open (same trust rules as the main grader).
+            if not cur:
+                return None, None
+            hi = max(e.get('obs_hi') or cur, cur)
+            lo = min(e.get('obs_lo') or cur, cur)
+            if opened and (now - opened).total_seconds() >= 24 * 3600:
+                if mkt.get('high_24h') is not None:
+                    hi = max(hi, mkt['high_24h'])
+                if mkt.get('low_24h') is not None:
+                    lo = min(lo, mkt['low_24h'])
+            e['obs_hi'], e['obs_lo'] = hi, lo
+            if hi < trigger:
+                if window_over:
+                    e['never_triggered'] = True
+                    return 'expired', 0.0
+                return None, None
+            e['triggered'] = True
+            e['ts_triggered'] = now.isoformat()
+            # Only the current observation is provably post-trigger —
+            # restart the extremes here so pre-trigger dips can never
+            # grade as a stop-out.
+            e['obs_hi'] = e['obs_lo'] = cur
+            series = [cur]
+    # Triggered: first touch of target / stop from the trigger onward.
+    for p in series:
+        if p >= tp:
+            return 'won', e['expected_return_pct']
+        if p <= sl:
+            return 'lost', -e['max_loss_pct']
+    if not pts and cur:
+        # Chart-less run: extremes observed since the trigger (reset
+        # at flip time); both crossed in the gap = conservative loss,
+        # the same rule as the main grader.
+        hi = max(e.get('obs_hi') or cur, cur)
+        lo = min(e.get('obs_lo') or cur, cur)
+        e['obs_hi'], e['obs_lo'] = hi, lo
+        if hi >= tp and lo <= sl:
+            return 'lost', -e['max_loss_pct']
+        if hi >= tp:
+            return 'won', e['expected_return_pct']
+        if lo <= sl:
+            return 'lost', -e['max_loss_pct']
+    if window_over:
+        last = series[-1] if series else (e.get('last_price') or trigger)
+        return 'expired', (last - trigger) / trigger * 100
+    return None, None
+
 def proof_grade(record, mkt_by_sym, charts_by_sym, now):
     """Grade every open ledger entry against fresh market data.
     mkt_by_sym: {sym: {'price', 'high_24h', 'low_24h'}} from the markets
@@ -417,6 +588,17 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
         cur = mkt.get('price')
         if cur:
             e['last_price'] = cur
+        if e.get('kind') == 'setup':
+            # Setups grade on the trigger mechanic, not the plain
+            # since-entry path — see _proof_grade_setup.
+            s_status, s_result = _proof_grade_setup(e, mkt, charts_by_sym,
+                                                    now, opened, cur)
+            if s_status:
+                e['status'] = s_status
+                e['result_pct'] = round(s_result, 2)
+                e['paper_pnl'] = round(s_result * PAPER_USD / 100, 2)
+                e['ts_closed'] = now.isoformat()
+            continue
         status = result = None
         if cur:
             pts = []
@@ -503,22 +685,152 @@ def proof_stats(record):
         }
     stats = agg(record)
     stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
-                        for k in ('signal', 'mover')}
+                        for k in ('signal', 'mover', 'setup')}
     return stats
+
+def proof_cells(record, cumulative=None):
+    """Win/loss PER SCENARIO CELL, all-time: aggregates over the
+    visible ledger MERGED with the cumulative counters of records that
+    already rolled off the 100-entry cap. Cumulative only ever holds
+    closed outcomes (an entry joins it at trim time, after closing),
+    so open counts come from the ledger alone and no closed outcome
+    is ever double-counted. Each row carries its n — a win rate
+    without its sample size is not published anywhere in this book."""
+    cells = {}
+    def bucket(key):
+        return cells.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                      'expired': 0, 'never_triggered': 0,
+                                      'open': 0, 'paper_pnl_total': 0.0})
+    for e in record:
+        b = bucket(proof_cell_key(e))
+        st = e.get('status')
+        if st == 'open':
+            b['open'] += 1
+        elif st in ('won', 'lost', 'expired'):
+            b['graded'] += 1
+            b['wins' if st == 'won' else 'losses' if st == 'lost' else 'expired'] += 1
+            if e.get('never_triggered'):
+                b['never_triggered'] += 1
+            b['paper_pnl_total'] += e.get('paper_pnl') or 0
+    for key, c in (cumulative or {}).items():
+        parts = key.split('|')
+        if len(parts) != 4:
+            continue
+        b = bucket(tuple(parts))
+        for f in ('graded', 'wins', 'losses', 'expired', 'never_triggered'):
+            b[f] += c.get(f, 0)
+        b['paper_pnl_total'] += c.get('paper_pnl_total', 0)
+    rows = []
+    for (kind, direction, band, regime), b in sorted(cells.items()):
+        wl = b['wins'] + b['losses']
+        rows.append({
+            'type': kind, 'direction': direction, 'band': band,
+            'regime': regime,
+            'graded': b['graded'], 'wins': b['wins'], 'losses': b['losses'],
+            'expired': b['expired'], 'never_triggered': b['never_triggered'],
+            'open': b['open'],
+            'win_rate': round(b['wins'] / wl * 100, 1) if wl else None,
+            'paper_pnl_total': round(b['paper_pnl_total'], 2),
+        })
+    return rows
+
+# Daily-review flag rule: a cell with real evidence (n >= 20 graded)
+# at an extreme win rate is a CANDIDATE for alert inclusion/exclusion.
+# Recommendation only — this build never changes a live threshold,
+# alert rule, or verdict; the morning review logs the flag and a
+# human decides.
+CELL_FLAG_MIN_N = 20
+CELL_FLAG_WIN_HI = 60
+CELL_FLAG_WIN_LO = 35
+
+def proof_flagged_cells(cells):
+    flags = []
+    for row in cells:
+        wr = row.get('win_rate')
+        if row.get('graded', 0) < CELL_FLAG_MIN_N or wr is None:
+            continue
+        if wr >= CELL_FLAG_WIN_HI:
+            cand = 'include'
+        elif wr <= CELL_FLAG_WIN_LO:
+            cand = 'exclude'
+        else:
+            continue
+        flags.append({'type': row['type'], 'direction': row['direction'],
+                      'band': row['band'], 'regime': row['regime'],
+                      'graded': row['graded'], 'win_rate': wr,
+                      'candidate': cand, 'recommendation_only': True})
+    return flags
+
+def proof_roll_cumulative(cumulative, dropped):
+    """Fold closed entries that are about to roll off the capped
+    ledger into the persistent per-cell counters (stored in the proof
+    payload alongside the record), so all-time win/loss knowledge
+    keeps growing even though the visible ledger stays at 100.
+    Open entries are never rolled — they are still the ledger's job."""
+    out = {k: dict(v) for k, v in (cumulative or {}).items()}
+    for e in dropped:
+        st = e.get('status')
+        if st not in ('won', 'lost', 'expired'):
+            continue
+        key = '|'.join(proof_cell_key(e))
+        c = out.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                 'expired': 0, 'never_triggered': 0,
+                                 'paper_pnl_total': 0.0})
+        c['graded'] += 1
+        c['wins' if st == 'won' else 'losses' if st == 'lost' else 'expired'] += 1
+        if e.get('never_triggered'):
+            c['never_triggered'] += 1
+        c['paper_pnl_total'] = round(c['paper_pnl_total'] +
+                                     (e.get('paper_pnl') or 0), 2)
+    return out
+
+def proof_backfill_regimes(record, regime_runs):
+    """Tag legacy entries (recorded before cell tags existed) with the
+    swing regime in force at their ts_open, from history.json runs —
+    (run_datetime, regime_token) pairs, any order. This is recorded
+    fact, not reconstruction: the regime the engine itself published
+    at that hour. Entries older than every run keep no tag (their
+    cells read 'unknown'); confidence was never stored per record and
+    is NOT backfilled — legacy bands stay 'na'. Idempotent: only
+    entries missing a regime are touched. Returns the count tagged."""
+    runs = sorted((ts, tok) for ts, tok in regime_runs if ts and tok)
+    n = 0
+    for e in record:
+        if e.get('regime'):
+            continue
+        opened = _iso_parse(e.get('ts_open') or '')
+        if not opened:
+            continue
+        tag = None
+        for ts, tok in runs:
+            if ts <= opened:
+                tag = PROOF_REGIME_TAGS.get(tok)
+            else:
+                break
+        if tag:
+            e['regime'] = tag
+            n += 1
+    return n
 
 def _proof_trim(record, cap=100):
     """Cap the published ledger at the newest 100 entries, dropping the
-    oldest CLOSED entries first so open calls are never silently lost."""
+    oldest CLOSED entries first so open calls are never silently lost.
+    Returns (trimmed, dropped): the caller folds `dropped` into the
+    cumulative per-cell counters (proof_roll_cumulative) BEFORE the
+    trimmed list is published, so a dropped entry's graded outcome is
+    never lost to the all-time record."""
     if len(record) <= cap:
-        return record
+        return record, []
     drop = set()
     for i in range(len(record) - 1, -1, -1):  # newest-first: walk oldest back
         if len(record) - len(drop) <= cap:
             break
         if record[i].get('status') != 'open':
             drop.add(i)
-    out = [e for i, e in enumerate(record) if i not in drop]
-    return out[:cap]
+    kept = [e for i, e in enumerate(record) if i not in drop]
+    trimmed = kept[:cap]
+    dropped = [e for i, e in enumerate(record) if i in drop] + kept[cap:]
+    return trimmed, dropped
 
 def main():
     print('INTRADAY: hourly signals...')
@@ -533,9 +845,12 @@ def main():
         pass
     # Same persistence trick for the 📒 Proof Book ledger (see proof block).
     prior_proof = []
+    prior_cumulative = {}
     try:
         with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
-            prior_proof = ((json.load(f) or {}).get('proof') or {}).get('record') or []
+            _prior = (json.load(f) or {}).get('proof') or {}
+            prior_proof = _prior.get('record') or []
+            prior_cumulative = _prior.get('cumulative') or {}
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -777,6 +1092,21 @@ def main():
     # trailing-24h windows can't credit a pre-entry move) ---
     proof = list(prior_proof)
     proof_now = datetime.now(timezone.utc)
+    # Legacy entries predate the cell tags: backfill the regime from the
+    # swing engine's own run history (data/history.json) — the regime in
+    # force at each entry's ts_open. Confidence was never stored per
+    # record, so legacy bands stay 'na' rather than being guessed.
+    try:
+        with open(os.path.join(DATA_DIR, 'history.json')) as f:
+            hist_runs = (json.load(f) or {}).get('picks') or []
+        regime_runs = [(_iso_parse(r.get('date') or ''), r.get('regime'))
+                       for r in hist_runs]
+        n_back = proof_backfill_regimes(proof, regime_runs)
+        if n_back:
+            print(f'  Proof book: backfilled regime on {n_back} legacy entries')
+    except Exception:
+        pass
+    regime_tag = current_regime_tag(proof_now)
     # Grading wants an hourly path for every open call, not just the
     # top-50 signal universe: fetch charts for open entries' assets that
     # the signal scan didn't cover (one fetch per symbol, bounded by the
@@ -801,14 +1131,28 @@ def main():
     for s in longs + shorts:
         proof_cands.append(_proof_candidate(
             'signal', s['asset'], s.get('name'), s.get('direction'),
-            s.get('thesis'), proof_now, 2))
+            s.get('thesis'), proof_now, 2,
+            tags={'band': conf_band(s.get('confidence')),
+                  'regime': regime_tag}))
     for m in movers:
         proof_cands.append(_proof_candidate(
             'mover', m['asset'], m.get('name'), 'LONG',
-            m.get('plan'), proof_now, 3))
+            m.get('plan'), proof_now, 3,
+            tags={'band': 'na', 'regime': regime_tag}))
+    for a in accum:
+        # Setting-up scenarios join the book (2026-10-21): every accum
+        # entry carrying a trigger plan becomes a graded paper
+        # scenario. No plan -> no candidate (never invented numbers).
+        proof_cands.append(_proof_candidate(
+            'setup', a['asset'], a.get('name'), 'LONG',
+            a.get('plan'), proof_now, 3,
+            tags={'band': 'na', 'regime': regime_tag}))
     n_added = proof_record_new(proof, proof_cands, proof_now)
-    proof = _proof_trim(proof)
+    proof, dropped = _proof_trim(proof)
+    cumulative = proof_roll_cumulative(prior_cumulative, dropped)
     pstats = proof_stats(proof)
+    pstats['cells'] = proof_cells(proof, cumulative)
+    pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
     print(f"  Proof book: +{n_added} new calls, {pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
@@ -825,7 +1169,7 @@ def main():
         'watch': watch,
         'accum': accum,
         'accum_history': new_history,
-        'proof': {'record': proof, 'stats': pstats},
+        'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative},
         'coins_scanned': len(mkts),
     }
     os.makedirs(DATA_DIR, exist_ok=True)

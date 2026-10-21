@@ -284,6 +284,232 @@ def test_accum_plan_none_without_vol_and_subcent_order():
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
 
 
+# ----------------------- Proof Book: scenario cells + setups (2026-10-21)
+#
+# Nic: "running as many scenarios as possible to bring the win/loss
+# ratio higher." The book now records setting-up scenarios alongside
+# signals and movers, tags every record into a scenario cell (type x
+# direction x confidence band x regime), reports win/loss per cell,
+# and keeps all-time per-cell counters in `cumulative` so the record
+# survives the 100-entry ledger cap.
+
+import datetime as _dt
+
+BASE = _dt.datetime(2026, 10, 21, 12, 0, tzinfo=_dt.timezone.utc)
+
+SETUP_PLAN = {'trigger_price': 105.0, 'entry': 105.0,
+              'take_profit': 115.5, 'stop_loss': 99.75,
+              'expected_return_pct': 10.0, 'max_loss_pct': 5.0}
+
+
+def setup_entry(tags=None):
+    e = intraday._proof_candidate('setup', 'SET', 'Setup Coin', 'LONG',
+                                  dict(SETUP_PLAN), BASE, 3,
+                                  tags=tags or {'band': 'na',
+                                                'regime': 'risk_on'})
+    assert e is not None
+    return e
+
+
+def chart_from(base, points):
+    """points: [(hours_after_base, price)] -> CoinGecko-style [[ms, px]]."""
+    return [[(base + _dt.timedelta(hours=h)).timestamp() * 1000, p]
+            for h, p in points]
+
+
+def test_conf_band_mapping():
+    assert intraday.conf_band(None) == 'na'
+    assert intraday.conf_band(40) == '40s'
+    assert intraday.conf_band(55) == '50s'
+    assert intraday.conf_band(65) == '60s'
+    assert intraday.conf_band(75) == '70s'
+    assert intraday.conf_band(80) == '80+'
+    assert intraday.conf_band(95) == '80+'
+
+
+def test_setup_never_triggered_expires_never_a_loss():
+    e = setup_entry()
+    rec = [e]
+    # Price hovers at 100 (below the 105 trigger) past exit_by + grace.
+    charts = {'SET': chart_from(BASE, [(1, 100.0), (3, 101.0), (5, 100.5)])}
+    mkt = {'SET': {'price': 100.5, 'high_24h': 102.0, 'low_24h': 98.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'expired'
+    assert e['never_triggered'] is True
+    assert e['result_pct'] == 0
+    assert e['paper_pnl'] == 0
+    # Expired is its own bucket: the win rate ignores it entirely.
+    st = intraday.proof_stats(rec)
+    assert st['expired'] == 1 and st['losses'] == 0 and st['win_rate'] is None
+
+
+def test_setup_untriggered_inside_window_stays_open():
+    e = setup_entry()
+    rec = [e]
+    charts = {'SET': chart_from(BASE, [(0.5, 100.0)])}
+    mkt = {'SET': {'price': 100.0, 'high_24h': 101.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=1))
+    assert e['status'] == 'open'
+    assert e['triggered'] is False
+
+
+def test_setup_trigger_then_target_wins():
+    e = setup_entry()
+    rec = [e]
+    charts = {'SET': chart_from(BASE, [(0.5, 101.0), (1, 106.0), (2, 116.0)])}
+    mkt = {'SET': {'price': 116.0, 'high_24h': 116.0, 'low_24h': 100.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=2))
+    assert e['triggered'] is True
+    assert e['status'] == 'won'
+    assert e['result_pct'] == 10.0
+    assert e['paper_pnl'] == 100.0
+
+
+def test_setup_trigger_then_stop_loses():
+    e = setup_entry()
+    rec = [e]
+    charts = {'SET': chart_from(BASE, [(0.5, 106.0), (1, 99.0)])}
+    mkt = {'SET': {'price': 99.0, 'high_24h': 106.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=2))
+    assert e['triggered'] is True
+    assert e['status'] == 'lost'
+    assert e['result_pct'] == -5.0
+
+
+def test_setup_pretrigger_dip_below_stop_is_not_a_loss():
+    # The stop (99.75) sits between spot (~100) and the trigger (105)
+    # by construction; a dip to 98 BEFORE the trigger fills must not
+    # grade — only post-trigger observations count.
+    e = setup_entry()
+    rec = [e]
+    charts = {'SET': chart_from(BASE, [(0.5, 98.0), (1, 106.0), (2, 116.0)])}
+    mkt = {'SET': {'price': 116.0, 'high_24h': 116.0, 'low_24h': 98.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=2))
+    assert e['status'] == 'won'
+
+
+def test_setup_triggered_then_window_end_grades_at_drift():
+    e = setup_entry()
+    rec = [e]
+    # Triggers at 106, then drifts to 108 (above trigger, below
+    # target) by the time the window closes -> expired at drift.
+    charts = {'SET': chart_from(BASE, [(1, 106.0), (3, 108.0), (5, 108.0)])}
+    mkt = {'SET': {'price': 108.0, 'high_24h': 109.0, 'low_24h': 100.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'expired'
+    assert e['never_triggered'] is False
+    assert e['result_pct'] == pytest.approx((108.0 - 105.0) / 105.0 * 100, abs=0.01)
+
+
+def test_proof_cells_grouping_bands_and_regimes():
+    def entry(kind, direction, band, regime, status, pnl=0.0):
+        return {'kind': kind, 'direction': direction, 'band': band,
+                'regime': regime, 'status': status,
+                'result_pct': pnl, 'paper_pnl': pnl * 10,
+                'never_triggered': False}
+    rec = [
+        entry('signal', 'LONG', '70s', 'risk_on', 'won', 2.0),
+        entry('signal', 'LONG', '70s', 'risk_on', 'lost', -1.0),
+        entry('signal', 'LONG', '70s', 'risk_on', 'open'),
+        entry('mover', 'LONG', 'na', 'risk_off', 'won', 1.0),
+        # Legacy entry: no tags at all -> band 'na', regime 'unknown'.
+        {'kind': 'mover', 'direction': 'LONG', 'status': 'lost',
+         'result_pct': -1.0, 'paper_pnl': -10.0},
+    ]
+    rows = {(r['type'], r['direction'], r['band'], r['regime']): r
+            for r in intraday.proof_cells(rec)}
+    sig = rows[('signal', 'LONG', '70s', 'risk_on')]
+    assert sig['graded'] == 2 and sig['wins'] == 1 and sig['losses'] == 1
+    assert sig['open'] == 1 and sig['win_rate'] == 50.0
+    assert rows[('mover', 'LONG', 'na', 'risk_off')]['win_rate'] == 100.0
+    legacy = rows[('mover', 'LONG', 'na', 'unknown')]
+    assert legacy['losses'] == 1 and legacy['win_rate'] == 0.0
+
+
+def test_cumulative_counters_survive_ledger_roll():
+    # 105 closed entries in one cell; the cap trims the oldest 5.
+    rec = []
+    for i in range(105):
+        rec.append({'kind': 'mover', 'direction': 'LONG', 'band': 'na',
+                    'regime': 'neutral',
+                    'status': 'won' if i % 2 == 0 else 'lost',
+                    'result_pct': 1.0, 'paper_pnl': 10.0,
+                    'never_triggered': False})
+    before = intraday.proof_cells(rec)
+    trimmed, dropped = intraday._proof_trim(rec, cap=100)
+    assert len(trimmed) == 100 and len(dropped) == 5
+    cumulative = intraday.proof_roll_cumulative({}, dropped)
+    after = intraday.proof_cells(trimmed, cumulative)
+    assert after == before  # nothing was lost to the cap
+
+
+def test_flagged_cells_need_n20_and_extreme_rate():
+    def row(graded, wins, losses):
+        wl = wins + losses
+        return {'type': 'mover', 'direction': 'LONG', 'band': 'na',
+                'regime': 'neutral', 'graded': graded, 'wins': wins,
+                'losses': losses, 'expired': graded - wl,
+                'never_triggered': 0, 'open': 0,
+                'win_rate': round(wins / wl * 100, 1) if wl else None,
+                'paper_pnl_total': 0.0}
+    cells = [row(20, 13, 7),    # 65% at n=20 -> include candidate
+             row(19, 19, 0),    # 100% but n<20 -> no flag
+             row(30, 9, 21),    # 30% at n=30 -> exclude candidate
+             row(40, 20, 20)]   # 50% -> mid, no flag
+    flags = intraday.proof_flagged_cells(cells)
+    assert len(flags) == 2
+    assert flags[0]['candidate'] == 'include' and flags[0]['win_rate'] == 65.0
+    assert flags[1]['candidate'] == 'exclude' and flags[1]['win_rate'] == 30.0
+    assert all(f['recommendation_only'] for f in flags)
+
+
+def test_backfill_regimes_from_swing_runs():
+    runs = [(BASE - _dt.timedelta(days=2), 'RISK_OFF'),
+            (BASE - _dt.timedelta(hours=1), 'RISK_ON')]
+    old = {'kind': 'mover', 'direction': 'LONG', 'status': 'lost',
+           'ts_open': (BASE - _dt.timedelta(days=1)).isoformat()}
+    mid = {'kind': 'signal', 'direction': 'SHORT', 'status': 'won',
+           'ts_open': BASE.isoformat()}
+    ancient = {'kind': 'signal', 'direction': 'LONG', 'status': 'won',
+               'ts_open': (BASE - _dt.timedelta(days=30)).isoformat()}
+    tagged = {'kind': 'signal', 'direction': 'LONG', 'status': 'open',
+              'regime': 'neutral', 'ts_open': BASE.isoformat()}
+    rec = [old, mid, ancient, tagged]
+    n = intraday.proof_backfill_regimes(rec, runs)
+    assert n == 2
+    assert old['regime'] == 'risk_off'      # run in force a day ago
+    assert mid['regime'] == 'risk_on'       # latest run at/before open
+    assert 'regime' not in ancient          # predates every run
+    assert tagged['regime'] == 'neutral'    # never overwritten
+
+
+def test_main_records_setup_scenarios_and_publishes_cells(monkeypatch, tmp_path):
+    """End-to-end (same seeded-accum fixture as the trigger-plan test):
+    the published payload must carry the setup in the Proof Book, the
+    per-cell table, and the cumulative block."""
+    now = _dt.datetime.now(_dt.timezone.utc)
+    prior = {'accum_history': {'FLC': [
+        {'t': (now - _dt.timedelta(hours=3)).isoformat(),
+         'price': 10.0, 'vol24h': 40_000_000, 'vol_ratio': 0.08},
+        {'t': (now - _dt.timedelta(hours=1)).isoformat(),
+         'price': 10.0, 'vol24h': 45_000_000, 'vol_ratio': 0.09},
+    ]}, 'proof': {'record': []}}
+    with open(os.path.join(str(tmp_path), 'intraday.json'), 'w') as f:
+        json.dump(prior, f)
+    out, _ = run_main(monkeypatch, tmp_path, fixture_universe())
+    kinds = {(e['kind'], e['asset']) for e in out['proof']['record']}
+    assert ('setup', 'FLC') in kinds
+    setup = next(e for e in out['proof']['record'] if e['kind'] == 'setup')
+    assert setup['trigger_price'] == 10.5
+    assert setup['triggered'] is False
+    assert setup['band'] == 'na'
+    assert 'cumulative' in out['proof']
+    cells = out['proof']['stats']['cells']
+    setup_cells = [c for c in cells if c['type'] == 'setup']
+    assert setup_cells and setup_cells[0]['open'] == 1
+    assert 'flagged_cells' in out['proof']['stats']
+
+
 def test_main_accum_entry_gets_trigger_plan(monkeypatch, tmp_path):
     """End-to-end: seed 2 prior observations for the flat coin so the
     current run's 3rd observation (volume +25% vs ~3h ago, price flat)

@@ -38,16 +38,66 @@
   }
 
   function callLabel(e) {
-    var kind = e.kind === 'mover' ? '🚀 MOVER' : '⚡ SIGNAL';
+    var kind = e.kind === 'mover' ? '🚀 MOVER'
+      : e.kind === 'setup' ? '🔭 SETUP' : '⚡ SIGNAL';
     return kind + ' ' + esc(e.asset) + (e.direction === 'SHORT' ? ' (short)' : '');
   }
 
   function resultCell(e) {
-    if (e.status === 'open') return '⏳ Still open';
+    if (e.status === 'open') {
+      if (e.kind === 'setup' && !e.triggered) return '⏳ Waiting for the trigger';
+      return '⏳ Still open';
+    }
     var detail = fmtPct(e.result_pct) + ' (' + fmtMoney(e.paper_pnl || 0) + ')';
     if (e.status === 'won') return '🎯 Target hit ' + detail;
     if (e.status === 'lost') return '🛑 Stopped out ' + detail;
+    if (e.never_triggered) return '⌛ Trigger never hit — no trade taken ' + detail;
     return '⌛ Ran out of time ' + detail;
+  }
+
+  // The regime dimension is always shown with the site's plain
+  // labels — internal cell tags (risk_on / neutral / risk_off) are
+  // mapped here and never rendered raw.
+  var REGIME_LABEL = {
+    risk_on: '🟢 Conditions favor buying',
+    risk_off: '🔴 Conditions favor caution',
+    neutral: '🟡 Mixed conditions',
+    unknown: 'Regime not recorded'
+  };
+
+  function cellLabel(c) {
+    var type = c.type === 'mover' ? 'Mover' : c.type === 'setup' ? 'Setup' : 'Signal';
+    var band = c.band && c.band !== 'na' ? ' · ' + esc(c.band) + ' confidence' : '';
+    return type + ' · ' + esc(c.direction) + band + ' · ' +
+      (REGIME_LABEL[c.regime] || REGIME_LABEL.unknown);
+  }
+
+  function renderCells(st) {
+    var cells = (st && st.cells) || [];
+    var rows = cells.filter(function (c) { return c.graded > 0 || c.open > 0; });
+    if (!rows.length) return '';
+    var body = rows.map(function (c) {
+      return '<tr><td>' + cellLabel(c) + '</td><td>' + c.wins + '</td><td>' +
+        c.losses + '</td><td>' + c.expired + '</td><td>' + c.open + '</td><td>' +
+        c.graded + '</td><td>' +
+        (c.win_rate === null || c.win_rate === undefined ? '—' : c.win_rate + '%') +
+        '</td></tr>';
+    }).join('');
+    var html = '<details style="margin-top:16px;"><summary><strong>Win/loss by scenario' +
+      '</strong> — every kind of call, graded separately (all-time; counts include calls' +
+      ' that have rolled off the list above)</summary>' +
+      '<table class="report-table"><thead><tr><th>Scenario</th><th>Won</th><th>Lost</th>' +
+      '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table>';
+    var flags = (st && st.flagged_cells) || [];
+    if (flags.length) {
+      html += '<p>' + flags.map(function (f) {
+        return '⭐ Review candidate (' + (f.candidate === 'include' ? 'inclusion' : 'exclusion') +
+          '): ' + cellLabel(f) + ' — ' + f.win_rate + '% over ' + f.graded +
+          ' graded calls. Recommendation only — no alert rule changes on its own.';
+      }).join('<br>') + '</p>';
+    }
+    return html + '</details>';
   }
 
   function render(proof, swing) {
@@ -93,6 +143,8 @@
         '<th>Bought (paper) at</th><th>Target</th><th>Stop</th><th>Result</th></tr></thead>' +
         '<tbody>' + rows + '</tbody></table>';
     }
+
+    html += renderCells(st);
 
     el.innerHTML = html;
   }
