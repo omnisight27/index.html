@@ -128,8 +128,8 @@
       : assetHeader(s);
     return '<div class="alert-card ' + cls + '">' +
       header +
-      '<p><strong>In:</strong> ' + t.entry_time + ' @ $' + t.entry +
-      ' &nbsp; <strong>Out by:</strong> ' + t.exit_by + '</p>' +
+      '<p><strong>In:</strong> ' + fmtClockET(t.entry_time) + ' @ $' + t.entry +
+      ' &nbsp; <strong>Out by:</strong> ' + fmtClockET(t.exit_by) + '</p>' +
       '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
       '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
       '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday">📄 Full detail page →</a></p>' +
@@ -146,6 +146,28 @@
     if (!isFinite(v)) return '—';
     return v >= 1 ? v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                   : String(+v.toFixed(4));
+  }
+
+  // Engine clock strings arrive as "HH:MM UTC" (intraday) or a plain
+  // date "YYYY-MM-DD" (swing projected exit). Nic reads ET: convert
+  // clock times to ET, leave dates untouched.
+  function fmtClockET(v) {
+    if (!v) return v;
+    var s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    var d = null;
+    var m = s.match(/^(\d{1,2}):(\d{2})\s*UTC$/i);
+    if (m) {
+      d = new Date();
+      d.setUTCHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+    } else {
+      var t = Date.parse(s);
+      if (!isNaN(t)) d = new Date(t);
+    }
+    if (!d) return s;
+    try {
+      return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(d) + ' ET';
+    } catch (e) { return s; }
   }
 
   function moverCard(m) {
@@ -171,7 +193,7 @@
       planLine = '<p><strong>Buy</strong> ~$' + fmtPlanPrice(m.plan.entry) +
         ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(m.plan.take_profit) +
         ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(m.plan.stop_loss) +
-        ' · <strong>Out by</strong> ' + m.plan.exit_by + '</p>';
+        ' · <strong>Out by</strong> ' + fmtClockET(m.plan.exit_by) + '</p>';
     } else if (m.plan_note) {
       planLine = '<p class="live-stamp">' + m.plan_note + '</p>';
     }
@@ -250,7 +272,7 @@
     return '<p><strong>Buy</strong> ~$' + fmtPlanPrice(plan.entry) +
       ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(plan.take_profit) +
       ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(plan.stop_loss) +
-      (plan.exit_by ? ' · <strong>Out by</strong> ' + plan.exit_by : '') + '</p>';
+      (plan.exit_by ? ' · <strong>Out by</strong> ' + fmtClockET(plan.exit_by) : '') + '</p>';
   }
 
   function verdictCard(v) {
@@ -267,7 +289,7 @@
     var detail = v.detail ? '<p><a class="details-toggle" href="' + v.detail + '">📄 Full detail page →</a></p>' : '';
     return '<div class="alert-card ' + cls + '">' +
       '<h4><span style="background:' + b[0] + ';color:' + b[1] + ';padding:2px 10px;border-radius:999px;font-size:13px;vertical-align:middle">' + v.verdict + '</span> ' + v.asset + '</h4>' +
-      '<p class="asset-sub">' + nm + link + '</p>' +
+      '<p class="asset-sub">' + assetBadge(v) + nm + link + tradableBadge(v) + '</p>' +
       '<p>' + v.reason + '</p>' +
       planLine(v.plan) +
       detail + '</div>';
@@ -291,7 +313,7 @@
     intraLongs.forEach(function (s) {
       if ((s.confidence || 0) >= 70 && !newsFlagged[s.asset]) {
         var t = s.thesis || {};
-        push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url,
+        push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url, 'class': s['class'], tradable: s.tradable,
           reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 70% buy bar.',
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null,
           detail: 'pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday' });
@@ -301,7 +323,7 @@
       var agree = tfAgree(p);
       if ((p.confidence || 0) >= 70 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
         var t = p.thesis || {};
-        push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url,
+        push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
           reason: p.confidence + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
           plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit },
           detail: 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=long' });
@@ -309,7 +331,7 @@
     });
     movers.forEach(function (m) {
       if (m.plan && (m.chg_1h || 0) > 0 && (m.chg_24h || 0) >= 15) {
-        push(buys, { verdict: 'BUY', asset: m.asset, name: m.name, info_url: m.info_url,
+        push(buys, { verdict: 'BUY', asset: m.asset, name: m.name, info_url: m.info_url, 'class': m['class'], tradable: m.tradable,
           reason: 'Mover still climbing: +' + m.chg_24h + '% in 24h and +' + m.chg_1h + '% this hour, with a plan attached.',
           plan: m.plan, detail: detailFor(m.asset) });
       }
@@ -318,12 +340,12 @@
     // AVOID — bad headlines and falling knives
     Object.keys(newsFlagged).forEach(function (a) {
       var p = newsFlagged[a];
-      push(avoids, { verdict: 'AVOID', asset: a, name: p.name, info_url: p.info_url,
+      push(avoids, { verdict: 'AVOID', asset: a, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
         reason: '⚠️ News risk: ' + plainReason(p.news_flag), detail: detailFor(a) });
     });
     movers.forEach(function (m) {
       if ((m.chg_24h || 0) <= -10) {
-        push(avoids, { verdict: 'AVOID', asset: m.asset, name: m.name, info_url: m.info_url,
+        push(avoids, { verdict: 'AVOID', asset: m.asset, name: m.name, info_url: m.info_url, 'class': m['class'], tradable: m.tradable,
           reason: 'Falling hard (' + m.chg_24h + '% in 24h) — no catching knives (long-only).',
           detail: detailFor(m.asset) });
       }
@@ -350,7 +372,7 @@
             (ag === null ? 'no timeframe confirmation yet' : 'only ' + ag + ' of 5 timeframes agree') +
             ' — the buy bar needs 4 of 5 agreeing.';
         }
-        closest = { verdict: 'CLOSEST TO A BUY', asset: p.asset, name: p.name, info_url: p.info_url,
+        closest = { verdict: 'CLOSEST TO A BUY', asset: p.asset, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
           reason: 'Closest thing to a buy right now: ' + gap,
           plan: c.src === 'swing'
             ? { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit }
@@ -365,7 +387,7 @@
     // WATCHING — early signs, top 3 across watch + Setting Up
     (intra.watch || []).concat(intra.accum || []).forEach(function (m) {
       if (watching.length >= 3) return;
-      push(watching, { verdict: 'WATCHING', asset: m.asset, name: m.name, info_url: m.info_url,
+      push(watching, { verdict: 'WATCHING', asset: m.asset, name: m.name, info_url: m.info_url, 'class': m['class'], tradable: m.tradable,
         reason: 'Watching — ' + plainReason(m.watch_reason || 'early signs building'),
         plan: m.plan || null, detail: detailFor(m.asset) });
     });

@@ -43,6 +43,18 @@
     var side = params.get('side') || 'long';
 
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+    // Engine clock strings arrive as "HH:MM UTC"; Nic reads ET. Dates pass through.
+    function fmtClockET(v) {
+      if (!v) return v;
+      var s = String(v);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      var d = null, m = s.match(/^(\d{1,2}):(\d{2})\s*UTC$/i);
+      if (m) { d = new Date(); d.setUTCHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0); }
+      else { var t = Date.parse(s); if (!isNaN(t)) d = new Date(t); }
+      if (!d) return s;
+      try { return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(d) + ' ET'; }
+      catch (e) { return s; }
+    }
 
     // Plain-English regime labels (internal values stay RISK_ON/RISK_OFF/NEUTRAL)
     var REGIME_LABELS = {
@@ -107,8 +119,8 @@
         '<p><span class="asset-badge badge-crypto">🪙 Crypto</span> <span class="live-stamp">Intraday signal</span></p>' + tradableLine(s) +
         '<h3>The Trade</h3>' +
         '<p><strong>Direction:</strong> ' + s.direction + ' &nbsp; <strong>Confidence:</strong> ' + s.confidence + '%</p>' +
-        '<p><strong>In:</strong> ' + esc(t.entry_time || '—') + ' @ $' + t.entry + '</p>' +
-        '<p><strong>Out by:</strong> ' + esc(t.exit_by || '—') + '</p>' +
+        '<p><strong>In:</strong> ' + esc(t.entry_time ? fmtClockET(t.entry_time) : '—') + ' @ $' + t.entry + '</p>' +
+        '<p><strong>Out by:</strong> ' + esc(t.exit_by ? fmtClockET(t.exit_by) : '—') + '</p>' +
         '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
         '<p><strong>1h change:</strong> ' + t.chg_1h + '% &nbsp; <strong>RSI:</strong> ' + t.rsi + '</p>' +
         '<p><strong>Horizon:</strong> 1–4 hours</p>' +
