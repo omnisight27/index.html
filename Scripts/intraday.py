@@ -78,6 +78,30 @@ def score_intraday(f):
         score *= 0.6
     return score
 
+def round_price(p):
+    """Adaptive price precision — mirrors nexintel.py's round_price():
+    sub-cent coins keep enough decimals that entry/target/stop stay
+    distinct (a flat round(…, 4) collapses a $0.0024 coin's plan to
+    target == entry == stop, which reads as 'no plan' downstream)."""
+    if not p: return 0
+    if p >= 100: return round(p, 2)
+    if p >= 1: return round(p, 4)
+    if p >= 0.01: return round(p, 6)
+    return round(p, 8)
+
+def _round_plan(entry, target, stop):
+    """Round a plan's three levels with round_price(); if rounding still
+    collapses them (values no longer distinct, or the target/stop sides
+    flipped), fall back to 10 decimals so the order survives."""
+    e, t, s = round_price(entry), round_price(target), round_price(stop)
+    def _sign(x):
+        return (x > 0) - (x < 0)
+    if (len({e, t, s}) < 3
+            or _sign(t - e) != _sign(target - entry)
+            or _sign(s - e) != _sign(stop - entry)):
+        e, t, s = round(entry, 10), round(target, 10), round(stop, 10)
+    return e, t, s
+
 def build_intraday_thesis(sym, f, score):
     direction = 'LONG' if score > 0 else 'SHORT'
     vol = f['vol']
@@ -88,6 +112,7 @@ def build_intraday_thesis(sym, f, score):
     else:
         stop = price * (1 + vol / 100 * 0.8)
         target = price * (1 - vol / 100 * 1.2)
+    entry_r, target_r, stop_r = _round_plan(price, target, stop)
 
     now = datetime.now(timezone.utc)
     # Intraday horizon: 2 hours typical
@@ -107,9 +132,9 @@ def build_intraday_thesis(sym, f, score):
 
     return {
         'direction': direction,
-        'entry': round(price, 4) if price < 10 else round(price, 2),
-        'stop_loss': round(stop, 4) if price < 10 else round(stop, 2),
-        'take_profit': round(target, 4) if price < 10 else round(target, 2),
+        'entry': entry_r,
+        'stop_loss': stop_r,
+        'take_profit': target_r,
         'entry_time': now.strftime('%H:%M UTC'),
         'exit_by': exit_time.strftime('%H:%M UTC'),
         'horizon': '1-4 hours',
@@ -168,22 +193,52 @@ def build_mover_plan(price, vol):
     stop = entry * (1 - vol / 100 * 0.8)
     target = entry * (1 + vol / 100 * 1.2)
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
-    # Same rounding as the thesis for normal prices; extra decimals for
-    # sub-cent coins (e.g. PEPE) so their plans don't round to $0.00.
-    if entry >= 10:
-        rnd = lambda v: round(v, 2)
-    elif entry >= 0.01:
-        rnd = lambda v: round(v, 4)
-    else:
-        rnd = lambda v: round(v, 8)
+    # Adaptive precision (round_price, as in the swing engine) so sub-cent
+    # plans keep entry < target / entry > stop visibly distinct.
+    entry_r, target_r, stop_r = _round_plan(entry, target, stop)
     return {
-        'entry': rnd(entry),
-        'take_profit': rnd(target),
-        'stop_loss': rnd(stop),
+        'entry': entry_r,
+        'take_profit': target_r,
+        'stop_loss': stop_r,
         'exit_by': exit_time.strftime('%H:%M UTC'),
         'horizon': '1-4 hours',
         'expected_return_pct': round(abs(target - entry) / entry * 100, 2),
         'max_loss_pct': round(abs(entry - stop) / entry * 100, 2),
+    }
+
+def build_accum_plan(price, vol, range_high=None):
+    """Trigger plan for a setting-up (accumulation) entry — the levels a
+    resting limit buy needs BEFORE the move starts (Nic 2026-10-21: "I
+    need to be before the jump up"). Same hourly-vol machinery as mover
+    plans: target = trigger x (1 + vol x 1.2), stop = trigger x
+    (1 - vol x 0.8), exit +3h like mover plans.
+
+    Trigger: the recent range high (24h high) when it sits within 5%
+    above spot — a genuine near-term breakout level — otherwise spot x
+    (1 + 0.5 x hourly vol), one half-vol step above spot as the
+    confirmation level. Returns None when no volatility is available
+    from anywhere, so the caller ships plan: null and the alert falls
+    back to a WATCH card instead of invented numbers."""
+    from datetime import timedelta
+    if not price or not vol:
+        return None
+    if range_high and price < range_high <= price * 1.05:
+        trigger = range_high
+    else:
+        trigger = price * (1 + vol / 100 * 0.5)
+    target = trigger * (1 + vol / 100 * 1.2)
+    stop = trigger * (1 - vol / 100 * 0.8)
+    exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
+    trigger_r, target_r, stop_r = _round_plan(trigger, target, stop)
+    return {
+        'trigger_price': trigger_r,
+        'entry': trigger_r,  # a fill happens at the trigger
+        'take_profit': target_r,
+        'stop_loss': stop_r,
+        'exit_by': exit_time.strftime('%H:%M UTC'),
+        'horizon': 'pre-move setup',
+        'expected_return_pct': round(abs(target - trigger) / trigger * 100, 2),
+        'max_loss_pct': round(abs(trigger - stop) / trigger * 100, 2),
     }
 
 def _sig(v):
@@ -706,6 +761,12 @@ def main():
             'vol_ratio': _sig(vol_ratio),
             'watch_reason': reason,
         })
+        # Trigger plan from the same sparkline vol map as mover plans
+        # (median fallback included); plan stays None only when no
+        # volatility exists anywhere — the alert then shows WATCH.
+        a['plan'] = build_accum_plan(a['price'],
+                                     vol_by_id.get(c.get('id')) or median_vol,
+                                     c.get('high_24h'))
         accum.append(a)
     accum.sort(key=lambda a: (not a['tradable'], -a['vol_growth_pct']))
     accum = accum[:8]

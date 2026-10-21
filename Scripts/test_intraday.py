@@ -218,3 +218,92 @@ def test_main_no_sparklines_anywhere_keeps_honest_null(monkeypatch, tmp_path):
     movers = {m['asset']: m for m in out['movers']}
     assert movers['UPC']['plan'] is None
     assert movers['UPC']['plan_note'] == 'Plan unavailable — price feed hiccup.'
+
+
+# ----------------- sub-cent precision: rounding must never collapse a plan
+# (2026-10-21: a $0.0024 mover's plan displayed as tgt $0.0024 / stop
+# $0.0023 — target == entry — after 4-decimal rounding.)
+
+def test_mover_plan_subcent_strict_order():
+    plan = intraday.build_mover_plan(0.0024, 1.5)
+    assert plan is not None
+    assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
+    assert plan['take_profit'] != plan['entry']
+
+
+def test_thesis_subcent_strict_order():
+    f = {'vol': 2.0, 'price': 0.0062, 'chg_1h': 1.5,
+         'rsi': 50.0, 'pos_in_range': 0.5}
+    th = intraday.build_intraday_thesis('ATH', f, 5.0)
+    assert th['direction'] == 'LONG'
+    assert th['stop_loss'] < th['entry'] < th['take_profit']
+    th = intraday.build_intraday_thesis('ATH', f, -5.0)
+    assert th['direction'] == 'SHORT'
+    assert th['take_profit'] < th['entry'] < th['stop_loss']
+
+
+def test_round_price_mirrors_swing_engine():
+    assert intraday.round_price(2507.96) == 2507.96
+    assert intraday.round_price(5.17) == 5.17
+    assert intraday.round_price(0.7101) == 0.7101
+    assert intraday.round_price(0.00244704) == 0.00244704
+    assert intraday.round_price(0) == 0
+
+
+# ----------------------- accumulation (setting-up) trigger plans
+
+def test_accum_plan_uses_range_high_within_5pct():
+    plan = intraday.build_accum_plan(5.17, 2.0, range_high=5.30)
+    assert plan is not None
+    assert plan['trigger_price'] == 5.30  # the breakout level itself
+    assert plan['entry'] == plan['trigger_price']
+    assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
+    # mover ratios off the trigger: 1.2x / 0.8x of 2% hourly vol
+    assert plan['expected_return_pct'] == round(2.0 * 1.2, 2)
+    assert plan['max_loss_pct'] == round(2.0 * 0.8, 2)
+    assert plan['exit_by'].endswith('UTC')
+
+
+def test_accum_plan_vol_step_when_range_high_far_or_missing():
+    # Range high 30% above spot is not a near-term level -> vol step.
+    plan = intraday.build_accum_plan(5.17, 2.0, range_high=6.72)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
+    plan = intraday.build_accum_plan(5.17, 2.0, range_high=None)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
+    # Price already at/above the range high -> vol step too.
+    plan = intraday.build_accum_plan(5.17, 2.0, range_high=5.10)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
+
+
+def test_accum_plan_none_without_vol_and_subcent_order():
+    assert intraday.build_accum_plan(5.17, None) is None
+    assert intraday.build_accum_plan(5.17, 0) is None
+    assert intraday.build_accum_plan(0, 2.0) is None
+    plan = intraday.build_accum_plan(0.0041, 2.0, range_high=0.0043)
+    assert plan['trigger_price'] == 0.0043
+    assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
+
+
+def test_main_accum_entry_gets_trigger_plan(monkeypatch, tmp_path):
+    """End-to-end: seed 2 prior observations for the flat coin so the
+    current run's 3rd observation (volume +25% vs ~3h ago, price flat)
+    trips pattern A — the published accum entry must carry a plan built
+    from its sparkline vol, with the 24h high as the trigger."""
+    import datetime as _dt
+    now = _dt.datetime.now(_dt.timezone.utc)
+    prior = {'accum_history': {'FLC': [
+        {'t': (now - _dt.timedelta(hours=3)).isoformat(),
+         'price': 10.0, 'vol24h': 40_000_000, 'vol_ratio': 0.08},
+        {'t': (now - _dt.timedelta(hours=1)).isoformat(),
+         'price': 10.0, 'vol24h': 45_000_000, 'vol_ratio': 0.09},
+    ]}, 'proof': {'record': []}}
+    with open(os.path.join(str(tmp_path), 'intraday.json'), 'w') as f:
+        json.dump(prior, f)
+    out, _ = run_main(monkeypatch, tmp_path, fixture_universe())
+    accum = {a['asset']: a for a in out['accum']}
+    assert 'FLC' in accum, f"accum assets: {sorted(accum)}"
+    plan = accum['FLC']['plan']
+    assert plan is not None
+    # fixture high_24h = price x 1.05 — right at the 5% boundary.
+    assert plan['trigger_price'] == 10.5
+    assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
