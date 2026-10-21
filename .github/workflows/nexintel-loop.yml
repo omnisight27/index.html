@@ -32,7 +32,7 @@ jobs:
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-          SAM_GOV_API_KEY: ${{ secrets.SAM_GOV_API_KEY}}
+          SAM_GOV_API_KEY: ${{ secrets.SAM_GOV_API_KEY }}
         run: python3 Scripts/nexintel.py
 
       - name: Commit data
