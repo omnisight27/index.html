@@ -53,6 +53,18 @@ def fetch_text(url, timeout=20):
         print(f'  [warn] {url[:60]}... failed: {e}')
         return None
 
+def load_newsletter_digest():
+    """Load data/newsletters.json — the daily digest distilled from Nic's
+    nine morning newsletters (built by scripts/build-newsletter-digest.py
+    in the goal workspace, committed by the newsletter cron). Returns the
+    parsed digest, or None when absent/unreadable — the engine degrades,
+    never dies."""
+    try:
+        with open(os.path.join(DATA_DIR, 'newsletters.json')) as f:
+            return json.load(f)
+    except Exception:
+        return None
+
 # ---------------------------------------------------------------- INGEST
 def ingest():
     print('INGEST: pulling live feeds...')
@@ -158,6 +170,23 @@ def ingest():
     # Headlines
     news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
     d['headlines'] = (news or {}).get('results', [])[:10]
+
+    # Morning newsletters — merge the daily digest's headlines into the
+    # news feed, tagged with the newsletter name as source, so the
+    # news-risk cross-reference in think() covers them too. The digest
+    # itself rides along for its pre-scanned market flags.
+    d['newsletter_digest'] = load_newsletter_digest()
+    if d['newsletter_digest']:
+        merged = 0
+        for src in d['newsletter_digest'].get('sources', []):
+            for h in src.get('headlines', []):
+                d['headlines'].append({'title': h, 'source': src.get('name'),
+                                        'via': 'newsletter'})
+                merged += 1
+        print(f"  Newsletters: {merged} headlines merged "
+              f"({d['newsletter_digest'].get('date')})")
+    else:
+        print('  [info] no newsletter digest — newsletter feed skipped')
 
     # St. Louis Fed "On the Economy" blog — economist commentary feed
     # (via curl: stlouisfed.org blocks Python urllib)
@@ -808,6 +837,33 @@ def think(data, history):
             p['reason'] += f' ⚠️ News risk: {ntitle}'
             print(f"  news risk flagged: {p['asset']} — {ntitle[:70]}")
 
+    # Newsletter market flags: the digest pre-scans its headlines for risk
+    # terms (hack, SEC, lawsuit, ...). A pick named in one of those flagged
+    # headlines gets the exact same news_flag treatment as above — same
+    # dock, same reason suffix, same BUY exclusion downstream.
+    RISK_FLAG_TERMS = {'hack', 'exploit', 'sec', 'lawsuit', 'ban', 'delist',
+                       'fraud', 'breach', 'stolen'}
+    digest_flags = [f for f in (data.get('newsletter_digest') or {})
+                    .get('market_flags', [])
+                    if str(f.get('term', '')).lower() in RISK_FLAG_TERMS]
+    for p in longs + shorts:
+        if p.get('news_flag'):
+            continue
+        sym = p.get('asset', '')
+        name = (p.get('name') or '').lower()
+        for flag in digest_flags:
+            title = flag.get('headline') or ''
+            if not title:
+                continue
+            tl = title.lower()
+            if (sym and _re.search(r'\b' + _re.escape(sym) + r'\b', title)) or \
+               (len(name) >= 3 and name in tl):
+                p['news_flag'] = title
+                p['confidence'] = max(35, p['confidence'] - 8)
+                p['reason'] += f' ⚠️ News risk: {title}'
+                print(f"  news risk flagged (newsletter): {p['asset']} — {title[:70]}")
+                break
+
     # --- Empirical calibration ("no fake calibration") ---
     # Pull stated confidence toward the band's REALIZED win rate so a pick
     # stamped 86% isn't really a 59% proposition. Evidence-gated: bands
@@ -939,6 +995,14 @@ def think(data, history):
     if cpi_yoy and cpi_yoy < 2.5:
         lt_outlook['thesis'].append(f'Inflation cool at {cpi_yoy:.1f}% — Fed has room to ease, bullish for duration.')
 
+    # News output: first 5 wire headlines + up to 5 newsletter headlines
+    # (tagged with the newsletter name as their source).
+    _hl = data.get('headlines', [])
+    headlines_out = [{'title': h.get('title'), 'source': h.get('source')}
+                     for h in _hl[:5]]
+    headlines_out += [{'title': h.get('title'), 'source': h.get('source')}
+                      for h in _hl if h.get('via') == 'newsletter'][:5]
+
     return {
         'longs': longs[:10], 'shorts': shorts[:10],
         'psychology': {'fear_greed': fg_now, 'delta': fg_delta, 'bias': psych_bias,
@@ -952,8 +1016,7 @@ def think(data, history):
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
         'fed_commentary': data.get('fed_commentary', []),
-        'headlines': [{'title': h.get('title'), 'source': h.get('source')} 
-                      for h in data.get('headlines', [])[:5]],
+        'headlines': headlines_out,
         'alerts': alerts,
         'long_term': lt_outlook,
     }
@@ -1085,6 +1148,11 @@ def publish(data, signals, history, data_pulled_at=None):
         'opportunities': signals.get('opportunities', []),
         'fed_commentary': data.get('fed_commentary', []),
         'headlines': signals['headlines'],
+        'newsletters': ({'date': data['newsletter_digest'].get('date'),
+                         'sources': [s.get('name') for s in
+                                     data['newsletter_digest'].get('sources', [])]}
+                        if data.get('newsletter_digest') else None),
+        'newsletter_flags': (data.get('newsletter_digest') or {}).get('market_flags', []),
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
         'calibration': history.get('calibration', []),
