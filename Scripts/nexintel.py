@@ -275,6 +275,19 @@ def ingest():
     else:
         print('  [info] FINNHUB_API_KEY absent — stocks feed skipped (add key in GitHub Secrets)')
 
+    # --- Kalshi probability feed (keyless public API, read-only) ---
+    # Watched Fed/CPI/crypto-threshold markets + paper tracking ledger.
+    # Self-contained in Scripts/kalshi.py; a failure here never blocks
+    # the rest of the run.
+    try:
+        import kalshi as _kalshi
+        d['kalshi'] = _kalshi.collect(DATA_DIR)
+        print(f"  kalshi: watching {d['kalshi'].get('watch_total', 0)} markets, "
+              f"{len(d['kalshi'].get('paper_open', []))} paper positions open")
+    except Exception as e:
+        print(f'  Kalshi feed failed: {e}')
+        d['kalshi'] = {}
+
     return d
 
 # ---------------------------------------------------------------- THINK
@@ -1154,6 +1167,19 @@ def publish(data, signals, history, data_pulled_at=None):
         except Exception as e:
             print(f'  publish: carry-forward unavailable ({e})')
 
+    # Same carry-forward protection for the Kalshi summary: a run where
+    # the Kalshi API hiccups must not blank the panel.
+    kalshi = data.get('kalshi') or {}
+    kalshi_carried = False
+    if not kalshi:
+        try:
+            with open(os.path.join(DATA_DIR, 'latest.json')) as f:
+                prev_k = json.load(f)
+            if prev_k.get('kalshi'):
+                kalshi = prev_k['kalshi']; kalshi_carried = True
+        except Exception:
+            pass
+
     latest = {
         'generated': now.isoformat(),
         'data_pulled_at': data_pulled_at,
@@ -1184,6 +1210,8 @@ def publish(data, signals, history, data_pulled_at=None):
         'macro_carried': macro_carried,
         'rates': rates,
         'rates_carried': rates_carried,
+        'kalshi': kalshi,
+        'kalshi_carried': kalshi_carried,
         'alerts': signals.get('alerts', []),
         'long_term': signals.get('long_term', {}),
     }
