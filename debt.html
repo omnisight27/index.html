@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Debt Payoff — OmniSight</title>
+<title>Money Max — Financial GPS · OmniSight</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,8 +24,35 @@
 </header>
 
 <main class="container">
-  <h1>Debt Payoff Optimizer</h1>
-  <p class="subtitle">Enter your debts. We calculate the fastest way out — least interest paid.</p>
+  <h1>Money Max — Financial GPS</h1>
+  <p class="subtitle">Your financial GPS: the exact date you're debt-free, the interest you'll save, and the fastest route there. Enter your debts below — the route recalculates as you type.</p>
+
+  <section class="card" id="gps">
+    <h2>🧭 Money Max — Financial GPS</h2>
+    <div id="gps-warnings"></div>
+    <div class="grid" id="gps-cards"></div>
+    <div id="gps-detail" style="display:none">
+      <h3>Payoff plan — debt by debt</h3>
+      <div id="gps-payoff"></div>
+      <h3>Month-by-month route (first 12 months)</h3>
+      <div id="gps-schedule"></div>
+      <details class="sched-full"><summary>See the full route</summary><div id="gps-schedule-full"></div></details>
+    </div>
+  </section>
+
+  <section class="card" id="whatif">
+    <h2>🔮 What-If Simulator</h2>
+    <p class="hint">Test a purchase or an extra monthly payment against your route — your saved debts don't change.</p>
+    <div class="debt-grid">
+      <input type="number" id="wi-amount" placeholder="Purchase amount $" min="0" step="10">
+      <input type="number" id="wi-apr" placeholder="Purchase APR %" min="0" step="0.01">
+      <input type="number" id="wi-minpct" placeholder="Card minimum % of balance" min="0" step="0.1" value="2">
+      <input type="number" id="wi-minfixed" placeholder="…or fixed min payment $" min="0" step="1">
+      <input type="number" id="wi-extra" placeholder="Extra monthly payment $" min="0" step="10">
+    </div>
+    <div id="wi-result" class="hint" style="margin-top:10px"></div>
+    <button class="btn-small" id="wi-reset">↺ Reset what-if</button>
+  </section>
 
   <section class="card">
     <h2>Your Debts</h2>

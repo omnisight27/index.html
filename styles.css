@@ -573,6 +573,12 @@ input[type="radio"] {
 .hint { color: var(--text-light); font-size: 14px; }
 .subtitle { color: var(--text-light); margin-top: -10px; }
 
+/* Money Max GPS */
+.gps-value { font-size: 30px; font-weight: bold; color: var(--accent); margin: 6px 0; }
+.gps-warn { color: var(--danger); margin: 6px 0; }
+details.sched-full { margin-top: 10px; }
+details.sched-full summary { cursor: pointer; color: var(--accent); }
+
 /* Footer */
 .footer {
   text-align: center;

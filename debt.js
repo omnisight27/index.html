@@ -360,7 +360,206 @@
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
   });
 
+  // ============ Money Max — Financial GPS ============
+  // Core simulation: monthly amortization (monthly rate = APR/12).
+  // mode 'plan': the full budget is applied every month — minimums first,
+  //   then all spare cash avalanches to the highest-APR debt. When a debt
+  //   dies, its freed minimum rolls into the next debt automatically
+  //   because the whole budget is re-applied each month.
+  // mode 'minimums': baseline — each debt gets only its own minimum,
+  //   nothing ever rolls over.
+  function simulate(rawDebts, budget, mode) {
+    var ds = normalize(rawDebts).map(function (d, idx) {
+      return { name: d.name, type: d.type, apr: d.apr, min: d.min, due: d.due,
+               pif: !!d.pif, balance: d.balance, interestPaid: 0, payoffMonth: 0, idx: idx };
+    });
+    if (mode === 'plan') ds.sort(function (a, b) { return (b.apr - a.apr) || (a.idx - b.idx); });
+    var totalInterest = 0, month = 0, schedule = [];
+    function alive() { return ds.some(function (d) { return d.balance > 0.01; }); }
+    while (alive() && month < 600) {
+      month++;
+      var monthInterest = 0, paidMin = 0, extraApplied = 0, targets = [];
+      ds.forEach(function (d) {
+        if (d.balance <= 0.01) return;
+        if (!(d.type === 'credit' && d.pif)) {
+          var interest = d.balance * (d.apr / 100 / 12);
+          d.interestPaid += interest; totalInterest += interest; monthInterest += interest;
+          d.balance += interest;
+        }
+        var pay = Math.min(d.type === 'credit' && d.pif ? d.balance : d.min, d.balance);
+        d.balance -= pay; paidMin += pay;
+        if (d.balance <= 0.01 && !d.payoffMonth) d.payoffMonth = month;
+      });
+      if (mode === 'plan') {
+        var spare = budget - paidMin;
+        for (var i = 0; i < ds.length && spare > 0.01; i++) {
+          var d = ds[i];
+          if (d.balance <= 0.01 || (d.type === 'credit' && d.pif)) continue;
+          var x = Math.min(spare, d.balance);
+          d.balance -= x; spare -= x; extraApplied += x;
+          if (targets.indexOf(d.name) === -1) targets.push(d.name);
+          if (d.balance <= 0.01 && !d.payoffMonth) d.payoffMonth = month;
+        }
+      }
+      schedule.push({ month: month, target: targets.join(' + '),
+        extra: Math.round(extraApplied * 100) / 100,
+        interest: Math.round(monthInterest * 100) / 100,
+        remaining: Math.round(ds.reduce(function (s, d) { return s + Math.max(d.balance, 0); }, 0) * 100) / 100 });
+    }
+    return { months: month, capped: alive(), totalInterest: totalInterest,
+             perDebt: ds, schedule: schedule };
+  }
+
+  function money(x) { return '$' + Math.round(x).toLocaleString(); }
+
+  function schedTable(rows) {
+    var t = '<table class="sched-table"><tr><th>Month</th><th>Extra goes to</th><th>Extra principal</th><th>Interest</th><th>Balance left</th></tr>';
+    rows.forEach(function (m) {
+      t += '<tr><td>' + m.month + ' · ' + fmtDate(m.month) + '</td><td>' + esc(m.target || '—') +
+        '</td><td>' + (m.extra > 0 ? money(m.extra) : '—') + '</td><td>' + money(m.interest) +
+        '</td><td>' + money(m.remaining) + '</td></tr>';
+    });
+    return t + '</table>';
+  }
+
+  function renderGPS() {
+    var warnEl = document.getElementById('gps-warnings');
+    var cardsEl = document.getElementById('gps-cards');
+    var detailEl = document.getElementById('gps-detail');
+    if (!warnEl || !cardsEl) return;
+    readRows();
+    var budget = parseFloat(document.getElementById('budget').value) || 0;
+    warnEl.innerHTML = '';
+    detailEl.style.display = 'none';
+    if (!debts.length) {
+      cardsEl.innerHTML = '<p class="hint">Add your debts and a monthly budget below — your GPS route appears here.</p>';
+      return;
+    }
+    var warnings = [];
+    var norm = normalize(debts);
+    norm.forEach(function (d) {
+      if (d.type === 'credit' && d.pif) return;
+      var monthlyInterest = d.balance * (d.apr / 100 / 12);
+      if (d.apr > 0 && d.min <= monthlyInterest) {
+        warnings.push('⚠️ ' + esc(d.name) + ': the minimum (' + money(d.min) + '/mo) doesn\'t cover the monthly interest (' +
+          money(monthlyInterest) + ') — on minimums alone this balance grows, never shrinks.');
+      } else if (d.min <= 0) {
+        warnings.push('⚠️ ' + esc(d.name) + ': no minimum payment entered — it never gets paid on a minimums-only plan.');
+      }
+    });
+    var minTotal = norm.reduce(function (s, d) { return s + (d.type === 'credit' && d.pif ? 0 : d.min); }, 0);
+    var baseline = simulate(debts, 0, 'minimums');
+    if (budget < minTotal) {
+      warnings.push('⚠️ Your budget (' + money(budget) + '/mo) is below your total minimum payments (' +
+        money(minTotal) + '/mo). Raise the budget to at least the minimums to plot a route.');
+      warnEl.innerHTML = warnings.map(function (w) { return '<p class="gps-warn">' + w + '</p>'; }).join('');
+      cardsEl.innerHTML =
+        '<div class="card"><h3>🗓️ Debt-Free Date</h3><div class="gps-value">—</div><p>Budget is below your minimums.</p></div>' +
+        '<div class="card"><h3>🔥 Interest on Minimums Only</h3><div class="gps-value">' +
+          (baseline.capped ? 'keeps growing' : money(baseline.totalInterest)) + '</div><p>' +
+          (baseline.capped ? 'Paying only minimums never clears your debt (50-year horizon).' :
+            'Paying only minimums: debt-free ' + fmtDate(baseline.months) + ', ' + money(baseline.totalInterest) + ' of interest.') + '</p></div>';
+      return;
+    }
+    warnEl.innerHTML = warnings.map(function (w) { return '<p class="gps-warn">' + w + '</p>'; }).join('');
+    var plan = simulate(debts, budget, 'plan');
+    var savedInterest = baseline.totalInterest - plan.totalInterest;
+    var sooner = baseline.months - plan.months;
+    cardsEl.innerHTML =
+      '<div class="card"><h3>🗓️ Debt-Free Date</h3><div class="gps-value">' +
+        (plan.capped ? 'Beyond 50 years' : fmtDate(plan.months)) + '</div><p>' +
+        (plan.capped ? 'At ' + money(budget) + '/mo the route runs past the 50-year horizon.' :
+          'Debt-free in ' + plan.months + ' months at ' + money(budget) + '/mo.') + '</p></div>' +
+      '<div class="card"><h3>⏩ Months Sooner</h3><div class="gps-value">' +
+        (baseline.capped ? 'Years sooner' : sooner + ' months') + '</div><p>' +
+        (baseline.capped ? 'Minimum payments alone don\'t clear your debt within 50 years.' :
+          'vs minimums only (debt-free ' + fmtDate(baseline.months) + ').') + '</p></div>' +
+      '<div class="card"><h3>💰 Interest Saved</h3><div class="gps-value">' +
+        (baseline.capped ? 'at least ' : '') + money(Math.max(savedInterest, 0)) + '</div><p>vs paying only minimums (' +
+        (baseline.capped ? 'interest past the 50-year mark not counted' : money(baseline.totalInterest) + ' of interest') + ').</p></div>' +
+      '<div class="card"><h3>🔥 Interest Remaining</h3><div class="gps-value">' + money(plan.totalInterest) +
+        '</div><p>Your "interest volume" — total interest still ahead of you on this route.</p></div>';
+
+    // Payoff plan, debt by debt
+    var rows = plan.perDebt.slice().sort(function (a, b) {
+      return (a.payoffMonth || 9999) - (b.payoffMonth || 9999);
+    });
+    var pt = '<table class="sched-table"><tr><th>Debt</th><th>APR</th><th>Payoff date</th><th>Interest on this route</th></tr>';
+    rows.forEach(function (d) {
+      pt += '<tr><td>' + typeIcon(d.type) + ' ' + esc(d.name) + '</td><td>' + d.apr + '%</td><td>' +
+        (d.payoffMonth ? fmtDate(d.payoffMonth) : '—') + '</td><td>' + money(d.interestPaid) + '</td></tr>';
+    });
+    document.getElementById('gps-payoff').innerHTML = pt + '</table>';
+    document.getElementById('gps-schedule').innerHTML = schedTable(plan.schedule.slice(0, 12));
+    document.getElementById('gps-schedule-full').innerHTML = schedTable(plan.schedule);
+    detailEl.style.display = 'block';
+  }
+
+  function renderWhatIf() {
+    var out = document.getElementById('wi-result');
+    if (!out) return;
+    readRows();
+    var budget = parseFloat(document.getElementById('budget').value) || 0;
+    var amt = parseFloat(document.getElementById('wi-amount').value) || 0;
+    var apr = parseFloat(document.getElementById('wi-apr').value) || 0;
+    var minPct = parseFloat(document.getElementById('wi-minpct').value);
+    var minFixed = parseFloat(document.getElementById('wi-minfixed').value) || 0;
+    var extra = parseFloat(document.getElementById('wi-extra').value) || 0;
+    if (!debts.length) { out.textContent = 'Add your debts first — the what-if tests them against your current route.'; return; }
+    if (amt <= 0 && extra <= 0) { out.textContent = 'Enter a purchase, an extra monthly payment, or both.'; return; }
+    var norm = normalize(debts);
+    var minTotal = norm.reduce(function (s, d) { return s + (d.type === 'credit' && d.pif ? 0 : d.min); }, 0);
+    if (budget < minTotal) { out.textContent = 'Your budget is below your minimum payments — raise it before running a what-if.'; return; }
+    var base = simulate(debts, budget, 'plan');
+    var ds = debts.slice();
+    if (amt > 0) {
+      var pmin = minFixed > 0 ? minFixed : Math.max(1, Math.round(amt * (isNaN(minPct) ? 2 : minPct)) / 100);
+      ds.push({ name: 'What-if purchase', type: 'credit', balance: amt, apr: apr, min: pmin, due: 1 });
+    }
+    var plan2 = simulate(ds, budget + extra, 'plan');
+    if (plan2.capped) {
+      out.innerHTML = 'Under this scenario you are <strong>not debt-free within 50 years</strong> — the route runs off the map.';
+      return;
+    }
+    var dm = plan2.months - base.months;
+    var di = plan2.totalInterest - base.totalInterest;
+    var monthWord = Math.abs(dm) === 1 ? ' month' : ' months';
+    var delta;
+    if (amt > 0 && extra <= 0) {
+      delta = 'This purchase moves your debt-free date <strong>' + Math.abs(dm) + monthWord +
+        (dm > 0 ? ' later' : dm < 0 ? ' sooner' : ' (same month)') + '</strong> and ' +
+        (di >= 0 ? 'costs <strong>' + money(di) + '</strong> in extra interest.' :
+                   'saves <strong>' + money(-di) + '</strong> in interest.');
+    } else if (extra > 0 && amt <= 0) {
+      delta = 'The extra ' + money(extra) + '/mo moves your debt-free date <strong>' + Math.abs(dm) + monthWord +
+        (dm < 0 ? ' sooner' : dm > 0 ? ' later' : ' (same month)') + '</strong> and ' +
+        (di <= 0 ? 'saves <strong>' + money(-di) + '</strong> in interest.' :
+                   'costs <strong>' + money(di) + '</strong> in extra interest.');
+    } else {
+      delta = 'Combined: <strong>' + Math.abs(dm) + monthWord + (dm > 0 ? ' later' : dm < 0 ? ' sooner' : ' (same month)') +
+        '</strong> and ' + (di >= 0 ? '<strong>' + money(di) + '</strong> more interest.' : '<strong>' + money(-di) + '</strong> less interest.');
+    }
+    out.innerHTML = 'New debt-free date: <strong>' + fmtDate(plan2.months) + '</strong> (' + plan2.months + ' months). ' + delta;
+  }
+
+  document.getElementById('calc').addEventListener('click', renderGPS);
+  var gpsTimer = null;
+  function gpsDebounced() { clearTimeout(gpsTimer); gpsTimer = setTimeout(renderGPS, 900); }
+  document.getElementById('debt-list').addEventListener('input', gpsDebounced);
+  document.getElementById('budget').addEventListener('input', gpsDebounced);
+  ['wi-amount', 'wi-apr', 'wi-minpct', 'wi-minfixed', 'wi-extra'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', renderWhatIf);
+  });
+  document.getElementById('wi-reset').addEventListener('click', function () {
+    ['wi-amount', 'wi-apr', 'wi-minpct', 'wi-minfixed', 'wi-extra'].forEach(function (id) {
+      document.getElementById(id).value = id === 'wi-minpct' ? '2' : '';
+    });
+    renderWhatIf();
+  });
+
   load();
   render();
   renderScenarios();
+  renderGPS();
 })();
