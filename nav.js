@@ -5,6 +5,17 @@
     var toggle = document.querySelector('.nav-toggle');
     var menu = document.querySelector('.nav-menu');
     if (!toggle || !menu) return;
+    // Pages added after the static menus were written: inject their links
+    // into every page's menu (skipped where a page already links them).
+    [['govgistics.html', 'Govgistics'], ['hub.html', 'Command Hub']].forEach(function (pair) {
+      if (menu.querySelector('a[href="' + pair[0] + '"]')) return;
+      var a = document.createElement('a');
+      a.href = pair[0];
+      a.textContent = pair[1];
+      if (window.location.pathname.split('/').pop() === pair[0]) a.className = 'active';
+      var profile = menu.querySelector('a[href="profile.html"]');
+      if (profile) menu.insertBefore(a, profile); else menu.appendChild(a);
+    });
     toggle.addEventListener('click', function (e) {
       e.stopPropagation();
       menu.classList.toggle('open');
