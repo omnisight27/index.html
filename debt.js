@@ -360,7 +360,7 @@
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
   });
 
-  // ============ Money Max — Financial GPS ============
+  // ============ Long Solutions - Financial GPS ============
   // Core simulation: monthly amortization (monthly rate = APR/12).
   // mode 'plan': the full budget is applied every month — minimums first,
   //   then all spare cash avalanches to the highest-APR debt. When a debt
