@@ -205,7 +205,7 @@
     var head = '🎯 <strong>PICKS</strong> ' + esc(swing.regime_label || '');
     if (!v.buys.length && !v.closest) head += ' · No buy right now';
     items.push('<span class="ticker-item">' + head + '</span>');
-    v.buys.slice(0, 4).forEach(function (b) {
+    v.buys.slice(0, 6).forEach(function (b) {
       var pt = planText(b.plan);
       items.push('<span class="ticker-item">🎯 <span class="long">BUY</span> <strong>' + esc(b.asset) + '</strong>' +
         (pt ? ' · ' + pt : '') + ' · ' + venue(b) + '</span>');
