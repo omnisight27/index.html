@@ -533,3 +533,187 @@ def test_main_accum_entry_gets_trigger_plan(monkeypatch, tmp_path):
     # fixture high_24h = price x 1.05 — right at the 5% boundary.
     assert plan['trigger_price'] == 10.5
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
+
+
+# ---------------------------------------------------------------------------
+# After-exit tracker (2026-10-22): for every won/lost call, watch the
+# price for 24h AFTER the exit. Winners that keep running answer
+# "too quick to sell?"; stops that recover are whipsaw evidence.
+# Measurement only — grading is untouched by these tests' subject.
+# ---------------------------------------------------------------------------
+
+def closed_entry(status, direction='LONG', entry=100.0, tp=110.0, sl=95.0,
+                 exit_h=0.0, exp=10.0, maxl=5.0, asset='TST'):
+    """A ledger entry closed at BASE + exit_h with grading's own
+    conventions: won credits expected_return_pct, lost debits
+    max_loss_pct; ts_closed is the exit time."""
+    closed = BASE + _dt.timedelta(hours=exit_h)
+    return {
+        'id': f'signal:{asset}:x', 'kind': 'signal', 'asset': asset,
+        'name': 'Test Coin', 'direction': direction, 'entry': entry,
+        'take_profit': tp, 'stop_loss': sl, 'status': status,
+        'result_pct': exp if status == 'won' else -maxl,
+        'paper_pnl': (exp if status == 'won' else -maxl) * 10,
+        'expected_return_pct': exp, 'max_loss_pct': maxl,
+        'ts_open': (closed - _dt.timedelta(hours=3)).isoformat(),
+        'ts_closed': closed.isoformat(),
+        'band': '70s', 'regime': 'risk_on',
+    }
+
+
+def test_post_exit_target_exit_runs_further():
+    e = closed_entry('won')  # LONG 100 -> target 110, captured 10%
+    rec = [e]
+    chart = {'TST': chart_from(BASE, [(-1, 500.0),   # pre-exit: ignored
+                                      (1, 114.0), (2, 116.0),
+                                      (10, 118.0), (24, 112.0),
+                                      (25, 120.0)])}  # post-end: not an extreme
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=2))
+    pe = e['post_exit']
+    assert pe['exit_price'] == 110.0 and pe['exit_kind'] == 'target'
+    assert pe['samples'] == 2 and pe['complete'] is False
+    assert pe['post_exit_high_pct'] == pytest.approx(5.45, abs=0.01)
+    # Re-running the same window must not double-fold chart points.
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=2))
+    assert e['post_exit']['samples'] == 2
+    n = intraday.proof_track_post_exit(rec, {}, chart,
+                                       BASE + _dt.timedelta(hours=25))
+    assert n == 1
+    pe = e['post_exit']
+    assert pe['complete'] is True and pe['samples'] == 4
+    # High is the +10h print (118): (118-110)/110 = 7.27%.
+    assert pe['post_exit_high_pct'] == pytest.approx(7.27, abs=0.01)
+    # Close is the price AT +24h (112), not the +25h print.
+    assert pe['post_exit_close_pct'] == pytest.approx(1.82, abs=0.01)
+    assert pe['ran_further'] is True       # 7.27 >= 50% of captured 10%
+    assert pe['left_on_table_pct'] == pytest.approx(7.27, abs=0.01)
+    # Grading untouched.
+    assert e['status'] == 'won' and e['result_pct'] == 10.0
+
+
+def test_post_exit_stop_exit_recovers_is_whipsaw():
+    e = closed_entry('lost')  # LONG 100 -> stop 95
+    rec = [e]
+    chart = {'TST': chart_from(BASE, [(1, 93.0), (3, 97.0), (5, 101.0),
+                                      (24, 99.0)])}
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=6))
+    pe = e['post_exit']
+    assert pe['exit_price'] == 95.0 and pe['exit_kind'] == 'stop'
+    assert pe['recovered'] is True         # 101 >= entry 100 in-window
+    assert pe['post_exit_low_pct'] == pytest.approx(-2.11, abs=0.01)
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=25))
+    assert e['post_exit']['complete'] is True
+    assert e['post_exit']['samples'] == 4
+    st = intraday.proof_stats(rec)['post_exit']
+    assert st['stop_exits'] == 1 and st['recovered_after_stop'] == 1
+
+
+def test_post_exit_stop_exit_keeps_falling_no_recovery():
+    e = closed_entry('lost')
+    rec = [e]
+    chart = {'TST': chart_from(BASE, [(1, 94.0), (6, 90.0),
+                                      (23, 88.0), (24, 88.0)])}
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=12))
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=25))
+    pe = e['post_exit']
+    assert pe['complete'] is True
+    assert pe['recovered'] is False        # never got back to entry 100
+    assert pe['post_exit_high_pct'] == pytest.approx(-1.05, abs=0.01)
+    assert pe['post_exit_low_pct'] == pytest.approx(-7.37, abs=0.01)
+    assert pe['post_exit_close_pct'] == pytest.approx(-7.37, abs=0.01)
+
+
+def test_post_exit_short_direction_flags():
+    # SHORT target exit: entry 100, target 90 (exit 90, captured 10%).
+    w = closed_entry('won', direction='SHORT', tp=90.0, sl=105.0,
+                     asset='SHW')
+    chart_w = {'SHW': chart_from(BASE, [(3, 84.0), (24, 86.0)])}
+    intraday.proof_track_post_exit([w], {}, chart_w,
+                                   BASE + _dt.timedelta(hours=4))
+    intraday.proof_track_post_exit([w], {}, chart_w,
+                                   BASE + _dt.timedelta(hours=25))
+    pe = w['post_exit']
+    # Price fell a further (84-90)/90 = -6.67% past the exit: for a
+    # short that is a +6.67% favorable run, >= 50% of the captured 10%.
+    assert pe['ran_further'] is True
+    assert pe['left_on_table_pct'] == pytest.approx(6.67, abs=0.01)
+    # SHORT stop exit: entry 100, stop 105 (exit 105). Recovery = the
+    # price falling back to/below entry inside the window.
+    s = closed_entry('lost', direction='SHORT', tp=90.0, sl=105.0,
+                     exp=10.0, maxl=5.0, asset='SHL')
+    chart_s = {'SHL': chart_from(BASE, [(2, 108.0), (8, 99.0),
+                                        (24, 102.0)])}
+    intraday.proof_track_post_exit([s], {}, chart_s,
+                                   BASE + _dt.timedelta(hours=9))
+    intraday.proof_track_post_exit([s], {}, chart_s,
+                                   BASE + _dt.timedelta(hours=25))
+    assert s['post_exit']['recovered'] is True
+
+
+def test_post_exit_incomplete_window_and_untracked_records():
+    e = closed_entry('won')
+    rec = [e]
+    chart = {'TST': chart_from(BASE, [(1, 112.0)])}
+    intraday.proof_track_post_exit(rec, {}, chart,
+                                   BASE + _dt.timedelta(hours=3))
+    assert e['post_exit']['complete'] is False
+    # An open window is not yet a tracked reading.
+    assert intraday.proof_stats(rec)['post_exit']['tracked'] == 0
+    # Expired calls are never tracked (no target/stop exit to judge).
+    x = closed_entry('expired')
+    x['result_pct'] = 1.5
+    intraday.proof_track_post_exit([x], {}, chart, BASE)
+    assert 'post_exit' not in x
+    # A record whose window fully elapsed before tracking existed is
+    # left alone — forward-only, never backfilled from thin air.
+    old = closed_entry('won', exit_h=-30.0)
+    intraday.proof_track_post_exit([old], {}, chart, BASE)
+    assert 'post_exit' not in old
+
+
+def test_post_exit_snapshot_only_window_still_completes():
+    e = closed_entry('won')
+    rec = [e]
+    # No chart at all: one current-price snapshot inside the window,
+    # then silence. Completion falls back to the last observation.
+    mkt = {'TST': {'price': 111.0, 'high_24h': None, 'low_24h': None}}
+    intraday.proof_track_post_exit(rec, mkt, {},
+                                   BASE + _dt.timedelta(hours=1))
+    assert e['post_exit']['samples'] == 1
+    n = intraday.proof_track_post_exit(rec, {}, {},
+                                       BASE + _dt.timedelta(hours=26))
+    assert n == 1
+    pe = e['post_exit']
+    assert pe['complete'] is True and pe['samples'] == 1
+    assert pe['post_exit_close_pct'] == pytest.approx(0.91, abs=0.01)
+
+
+def test_post_exit_stats_block_aggregation():
+    a = closed_entry('won', asset='AAA')            # runs further
+    b = closed_entry('won', asset='BBB')            # barely runs
+    c = closed_entry('lost', asset='CCC')           # recovers
+    charts = {
+        'AAA': chart_from(BASE, [(1, 114.0), (10, 118.0), (24, 112.0)]),
+        'BBB': chart_from(BASE, [(2, 111.0), (24, 110.5)]),
+        'CCC': chart_from(BASE, [(1, 93.0), (5, 101.0), (24, 99.0)]),
+    }
+    rec = [a, b, c]
+    intraday.proof_track_post_exit(rec, {}, charts,
+                                   BASE + _dt.timedelta(hours=12))
+    intraday.proof_track_post_exit(rec, {}, charts,
+                                   BASE + _dt.timedelta(hours=25))
+    st = intraday.proof_stats(rec)
+    # Existing stats shape is intact alongside the new block.
+    assert st['wins'] == 2 and st['losses'] == 1
+    pe = st['post_exit']
+    assert pe['tracked'] == 3
+    assert pe['target_exits'] == 2 and pe['ran_further'] == 1
+    # (7.27 for AAA + 0.91 for BBB) / 2 = 4.09 over target exits.
+    assert pe['avg_post_exit_high_pct'] == pytest.approx(4.09, abs=0.01)
+    assert pe['stop_exits'] == 1 and pe['recovered_after_stop'] == 1

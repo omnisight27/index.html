@@ -668,6 +668,227 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
             e['paper_pnl'] = round(result * PAPER_USD / 100, 2)
             e['ts_closed'] = now.isoformat()
 
+# --- After-exit tracker (2026-10-22) --------------------------------------
+# Nic's question — "too quick to sell?" — is answered with measurement,
+# not opinion: for every call that actually EXITED (status 'won' =
+# target exit, 'lost' = stop exit), keep watching the price for 24h
+# AFTER the exit and record how far it ran without us. Expired calls
+# are not tracked: a drift/timeout exit has no target or stop to judge
+# the exit against, and never-triggered setups never held a position.
+#
+# Exit reference: grading credits a win at exactly the take-profit and
+# a loss at exactly the stop, so the exit price is take_profit (won)
+# or stop_loss (lost) and ts_closed is the exit time. The 24h window
+# is sampled on subsequent hourly runs from the same hourly charts the
+# grader uses (main() tops up chart fetches for tracked assets too):
+# every chart point inside (exit, window_end] is folded into running
+# extremes exactly once (`folded_through` guards re-folding), plus the
+# run's current-price snapshot when the chart has no fresh point.
+# Extremes never include points past the window end; the close is the
+# first chart point at/after the end inside a 3h grace, else the
+# current price inside the grace, else the last in-window observation.
+# `samples` counts folded observations, so a window built from sparse
+# runs reads as sparse — best-effort is labelled, never hidden.
+#
+# Seeding: a record whose window is still open when the tracker first
+# sees it (exit < 24h ago) is seeded from the trailing-24h chart,
+# which covers its whole post-exit window so far — real engine data,
+# not reconstruction. A record whose window already fully elapsed
+# before tracking existed is left untracked (forward-only; the 55
+# records graded before this build carry no post-exit data).
+#
+# Derived flags (direction-aware; percentages are PRICE moves vs the
+# exit price, signed):
+#   target exit — captured gain is expected_return_pct, i.e.
+#   |take_profit - entry| / entry x 100. The favorable post-exit run
+#   is post_exit_high_pct for a LONG, -post_exit_low_pct for a SHORT.
+#   left_on_table_pct is that favorable run; ran_further is True when
+#   it reached at least +50% of the captured gain (the price kept
+#   running at least half again what we took).
+#   stop exit — recovered is True when price returned to the entry
+#   price (or beyond) inside the window: whipsaw evidence.
+POST_EXIT_WINDOW_H = 24
+POST_EXIT_CLOSE_GRACE_H = 3
+
+def _proof_post_exit_ref(e):
+    """(exit_price, exit_kind) for a closed entry, or (None, None).
+    Only target ('won') and stop ('lost') exits have a reference."""
+    if e.get('status') == 'won':
+        return e.get('take_profit'), 'target'
+    if e.get('status') == 'lost':
+        return e.get('stop_loss'), 'stop'
+    return None, None
+
+def _proof_post_exit_active(e, now):
+    """True while an entry still needs hourly price samples: either it
+    carries an incomplete post_exit block, or it exited (won/lost)
+    recently enough that its window is still open and tracking can
+    still start."""
+    pe = e.get('post_exit')
+    if pe is not None:
+        return not pe.get('complete')
+    exit_price, _kind = _proof_post_exit_ref(e)
+    if not exit_price:
+        return False
+    closed = _iso_parse(e.get('ts_closed') or '')
+    if not closed:
+        return False
+    from datetime import timedelta
+    return closed <= now <= closed + timedelta(hours=POST_EXIT_WINDOW_H)
+
+def _proof_post_exit_derive(e, pe):
+    """Recompute the percentage fields and derived flags from the
+    running extremes. Called after every fold, so a live window shows
+    live values; completion freezes them."""
+    exit_px = pe['exit_price']
+    is_long = e.get('direction') != 'SHORT'
+    hi, lo = pe.get('hi'), pe.get('lo')
+    if hi is not None:
+        pe['post_exit_high_pct'] = round((hi - exit_px) / exit_px * 100, 2)
+    if lo is not None:
+        pe['post_exit_low_pct'] = round((lo - exit_px) / exit_px * 100, 2)
+    if pe.get('last') is not None:
+        pe['post_exit_close_pct'] = round(
+            (pe['last'] - exit_px) / exit_px * 100, 2)
+    if pe['exit_kind'] == 'target':
+        captured = e.get('expected_return_pct') or 0
+        if is_long:
+            favorable = pe.get('post_exit_high_pct')
+        else:
+            low_pct = pe.get('post_exit_low_pct')
+            favorable = -low_pct if low_pct is not None else None
+        if favorable is not None:
+            pe['left_on_table_pct'] = favorable
+            pe['ran_further'] = bool(captured and
+                                     favorable >= 0.5 * captured)
+    elif pe['exit_kind'] == 'stop':
+        entry = e.get('entry')
+        if entry:
+            if is_long:
+                pe['recovered'] = bool(hi is not None and hi >= entry)
+            else:
+                pe['recovered'] = bool(lo is not None and lo <= entry)
+
+def proof_track_post_exit(record, mkt_by_sym, charts_by_sym, now):
+    """Advance every after-exit window by one run. Initializes blocks
+    for entries that exited inside their still-open window, folds new
+    observations, and completes windows whose 24h have elapsed.
+    Returns the number of windows completed by this call. Pure
+    measurement — grading, statuses and results are never touched."""
+    from datetime import timedelta
+    window = timedelta(hours=POST_EXIT_WINDOW_H)
+    grace_ms = POST_EXIT_CLOSE_GRACE_H * 3600 * 1000
+    now_ms = now.timestamp() * 1000
+    n_completed = 0
+    for e in record:
+        pe = e.get('post_exit')
+        if pe is None:
+            exit_price, kind = _proof_post_exit_ref(e)
+            closed = _iso_parse(e.get('ts_closed') or '')
+            if not exit_price or not closed:
+                continue
+            if not (closed <= now <= closed + window):
+                continue  # window already gone before tracking existed
+            pe = {
+                'exit_price': exit_price,
+                'exit_kind': kind,
+                'ts_exit': e.get('ts_closed'),
+                'window_end': (closed + window).isoformat(),
+                'samples': 0,
+                'hi': None, 'lo': None, 'last': None,
+                'folded_through': None,
+                'post_exit_high_pct': None, 'post_exit_low_pct': None,
+                'post_exit_close_pct': None,
+                'ran_further': None, 'left_on_table_pct': None,
+                'recovered': None,
+                'complete': False,
+            }
+            e['post_exit'] = pe
+        if pe.get('complete'):
+            continue
+        closed = _iso_parse(pe.get('ts_exit') or '')
+        if not closed:
+            pe['complete'] = True
+            continue
+        end = closed + window
+        end_ms = end.timestamp() * 1000
+        closed_ms = closed.timestamp() * 1000
+        chart = sorted(charts_by_sym.get(e['asset']) or [])
+        folded_ms = None
+        if pe.get('folded_through'):
+            ft = _iso_parse(pe['folded_through'])
+            folded_ms = ft.timestamp() * 1000 if ft else None
+        newest_folded = folded_ms
+        for ts, px in chart:
+            if ts <= closed_ms or ts > now_ms:
+                continue
+            if folded_ms is not None and ts <= folded_ms:
+                continue
+            if ts <= end_ms:
+                pe['hi'] = px if pe['hi'] is None else max(pe['hi'], px)
+                pe['lo'] = px if pe['lo'] is None else min(pe['lo'], px)
+                pe['last'] = px
+                pe['samples'] += 1
+            newest_folded = ts if newest_folded is None \
+                else max(newest_folded, ts)
+        if newest_folded is not None:
+            pe['folded_through'] = datetime.fromtimestamp(
+                newest_folded / 1000, timezone.utc).isoformat()
+        # Snapshot fallback: the run's current price is an observation
+        # when the chart offered nothing within the last 5 minutes.
+        mkt = mkt_by_sym.get(e['asset']) or {}
+        cur = mkt.get('price')
+        if cur and now <= end:
+            last_chart_ms = newest_folded
+            if last_chart_ms is None or now_ms - last_chart_ms > 5 * 60 * 1000:
+                pe['hi'] = cur if pe['hi'] is None else max(pe['hi'], cur)
+                pe['lo'] = cur if pe['lo'] is None else min(pe['lo'], cur)
+                pe['last'] = cur
+                pe['samples'] += 1
+        _proof_post_exit_derive(e, pe)
+        if now >= end:
+            # Close: first chart point at/after the window end inside
+            # the grace, else the current price inside the grace, else
+            # the last in-window observation (already in close_pct).
+            close_px = None
+            for ts, px in chart:
+                if end_ms <= ts <= end_ms + grace_ms:
+                    close_px = px
+                    break
+            if close_px is None and cur and \
+                    (now - end).total_seconds() <= POST_EXIT_CLOSE_GRACE_H * 3600:
+                close_px = cur
+            if close_px is not None:
+                pe['last'] = close_px
+                pe['post_exit_close_pct'] = round(
+                    (close_px - pe['exit_price']) / pe['exit_price'] * 100, 2)
+            pe['complete'] = True
+            n_completed += 1
+    return n_completed
+
+def _proof_post_exit_stats(record):
+    """Aggregate after-exit readings over COMPLETED windows with at
+    least one sample (same visible-ledger scope as proof_stats).
+    avg_post_exit_high_pct is averaged over target exits — it is the
+    'how much more did our winners run' number the review reads."""
+    done = [e['post_exit'] for e in record
+            if e.get('post_exit') and e['post_exit'].get('complete')
+            and e['post_exit'].get('samples')]
+    targets = [pe for pe in done if pe['exit_kind'] == 'target']
+    stops = [pe for pe in done if pe['exit_kind'] == 'stop']
+    highs = [pe['post_exit_high_pct'] for pe in targets
+             if pe.get('post_exit_high_pct') is not None]
+    return {
+        'tracked': len(done),
+        'target_exits': len(targets),
+        'ran_further': sum(1 for pe in targets if pe.get('ran_further')),
+        'avg_post_exit_high_pct': round(sum(highs) / len(highs), 2)
+            if highs else None,
+        'stop_exits': len(stops),
+        'recovered_after_stop': sum(1 for pe in stops
+                                    if pe.get('recovered')),
+    }
+
 def proof_stats(record):
     def agg(entries):
         closed = [e for e in entries if e.get('status') in ('won', 'lost', 'expired')]
@@ -686,6 +907,7 @@ def proof_stats(record):
     stats = agg(record)
     stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
                         for k in ('signal', 'mover', 'setup')}
+    stats['post_exit'] = _proof_post_exit_stats(record)
     return stats
 
 def proof_cells(record, cumulative=None):
@@ -1117,7 +1339,10 @@ def main():
         if s and s not in id_by_sym:
             id_by_sym[s] = c['id']
     for e in proof:
-        if e.get('status') != 'open':
+        # Open calls need a chart for grading; recently-exited calls
+        # need one for the after-exit tracker (24h post-exit sampling).
+        if e.get('status') != 'open' and \
+                not _proof_post_exit_active(e, proof_now):
             continue
         sym = e['asset']
         if sym in charts_by_sym or sym not in id_by_sym:
@@ -1127,6 +1352,10 @@ def main():
         if ch and ch.get('prices'):
             charts_by_sym[sym] = ch['prices']
     proof_grade(proof, mkt_by_sym, charts_by_sym, proof_now)
+    n_pe_done = proof_track_post_exit(proof, mkt_by_sym, charts_by_sym,
+                                      proof_now)
+    if n_pe_done:
+        print(f'  Proof book: {n_pe_done} after-exit window(s) completed')
     proof_cands = []
     for s in longs + shorts:
         proof_cands.append(_proof_candidate(
