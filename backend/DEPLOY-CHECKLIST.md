@@ -12,6 +12,20 @@ Render's $7/mo tier removes the sleep. No card is required for the free tier.
 
 ---
 
+## DEPLOY STATE — 2026-10-21 evening
+- ✅ Project created: **OmniSight Project** (org: OmniSight), region **West US
+  (Oregon) us-west-2**, Free plan, status Healthy. Project URL confirmed live
+  by Nic's own Copy-paste (API root answered):
+  `https://xafnsaefesfzucrrcuht.supabase.co` — ⚠️ never hand-transcribe the
+  project ref from a photo; a dropped letter cost a DNS loop. Copy only.
+- ✅ `schema.sql` run in SQL Editor — "Success. No rows returned."
+- ✅ Keys located: Project Settings → **API Keys** → **Legacy anon,
+  service_role API keys** tab. Nic copying anon + service_role to his notes.
+- ⏳ Remaining in Step 1: `SUPABASE_JWT_SECRET` (Project Settings → **JWT
+  Keys**, legacy secret — do not migrate/rotate) and the Auth redirect URL
+  (Step 1.6 below).
+- ⏳ Steps 2–3 (Render + config.js) not started.
+
 ## Step 1 — Supabase (database + login) · ~10 min
 
 1. Go to **supabase.com** → *Start your project* → sign up (GitHub login is
@@ -22,14 +36,21 @@ Render's $7/mo tier removes the sleep. No card is required for the free tier.
 2. In the left sidebar: **SQL Editor** → **New query** → paste in the entire
    contents of `backend/schema.sql` from the repo → **Run**. You should see
    "Success. No rows returned."
-3. **Project Settings** (gear icon, bottom left) → **API**. Copy these three
-   values into your notes, labeled:
+3. **Project Settings** (gear icon, bottom left) → **API Keys** (2026 UI: the
+   old "API" page was replaced by "API Keys"; the direct URL /settings/api
+   no longer lands anywhere useful). New projects lead with the new-style
+   Publishable/Secret keys — our backend uses the LEGACY pair, found under
+   the **Legacy API keys** tab on that page (both systems work at once).
+   Copy these values into your notes, labeled:
    - **Project URL** → `SUPABASE_URL`
    - **anon public** key → `SUPABASE_ANON_KEY` (this one is safe to publish)
    - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY` ⚠️ *secret — notes
      only, never paste it anywhere except Step 2's Render form*
-4. Same settings page, further down (or **Project Settings → API** →
-   *JWT Settings*): copy the **JWT Secret** → label it `SUPABASE_JWT_SECRET`.
+4. **Project Settings → JWT Keys**: reveal and copy the **legacy JWT secret**
+   (the HS256 shared secret) → label it `SUPABASE_JWT_SECRET`. ⚠️ If the page
+   offers **Migrate JWT secret** or **Rotate keys**, do NOT click them — the
+   backend verifies tokens against the legacy secret only (see
+   `app/security.py`). Leave the project on the legacy secret.
 5. Left sidebar **Authentication → Providers → Google**: turn it ON only if
    you want the "Continue with Google" button. It needs a free Google Cloud
    OAuth client (Google walks you through it; ~5 extra minutes). Email
