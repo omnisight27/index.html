@@ -29,6 +29,7 @@ import json
 import math
 import os
 import urllib.request
+import urllib.error
 from datetime import datetime, timezone
 
 API = 'https://api.elections.kalshi.com/trade-api/v2'
@@ -219,6 +220,59 @@ def _crowd_baseline(rec, close_time):
     return rec.get('first_mid'), 'first-seen'
 
 
+def _refresh_watch_rec(rec, m, now):
+    """Update a watched market's price fields + snapshot from a raw market
+    payload. Used by the listing branch and by the still-trading check for
+    markets that fell outside the listing cut. A snapshot is appended only
+    when the mid moved, so flat markets don't fill the snapshot cap."""
+    mid = mid_price(_f(m.get('yes_bid_dollars')),
+                    _f(m.get('yes_ask_dollars')),
+                    _f(m.get('last_price_dollars')))
+    if mid is None:
+        return None
+    rec.update({'mid': mid,
+                'yes_bid': _f(m.get('yes_bid_dollars')),
+                'yes_ask': _f(m.get('yes_ask_dollars')),
+                'volume': _f(m.get('volume_fp')),
+                'close_time': m.get('close_time'),
+                'updated': now.isoformat()})
+    snaps = rec.setdefault('snapshots', [])
+    if not snaps or snaps[-1]['mid'] != mid:
+        snaps.append({'ts': now.isoformat(), 'mid': mid})
+        del snaps[:-SNAPSHOT_CAP]
+    return mid
+
+
+def _missed_market_class(market, fetch_ok, http_404):
+    """Classify a watched market that fell out of this run's listing
+    response. A market can drop out of the listing (per-series cap, event
+    rotation) while still trading, so absence from the listing is not
+    proof it is gone — only the direct per-ticker GET decides.
+
+    market: raw market dict from the GET ({} when it failed/returned none).
+    fetch_ok: False when the GET raised. http_404: the GET raised HTTP 404.
+
+    Returns one of:
+      'grade'   — result posted (yes/no): settle it.
+      'alive'   — still an active, unsettled market: keep watching and
+                  refresh its price fields.
+      'dead'    — confirmed gone (404, or a non-active market with no
+                  result): count a miss toward the void cap.
+      'unknown' — the GET failed for another reason: leave the miss
+                  counter alone and retry next run. An API hiccup must
+                  not void a market.
+    """
+    if not fetch_ok:
+        return 'dead' if http_404 else 'unknown'
+    if (market.get('result') or '').lower() in ('yes', 'no'):
+        return 'grade'
+    if not market:
+        return 'dead'
+    if market.get('status') == 'active':
+        return 'alive'
+    return 'dead'
+
+
 def _compute_stats(graded):
     crowd = [g for g in graded if g.get('kind') == 'crowd']
     model = [g for g in graded if g.get('kind') == 'model']
@@ -311,16 +365,8 @@ def collect(data_dir):
                        'first_seen': now.isoformat(), 'first_mid': mid,
                        'snapshots': []}
                 watch[ticker] = rec
-            rec.update({'mid': mid, 'model_p': mp,
-                        'yes_bid': _f(m.get('yes_bid_dollars')),
-                        'yes_ask': _f(m.get('yes_ask_dollars')),
-                        'volume': _f(m.get('volume_fp')),
-                        'close_time': m.get('close_time'),
-                        'updated': now.isoformat()})
-            snaps = rec['snapshots']
-            if not snaps or snaps[-1]['mid'] != mid:
-                snaps.append({'ts': now.isoformat(), 'mid': mid})
-                del snaps[:-SNAPSHOT_CAP]
+            _refresh_watch_rec(rec, m, now)
+            rec['model_p'] = mp
 
             # Paper position on a fresh >=10pt model/crowd disagreement.
             if mp is not None and abs(mp - mid) >= DIVERGENCE:
@@ -343,22 +389,25 @@ def collect(data_dir):
                             'opened': now.isoformat(),
                             'close_time': m.get('close_time')})
 
-    # Settle anything that left the open list.
-    open_tickers = {p['ticker'] for p in paper_open}
+    # Settle anything that left the open list. A market can fall out of the
+    # listing response (per-series cap, event rotation) while still trading,
+    # so absence from the listing is not proof it is gone — the direct
+    # per-ticker GET decides (see _missed_market_class).
     for ticker in list(watch.keys()):
         if ticker in seen_open:
             led['misses'].pop(ticker, None)
             continue
-        # Not open anymore: check for a final result (once per run per ticker,
-        # with a miss counter so a delisted-without-result market can't loop).
         try:
             m = _get(f'{API}/markets/{ticker}').get('market', {})
+            fetch_ok, http_404 = True, False
+        except urllib.error.HTTPError as e:
+            m, fetch_ok, http_404 = {}, False, (e.code == 404)
         except Exception:
-            m = {}
-        result = (m.get('result') or '').lower()
+            m, fetch_ok, http_404 = {}, False, False
         rec = watch[ticker]
-        if result in ('yes', 'no'):
-            outcome = 1 if result == 'yes' else 0
+        cls = _missed_market_class(m, fetch_ok, http_404)
+        if cls == 'grade':
+            outcome = 1 if (m.get('result') or '').lower() == 'yes' else 0
             cmid, clabel = _crowd_baseline(
                 rec, _parse_ts(rec.get('close_time') or m.get('close_time')))
             if cmid is not None:
@@ -381,7 +430,11 @@ def collect(data_dir):
                     paper_open.remove(p)
             del watch[ticker]
             led['misses'].pop(ticker, None)
-        else:
+        elif cls == 'alive':
+            # Still trading — keep it, refresh its price fields, clear misses.
+            _refresh_watch_rec(rec, m, now)
+            led['misses'].pop(ticker, None)
+        elif cls == 'dead':
             led['misses'][ticker] = led['misses'].get(ticker, 0) + 1
             if led['misses'][ticker] >= 6:
                 # Gone a full day+ with no result: void it, never graded.
@@ -390,6 +443,8 @@ def collect(data_dir):
                         paper_open.remove(p)
                 del watch[ticker]
                 led['misses'].pop(ticker, None)
+        # 'unknown': the GET failed (API hiccup, timeout). Leave the miss
+        # counter alone and try again next run.
 
     graded = graded[-GRADED_CAP:]
     led['watch'], led['paper_open'], led['graded'] = watch, paper_open, graded

@@ -68,6 +68,73 @@ def test_model_prob_between():
     assert p is not None and abs(p - 0.1546) < 0.005, p
 
 
+def test_missed_market_class_grade():
+    yes = {'status': 'settled', 'result': 'yes'}
+    no = {'status': 'settled', 'result': 'No'}
+    assert k._missed_market_class(yes, True, False) == 'grade'
+    assert k._missed_market_class(no, True, False) == 'grade'
+
+
+def test_missed_market_class_alive():
+    # Still an active, unsettled market that fell out of the listing cut:
+    # keep watching, never count a miss.
+    live = {'status': 'active', 'result': '', 'yes_bid_dollars': 0.60,
+            'yes_ask_dollars': 0.64}
+    assert k._missed_market_class(live, True, False) == 'alive'
+
+
+def test_missed_market_class_dead():
+    # 404 from the per-ticker GET: delisted -> count a miss.
+    assert k._missed_market_class({}, False, True) == 'dead'
+    # Closed/settled with no posted result: dead too.
+    closed = {'status': 'closed', 'result': ''}
+    assert k._missed_market_class(closed, True, False) == 'dead'
+    # Clean fetch, empty market: dead.
+    assert k._missed_market_class({}, True, False) == 'dead'
+
+
+def test_missed_market_class_unknown():
+    # Timeout / 500 / rate limit: do NOT touch the miss counter.
+    assert k._missed_market_class({}, False, False) == 'unknown'
+
+
+def test_refresh_watch_rec():
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 22, tzinfo=timezone.utc)
+    m = {'yes_bid_dollars': 0.60, 'yes_ask_dollars': 0.64,
+         'last_price_dollars': 0.62, 'volume_fp': 1000.0,
+         'close_time': '2026-10-28T17:59:00Z'}
+    rec = {'ticker': 'T', 'snapshots': [{'ts': '2026-10-21T23:00:00+00:00',
+                                         'mid': 0.50}]}
+    mid = k._refresh_watch_rec(rec, m, now)
+    assert mid == 0.62, mid
+    assert rec['mid'] == 0.62
+    assert rec['yes_bid'] == 0.60 and rec['yes_ask'] == 0.64
+    assert rec['volume'] == 1000.0
+    assert rec['close_time'] == '2026-10-28T17:59:00Z'
+    assert rec['updated'] == now.isoformat()
+    assert len(rec['snapshots']) == 2
+    assert rec['snapshots'][-1] == {'ts': now.isoformat(), 'mid': 0.62}
+    # Unchanged mid: no new snapshot.
+    k._refresh_watch_rec(rec, m, now)
+    assert len(rec['snapshots']) == 2
+    # Snapshot cap respected.
+    rec['snapshots'] = [{'ts': 'x', 'mid': 0.0}] * 200
+    k._refresh_watch_rec(rec, {**m, 'yes_bid_dollars': 0.70,
+                               'yes_ask_dollars': 0.72}, now)
+    assert len(rec['snapshots']) == 120  # SNAPSHOT_CAP
+    assert rec['snapshots'][-1]['mid'] == 0.71
+
+
+def test_refresh_watch_rec_no_mid():
+    from datetime import datetime, timezone
+    now = datetime(2026, 10, 22, tzinfo=timezone.utc)
+    rec = {'ticker': 'T', 'mid': 0.50, 'snapshots': []}
+    assert k._refresh_watch_rec(rec, {}, now) is None
+    assert rec['mid'] == 0.50  # untouched
+    assert rec['snapshots'] == []
+
+
 if __name__ == '__main__':
     fns = [v for n, v in sorted(globals().items()) if n.startswith('test_')]
     for fn in fns:
