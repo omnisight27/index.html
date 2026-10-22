@@ -125,7 +125,7 @@
   // Mirror of the Picks page verdict gates (picks.js computeVerdicts).
   function computeVerdicts(swing, intra) {
     swing = swing || {}; intra = intra || {};
-    var seen = {}, buys = [], watching = [], newsAvoids = [];
+    var seen = {}, buys = [], watching = [];
     var newsFlagged = {};
     (swing.longs || []).concat(swing.shorts || []).forEach(function (p) {
       if (p.news_flag) newsFlagged[p.asset] = p;
@@ -151,7 +151,10 @@
         push(buys, { asset: m.asset, name: m.name, 'class': m['class'], tradable: m.tradable, plan: m.plan });
       }
     });
-    Object.keys(newsFlagged).forEach(function (a) { newsAvoids.push(a); });
+    // News-flagged assets are never displayed (Nic's request, 2026-10-22):
+    // mark them seen so the WATCHING list and the top-longs/shorts tail
+    // below skip them too — no AVOID segment anywhere.
+    Object.keys(newsFlagged).forEach(function (a) { seen[a] = 1; });
     var closest = null;
     if (!buys.length) {
       var cands = [];
@@ -168,7 +171,7 @@
       if (watching.length >= 2) return;
       push(watching, { asset: m.asset, name: m.name, 'class': m['class'], tradable: m.tradable, plan: m.plan || null });
     });
-    return { buys: buys, closest: closest, watching: watching, newsAvoids: newsAvoids, seen: seen };
+    return { buys: buys, closest: closest, watching: watching, seen: seen };
   }
 
   function planText(plan) {
@@ -218,9 +221,6 @@
       var pt = planText(w.plan);
       items.push('<span class="ticker-item">👀 WATCHING <strong>' + esc(w.asset) + '</strong>' +
         (pt ? ' · ' + pt : '') + ' · ' + venue(w) + '</span>');
-    });
-    v.newsAvoids.slice(0, 2).forEach(function (a) {
-      items.push('<span class="ticker-item">⚠️ AVOID <strong>' + esc(a) + '</strong> — news risk</span>');
     });
     var longs = (swing.longs || []).slice().sort(function (a, b) { return (b.confidence || 0) - (a.confidence || 0); }).slice(0, 4);
     var shorts = (swing.shorts || []).slice().sort(function (a, b) { return (b.confidence || 0) - (a.confidence || 0); }).slice(0, 4);

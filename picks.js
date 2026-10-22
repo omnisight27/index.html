@@ -78,10 +78,8 @@
     var t = p.thesis || {};
     var bull = (t.bull_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
     var bear = (t.bear_case || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
-    var newsFlag = p.news_flag ? '<p style="color:var(--danger)"><strong>⚠️ News risk:</strong> ' + p.news_flag + '</p>' : '';
     return '<div class="alert-card ' + cls + '" data-entry="' + p.price + '" data-target="' + (t.take_profit || 0) + '" data-stop="' + (t.stop_loss || 0) + '" data-exp-ret="' + (t.expected_return_pct || 0) + '" data-max-loss="' + (t.max_loss_pct || 0) + '">' +
       assetHeader(p, side) +
-      newsFlag +
       '<p><strong>Buy:</strong> ' + (t.entry_date || 'today') + ' @ $' + Number(p.price).toLocaleString() +
       ' &nbsp; <strong>Sell target:</strong> ' + (t.projected_exit || '—') + ' @ $' + (t.take_profit !== undefined ? Number(t.take_profit).toLocaleString() : '—') + '</p>' +
       '<p><strong>Stop:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') +
@@ -95,6 +93,10 @@
       '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=' + side + '">📄 Full detail page →</a></p>' +
       modelDetails(p) + '</div>';
   }
+
+  // News-flagged picks are hidden everywhere on this page (Nic's request,
+  // 2026-10-22) — the grids below filter them out before rendering.
+  function notNewsFlagged(p) { return !p.news_flag; }
 
   function isTradable(p) {
     // Stocks/ETFs are tradable via brokerage; crypto needs exchange listing
@@ -248,9 +250,10 @@
   //   CLOSEST  — only when no BUY exists: the highest-confidence long
   //   TO A BUY   candidate under the bar, with the gap in plain words.
   //   WATCHING — top watch-list / Setting Up items (max 3).
-  //   AVOID    — any pick with a news flag; any mover down >= 10% in 24h.
-  // A news-flagged asset can never be a BUY (the ZEC lesson: a bad headline
-  // outranks a model score).
+  // News-flagged picks and falling movers used to surface here as AVOID
+  // cards; Nic asked not to see them at all (2026-10-22), so they are
+  // never rendered. A news-flagged asset can still never be a BUY (the
+  // ZEC lesson: a bad headline outranks a model score).
   function tfAgree(p) {
     var v = p && p.tf_align;
     if (v === null || v === undefined || v === '') return null;
@@ -279,11 +282,10 @@
     var badges = {
       'BUY': ['#10b981', '#ffffff'],
       'CLOSEST TO A BUY': ['#f59e0b', '#0b1220'],
-      'WATCHING': ['#38bdf8', '#0b1220'],
-      'AVOID': ['#dc2626', '#ffffff']
+      'WATCHING': ['#38bdf8', '#0b1220']
     };
     var b = badges[v.verdict] || ['#6b7280', '#ffffff'];
-    var cls = v.verdict === 'BUY' ? 'alert-buy' : (v.verdict === 'AVOID' ? 'alert-sell' : 'alert-hold');
+    var cls = v.verdict === 'BUY' ? 'alert-buy' : 'alert-hold';
     var nm = v.name && v.name !== v.asset ? ' <span class="asset-name">' + v.name + '</span>' : '';
     var link = v.info_url ? ' <a class="asset-link" href="' + v.info_url + '" target="_blank" rel="noopener">What is this? ↗</a>' : '';
     var detail = v.detail ? '<p><a class="details-toggle" href="' + v.detail + '">📄 Full detail page →</a></p>' : '';
@@ -299,7 +301,7 @@
     swing = swing || {};
     intra = intra || {};
     var seen = {};
-    var buys = [], avoids = [], watching = [];
+    var buys = [], watching = [];
     var swingLongs = swing.longs || [];
     var intraLongs = (intra.longs || []).filter(function (s) { return !s.direction || s.direction === 'LONG'; });
     var movers = intra.movers || [];
@@ -334,20 +336,6 @@
         push(buys, { verdict: 'BUY', asset: m.asset, name: m.name, info_url: m.info_url, 'class': m['class'], tradable: m.tradable,
           reason: 'Mover still climbing: +' + m.chg_24h + '% in 24h and +' + m.chg_1h + '% this hour, with a plan attached.',
           plan: m.plan, detail: detailFor(m.asset) });
-      }
-    });
-
-    // AVOID — bad headlines and falling knives
-    Object.keys(newsFlagged).forEach(function (a) {
-      var p = newsFlagged[a];
-      push(avoids, { verdict: 'AVOID', asset: a, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
-        reason: '⚠️ News risk: ' + plainReason(p.news_flag), detail: detailFor(a) });
-    });
-    movers.forEach(function (m) {
-      if ((m.chg_24h || 0) <= -10) {
-        push(avoids, { verdict: 'AVOID', asset: m.asset, name: m.name, info_url: m.info_url, 'class': m['class'], tradable: m.tradable,
-          reason: 'Falling hard (' + m.chg_24h + '% in 24h) — no catching knives (long-only).',
-          detail: detailFor(m.asset) });
       }
     });
 
@@ -392,7 +380,7 @@
         plan: m.plan || null, detail: detailFor(m.asset) });
     });
 
-    var cards = buys.concat(closest ? [closest] : []).concat(watching).concat(avoids);
+    var cards = buys.concat(closest ? [closest] : []).concat(watching);
     var emptyNote = null;
     if (!buys.length && !closest) {
       var lbl = swing.regime_label || (swing.regime ? regimeLabel(swing.regime) : null);
@@ -504,27 +492,29 @@
         var longs = document.getElementById('picks-longs');
         var longsAll = document.getElementById('picks-longs-all');
         if (longs) {
-          var tradLongs = d.longs.filter(isTradable);
+          var tradLongs = d.longs.filter(notNewsFlagged).filter(isTradable);
           longs.innerHTML = tradLongs.length
             ? tradLongs.map(function (p) { return pickCard(p, 'long'); }).join('')
             : '<div class="card"><p>No tradable long signals right now — check All Signals.</p></div>';
         }
         if (longsAll) {
-          longsAll.innerHTML = d.longs.length
-            ? d.longs.map(function (p) { return pickCard(p, 'long'); }).join('')
+          var allLongs = d.longs.filter(notNewsFlagged);
+          longsAll.innerHTML = allLongs.length
+            ? allLongs.map(function (p) { return pickCard(p, 'long'); }).join('')
             : '<div class="card"><p>No long signals right now.</p></div>';
         }
         var shorts = document.getElementById('picks-shorts');
         var shortsAll = document.getElementById('picks-shorts-all');
         if (shorts) {
-          var tradShorts = d.shorts.filter(isTradable);
+          var tradShorts = d.shorts.filter(notNewsFlagged).filter(isTradable);
           shorts.innerHTML = tradShorts.length
             ? tradShorts.map(function (p) { return pickCard(p, 'short'); }).join('')
             : '<div class="card"><p>No tradable short signals right now.</p></div>';
         }
         if (shortsAll) {
-          shortsAll.innerHTML = d.shorts.length
-            ? d.shorts.map(function (p) { return pickCard(p, 'short'); }).join('')
+          var allShorts = d.shorts.filter(notNewsFlagged);
+          shortsAll.innerHTML = allShorts.length
+            ? allShorts.map(function (p) { return pickCard(p, 'short'); }).join('')
             : '<div class="card"><p>No short signals right now.</p></div>';
         }
         // Remember swing pick sides so mover cards can link to detail pages
