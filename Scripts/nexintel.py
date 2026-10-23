@@ -304,6 +304,18 @@ def round_price(p):
     if p >= 0.01: return round(p, 6)
     return round(p, 8)
 
+def fmt_price(p):
+    """Display-string twin of round_price(): same adaptive precision bands,
+    rendered for humans. Sub-$1 coins keep real decimals (a $0.1194 coin
+    must never read '@ $0'); $1+ gets commas + 2dp. Mirrors the convention
+    in scripts/intraday-sms.py."""
+    if not p:
+        return '$0'
+    if p >= 1:
+        return f'${p:,.2f}'
+    s = f'{round_price(p):.8f}'.rstrip('0').rstrip('.')
+    return '$' + s
+
 # Nic's actual crypto holdings (Coinbase, 2026-10-21). SELL alerts fire
 # ONLY for assets in this set — a sell signal on something he doesn't
 # hold is noise to a long-only trader. Keep in sync with the same
@@ -660,7 +672,7 @@ def think(data, history):
         if tf_agree == 5: conf = min(97, conf + 3)
         elif tf_agree <= 1: conf = max(35, conf - 3)
         thesis = build_thesis(sym, chg24, chg7d, price, score, conf, regime, fg_now, g_edge, 'crypto')
-        reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ ${price:,.0f}. '
+        reason = (f'{sym} {chg24:+.1f}% (24h), {chg7d:+.1f}% (7d) @ {fmt_price(price)}. '
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
         pick = {'asset': sym, 'price': round_price(price), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',

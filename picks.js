@@ -146,8 +146,12 @@
   function fmtPlanPrice(v) {
     v = Number(v);
     if (!isFinite(v)) return '—';
-    return v >= 1 ? v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                  : String(+v.toFixed(4));
+    if (v >= 1) return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (v >= 0.0001) return String(+v.toFixed(4));
+    // Dust-priced (sub-$0.0001): toFixed(4) would read "$0.0000" — keep
+    // enough decimals to stay non-zero, trailing zeros trimmed.
+    var s = v.toFixed(10).replace(/0+$/, '');
+    return s.charAt(s.length - 1) === '.' ? s.slice(0, -1) : s;
   }
 
   // Engine clock strings arrive as "HH:MM UTC" (intraday) or a plain
