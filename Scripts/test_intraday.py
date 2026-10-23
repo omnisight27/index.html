@@ -717,3 +717,138 @@ def test_post_exit_stats_block_aggregation():
     # (7.27 for AAA + 0.91 for BBB) / 2 = 4.09 over target exits.
     assert pe['avg_post_exit_high_pct'] == pytest.approx(4.09, abs=0.01)
     assert pe['stop_exits'] == 1 and pe['recovered_after_stop'] == 1
+
+
+# ------------------------------------------------- codeword gate (shadow)
+# 2026-10-23: the gate stamps each new Proof Book record with six
+# parity checks computed ONLY from fields its family really carries
+# (missing input -> None, never guessed) and aggregates a pass/fail
+# split in proof.stats['codeword_gate']. Measurement only: no alert,
+# verdict or grading path reads it. These tests pin the check math,
+# the punctured-pass rule (>= 4 evaluable checks, all True), and the
+# aggregation — the live-behavior guarantee is that nothing else in
+# the suite moved.
+
+def gate_signal(**over):
+    """All-pass signal gate kwargs; `over` breaks one thing at a time."""
+    kw = dict(kind='signal', direction='LONG', entry=100.0,
+              take_profit=110.0, stop_loss=95.0, regime='risk_on',
+              confidence=75, tradable=['coinbase'])
+    kw.update(over)
+    return kw
+
+
+def test_gate_all_checks_pass_signal():
+    g = intraday.proof_gate(**gate_signal())
+    assert g['pass'] is True
+    assert g['checks'] == {'confidence': True, 'alignment': None,
+                           'tradable': True, 'news_clean': True,
+                           'plan_complete': True, 'regime_ok': True}
+
+
+def test_gate_each_check_failing_flips_pass():
+    # confidence below the proven band
+    g = intraday.proof_gate(**gate_signal(confidence=65))
+    assert g['checks']['confidence'] is False and g['pass'] is False
+    # not tradable on Nic's venues
+    g = intraday.proof_gate(**gate_signal(tradable=[]))
+    assert g['checks']['tradable'] is False and g['pass'] is False
+    g = intraday.proof_gate(**gate_signal(tradable=['kraken']))
+    assert g['checks']['tradable'] is False and g['pass'] is False
+    # news-flagged
+    g = intraday.proof_gate(**gate_signal(news_flag='SEC headline'))
+    assert g['checks']['news_clean'] is False and g['pass'] is False
+    # plan inverted: target below entry on a LONG
+    g = intraday.proof_gate(**gate_signal(take_profit=90.0))
+    assert g['checks']['plan_complete'] is False and g['pass'] is False
+    # caution regime at record time
+    g = intraday.proof_gate(**gate_signal(regime='risk_off'))
+    assert g['checks']['regime_ok'] is False and g['pass'] is False
+
+
+def test_gate_short_plan_mirror_and_alignment_mover():
+    # SHORT: target < entry < stop is the sane order.
+    g = intraday.proof_gate(**gate_signal(direction='SHORT',
+                                          take_profit=90.0,
+                                          stop_loss=105.0))
+    assert g['checks']['plan_complete'] is True and g['pass'] is True
+    g = intraday.proof_gate(**gate_signal(direction='SHORT'))
+    assert g['checks']['plan_complete'] is False and g['pass'] is False
+    # Movers carry no confidence (punctured check) but DO carry the
+    # 1h/24h agreement check from their own stored fields.
+    kw = dict(kind='mover', direction='LONG', entry=100.0,
+              take_profit=110.0, stop_loss=95.0, regime='neutral',
+              tradable=['cryptocom'], chg_1h=6.0, chg_24h=18.0)
+    g = intraday.proof_gate(**kw)
+    assert g['checks']['confidence'] is None
+    assert g['checks']['alignment'] is True and g['pass'] is True
+    # 1h turned against the 24h move -> alignment fails, pass flips.
+    g = intraday.proof_gate(**dict(kw, chg_1h=-1.5))
+    assert g['checks']['alignment'] is False and g['pass'] is False
+
+
+def test_gate_unknowns_and_min_evaluable():
+    # Band stands in for confidence exactly (backfill path): >= 70
+    # bands pass, below fails, 'na'/missing stays unknown.
+    assert intraday.proof_gate(**gate_signal(confidence=None,
+                                             band='70s')
+                               )['checks']['confidence'] is True
+    assert intraday.proof_gate(**gate_signal(confidence=None,
+                                             band='60s')
+                               )['checks']['confidence'] is False
+    assert intraday.proof_gate(**gate_signal(confidence=None,
+                                             band='na')
+                               )['checks']['confidence'] is None
+    # An unreadable regime is unknown, not benign.
+    g = intraday.proof_gate(**gate_signal(regime='unknown'))
+    assert g['checks']['regime_ok'] is None and g['pass'] is False
+    # Too few evaluable checks can never pass, even with no failure:
+    # a bare setup source (tradable only) evaluates tradable +
+    # news_clean + plan_complete + regime_ok = 4 -> can pass...
+    g = intraday.proof_gate('setup', 'LONG', 100.0, 110.0, 95.0,
+                            'risk_on', tradable=['coinbase'])
+    assert g['pass'] is True
+    # ...but strip the regime too and only 3 checks remain evaluable.
+    g = intraday.proof_gate('setup', 'LONG', 100.0, 110.0, 95.0,
+                            'unknown', tradable=['coinbase'])
+    assert g['pass'] is False
+
+
+def test_gate_stamped_on_candidate():
+    plan = {'entry': 100.0, 'take_profit': 110.0, 'stop_loss': 95.0,
+            'expected_return_pct': 10.0, 'max_loss_pct': 5.0}
+    e = intraday._proof_candidate(
+        'signal', 'GST', 'Gate Coin', 'LONG', dict(plan), BASE, 2,
+        tags={'band': '70s', 'regime': 'risk_on'},
+        gate_src={'confidence': 75, 'tradable': ['coinbase']})
+    assert e['gate']['pass'] is True
+    assert e['gate']['checks']['confidence'] is True
+    # No gate_src: the record still carries a gate, computed from its
+    # own fields alone — source-only checks read unknown.
+    e2 = setup_entry()
+    assert e2['gate']['checks']['tradable'] is None
+    assert e2['gate']['checks']['plan_complete'] is True
+    assert e2['gate']['pass'] is False  # only 3 evaluable checks
+
+
+def test_gate_stats_aggregation():
+    def rec(gate, status, pnl):
+        e = {'kind': 'signal', 'direction': 'LONG', 'status': status,
+             'result_pct': pnl, 'paper_pnl': pnl}
+        if gate is not None:
+            e['gate'] = {'pass': gate, 'checks': {}}
+        return e
+    recs = [rec(True, 'won', 50.0), rec(True, 'lost', -20.0),
+            rec(True, 'open', None), rec(False, 'won', 10.0),
+            rec(False, 'expired', 0.0), rec(None, 'lost', -5.0)]
+    cg = intraday.proof_stats(recs)['codeword_gate']
+    assert cg['evaluated'] == 5 and cg['unevaluated'] == 1
+    assert cg['pass']['graded'] == 2 and cg['pass']['wins'] == 1
+    assert cg['pass']['losses'] == 1 and cg['pass']['open'] == 1
+    assert cg['pass']['win_rate'] == 50.0
+    assert cg['pass']['paper_pnl_total'] == 30.0
+    assert cg['fail']['graded'] == 2 and cg['fail']['expired'] == 1
+    assert cg['fail']['paper_pnl_total'] == 10.0
+    # Pre-existing stats are untouched by the new block.
+    st = intraday.proof_stats(recs)
+    assert st['graded'] == 5 and st['wins'] == 2 and st['losses'] == 2

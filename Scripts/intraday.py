@@ -397,12 +397,17 @@ def proof_cell_key(e):
             e.get('regime') or 'unknown')
 
 def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
-                     tags=None):
+                     tags=None, gate_src=None):
     """Normalize a signal thesis / mover plan / accum trigger plan into
     a ledger entry. horizon_h matches the builders: signals exit at +2h
     (build_intraday_thesis), mover and accum plans at +3h
     (build_mover_plan / build_accum_plan). `tags` carries the scenario
-    cell tags ({'band': ..., 'regime': ...}) stamped at entry."""
+    cell tags ({'band': ..., 'regime': ...}) stamped at entry.
+    `gate_src` carries the source object's own gate inputs at this
+    moment ({confidence, tradable, news_flag, chg_1h, chg_24h} —
+    whichever the family really has) for the shadow codeword gate;
+    the gate is measurement only and never feeds back into the
+    candidate itself."""
     from datetime import timedelta
     if not plan:
         return None
@@ -449,6 +454,13 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
         entry_out['trigger_price'] = plan.get('trigger_price') or entry
         entry_out['triggered'] = False
         entry_out['never_triggered'] = False
+    src = gate_src or {}
+    entry_out['gate'] = proof_gate(
+        kind, entry_out['direction'], entry, tp, sl,
+        entry_out['regime'],
+        confidence=src.get('confidence'), band=entry_out.get('band'),
+        tradable=src.get('tradable'), news_flag=src.get('news_flag'),
+        chg_1h=src.get('chg_1h'), chg_24h=src.get('chg_24h'))
     return entry_out
 
 def proof_record_new(record, candidates, now):
@@ -908,7 +920,125 @@ def proof_stats(record):
     stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
                         for k in ('signal', 'mover', 'setup')}
     stats['post_exit'] = _proof_post_exit_stats(record)
+    stats['codeword_gate'] = _proof_gate_stats(record, agg)
     return stats
+
+# --- Codeword gate (shadow evaluation, 2026-10-23) ------------------------
+# Nic's framing, borrowed from error-correcting codes: a buy candidate
+# is a "valid codeword" only if it passes EVERY independent parity
+# check — a setup that fails one check is not "mostly a buy", it is
+# not a codeword at all. This block MEASURES that gate against the
+# Proof Book; it changes nothing live. No alert, verdict, WhatsApp
+# rule, grading outcome, or exit reads `gate` — the gate is stamped
+# on each new record at creation and aggregated in proof.stats as
+# `codeword_gate`, so weeks of evidence can say whether the gate
+# would have helped before anyone considers wiring it in.
+#
+# Six checks, each computed ONLY from fields the family genuinely
+# carries (a check whose input does not exist reads None — unknown,
+# never guessed — the same honesty rule as band 'na' / regime
+# 'unknown'):
+#   confidence   signals: stored confidence >= 70 (the proven band).
+#                Where only the derived band survives (backfill),
+#                band '70s'/'80+' stands in exactly: conf_band maps
+#                >= 70 to those two labels and nothing else.
+#                Movers/setups carry no confidence -> None.
+#   alignment    movers: the 1h and 24h moves agree with the plan's
+#                direction (chg_1h and chg_24h, both stored on the
+#                mover at creation; LONG: both > 0). Signals store
+#                no timeframe-alignment field (their score's sign IS
+#                the direction) and setups carry none either -> None.
+#                No swing-sourced records exist in this ledger, so
+#                the swing tf_align string is never read here.
+#   tradable     the source's tradable list (built by tradable_on at
+#                creation) names coinbase and/or cryptocom.
+#   news_clean   news_flag false or ABSENT. The intraday engine has
+#                no news_flag field at all (it exists only on swing
+#                picks in nexintel.py), so every intraday record
+#                reads True here — stated plainly, not hidden.
+#   plan_complete entry / take_profit / stop_loss all present, > 0,
+#                and sanely ordered (LONG: stop < entry < target;
+#                SHORT mirrored).
+#   regime_ok    the record's regime tag is not the caution regime
+#                ('risk_off'). 'unknown' -> None: a regime that
+#                could not be read cannot be certified benign.
+# A family that never carries a check is a PUNCTURED position (the
+# coding term): pass = every evaluable check is True AND at least
+# GATE_MIN_EVALUABLE checks were evaluable, so a record cannot pass
+# on two trivial checks alone. One check is REQUIRED, not punctured:
+# regime_ok — every record carries a regime tag, and an 'unknown'
+# regime cannot be certified non-caution, so it never passes.
+GATE_VENUES = ('coinbase', 'cryptocom')
+GATE_MIN_EVALUABLE = 4
+
+def proof_gate_checks(kind, direction, entry, take_profit, stop_loss,
+                      regime, confidence=None, band=None, tradable=None,
+                      news_flag=None, chg_1h=None, chg_24h=None):
+    """The six parity checks for one candidate. True/False where the
+    family's own fields decide, None where the field does not exist.
+    Pure function — unit-tested."""
+    checks = {}
+    if confidence is not None:
+        checks['confidence'] = confidence >= 70
+    elif band not in (None, 'na'):
+        checks['confidence'] = band in ('70s', '80+')
+    else:
+        checks['confidence'] = None
+    if kind == 'mover' and chg_1h is not None and chg_24h is not None:
+        if direction == 'SHORT':
+            checks['alignment'] = chg_1h < 0 and chg_24h < 0
+        else:
+            checks['alignment'] = chg_1h > 0 and chg_24h > 0
+    else:
+        checks['alignment'] = None
+    if tradable is None:
+        checks['tradable'] = None
+    else:
+        checks['tradable'] = any(v in GATE_VENUES for v in tradable)
+    checks['news_clean'] = not news_flag
+    try:
+        e = float(entry)
+        t = float(take_profit)
+        s = float(stop_loss)
+        if direction == 'SHORT':
+            checks['plan_complete'] = bool(e > 0 and t < e < s)
+        else:
+            checks['plan_complete'] = bool(e > 0 and s < e < t)
+    except (TypeError, ValueError):
+        checks['plan_complete'] = False
+    if regime in ('risk_on', 'neutral'):
+        checks['regime_ok'] = True
+    elif regime == 'risk_off':
+        checks['regime_ok'] = False
+    else:
+        checks['regime_ok'] = None
+    return checks
+
+def proof_gate(kind, direction, entry, take_profit, stop_loss, regime,
+               **src):
+    """{'pass': bool, 'checks': {...}} for one candidate. Extra inputs
+    (confidence, band, tradable, news_flag, chg_1h, chg_24h) arrive via
+    **src — see proof_gate_checks for what each family really has."""
+    checks = proof_gate_checks(kind, direction, entry, take_profit,
+                               stop_loss, regime, **src)
+    evaluable = [v for v in checks.values() if v is not None]
+    return {'pass': len(evaluable) >= GATE_MIN_EVALUABLE
+            and all(evaluable)
+            and checks.get('regime_ok') is True,
+            'checks': checks}
+
+def _proof_gate_stats(record, agg):
+    """Pass/fail split of graded outcomes over records carrying a
+    gate block (same visible-ledger scope as proof_stats itself;
+    records predating the gate count as unevaluated, never assumed
+    to have passed or failed)."""
+    gated = [e for e in record if isinstance(e.get('gate'), dict)]
+    passed = [e for e in gated if e['gate'].get('pass')]
+    failed = [e for e in gated if not e['gate'].get('pass')]
+    return {'evaluated': len(gated),
+            'unevaluated': len(record) - len(gated),
+            'pass': agg(passed),
+            'fail': agg(failed)}
 
 def proof_cells(record, cumulative=None):
     """Win/loss PER SCENARIO CELL, all-time: aggregates over the
@@ -1362,12 +1492,19 @@ def main():
             'signal', s['asset'], s.get('name'), s.get('direction'),
             s.get('thesis'), proof_now, 2,
             tags={'band': conf_band(s.get('confidence')),
-                  'regime': regime_tag}))
+                  'regime': regime_tag},
+            gate_src={'confidence': s.get('confidence'),
+                      'tradable': s.get('tradable'),
+                      'news_flag': s.get('news_flag')}))
     for m in movers:
         proof_cands.append(_proof_candidate(
             'mover', m['asset'], m.get('name'), 'LONG',
             m.get('plan'), proof_now, 3,
-            tags={'band': 'na', 'regime': regime_tag}))
+            tags={'band': 'na', 'regime': regime_tag},
+            gate_src={'tradable': m.get('tradable'),
+                      'news_flag': m.get('news_flag'),
+                      'chg_1h': m.get('chg_1h'),
+                      'chg_24h': m.get('chg_24h')}))
     for a in accum:
         # Setting-up scenarios join the book (2026-10-21): every accum
         # entry carrying a trigger plan becomes a graded paper
@@ -1375,7 +1512,9 @@ def main():
         proof_cands.append(_proof_candidate(
             'setup', a['asset'], a.get('name'), 'LONG',
             a.get('plan'), proof_now, 3,
-            tags={'band': 'na', 'regime': regime_tag}))
+            tags={'band': 'na', 'regime': regime_tag},
+            gate_src={'tradable': a.get('tradable'),
+                      'news_flag': a.get('news_flag')}))
     n_added = proof_record_new(proof, proof_cands, proof_now)
     proof, dropped = _proof_trim(proof)
     cumulative = proof_roll_cumulative(prior_cumulative, dropped)
