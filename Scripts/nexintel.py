@@ -320,7 +320,7 @@ def fmt_price(p):
 # ONLY for assets in this set — a sell signal on something he doesn't
 # hold is noise to a long-only trader. Keep in sync with the same
 # constant in scripts/intraday-sms.py (the WhatsApp selector).
-NIC_HOLDINGS = {'BTC', 'XRP', 'ETH', 'SOL', 'XLM', 'AVAX'}  # ARB removed 2026-10-23: position sold (418.5 @ $0.17112, net $71.26)
+NIC_HOLDINGS = {'BTC', 'XRP', 'ETH', 'SOL', 'AVAX'}  # ARB sold + XLM fully converted to BTC, XRP trimmed ~40% — all 2026-10-23
 
 # Confidence bands shared by the calibration table (remember) and the
 # empirical calibration layer (think). A band's stated label (e.g. "80+")
