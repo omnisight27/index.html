@@ -490,9 +490,21 @@ def learn_weights(history):
     if len(X) < N_FEATURES:
         return HEURISTIC_W, {'trained': False, 'samples': len(X),
                              'note': f'warming up ({len(X)}/{N_FEATURES} samples) — heuristic weights'}
-    w = solve_least_squares(X, y)
+    # Ridge must scale with the data: the solver adds λ to the diagonal of
+    # XᵀX (unnormalized sums over all rows), so the old fixed λ=1e-3 was
+    # ~7 orders of magnitude below the diagonal (~3e4) and no regularization
+    # at all. Worse, two feature columns are perfectly collinear in training
+    # data (trend_align f9 == ma_align f11, corr 1.0), so XᵀX is singular
+    # and the unregularized solve produced wild weights (max |w| ≈ 7192),
+    # collapsing the score distribution to one side: on 2026-10-24 only 1
+    # of 270 liquid coins scored negative, so the site published 1 short
+    # for two straight runs despite a broadly down market. A data-scaled
+    # ridge (1% of the mean XᵀX diagonal) restores a two-sided distribution
+    # (71/270 negative on the same snapshot) at a ~2% in-sample RMSE cost.
+    ridge = 0.01 * (sum(v * v for row in X for v in row) / len(X[0]))
+    w = solve_least_squares(X, y, ridge=ridge)
     return w, {'trained': True, 'samples': len(X),
-               'note': f'optimized on {len(X)} scored picks via row echelon form'}
+               'note': f'optimized on {len(X)} scored picks via row echelon form (ridge {ridge:.1f})'}
 
 # ---------------------------------------------------------------- REGIME
 def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
