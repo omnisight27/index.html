@@ -634,7 +634,9 @@ def think(data, history):
     print(f"  kelly = {kelly:.3f} (win_rate={wr:.2f})")
 
     # --- Score crypto with w·x (ensemble: regression + geometry + regime) ---
-    BLOCKED_SYMBOLS = {'XMR'}  # not tradable on Coinbase (delisted)
+    BLOCKED_SYMBOLS = {'XMR',  # not tradable on Coinbase (delisted)
+                       # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
+                       'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC'}
     listings = data.get('listings', {})
     def tradable_on(sym):
         """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom']."""
