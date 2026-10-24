@@ -180,6 +180,19 @@
             el.innerHTML = '<div class="card"><h3>Pick not found</h3><p class="live-stamp">' + esc(asset) + ' is not in the current ' + esc(type) + ' picks. It may have rotated out — check the Picks page for the latest.</p></div>';
             return;
           }
+          // News-flagged picks are scrubbed from the Picks page entirely
+          // (Nic, 2026-10-22 — the ZEC lesson: a bad headline outranks a
+          // model score). A hand-typed URL must not bypass that scrub, so a
+          // flagged pick renders as a warning, never as a trade — no entry,
+          // no target, no stop.
+          if (found.news_flag) {
+            el.innerHTML = '<div class="card"><h2>🚫 ' + esc(found.asset) + ' — Flagged, Not a Trade</h2>' +
+              '<p><strong>News risk:</strong> ' + esc(found.news_flag) + '</p>' +
+              '<p class="live-stamp">The engine flagged this pick on a headline and excluded it from the Picks page. A headline outranks a model score — there is no trade here until the flag clears on a fresh run.</p>' +
+              '<p><a href="picks.html" class="asset-link">← Back to Picks</a></p></div>';
+            document.title = found.asset + ' — Flagged — OmniSight';
+            return;
+          }
           el.innerHTML = isIntra ? renderIntraday(found) : renderSwing(found);
           document.title = found.asset + ' — OmniSight Pick Detail';
           // EDGAR deep dive: fetch recent SEC filings for equity picks

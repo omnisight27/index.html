@@ -53,6 +53,18 @@ def fetch_text(url, timeout=20):
         print(f'  [warn] {url[:60]}... failed: {e}')
         return None
 
+def sam_agency(o):
+    """Agency name for a SAM.gov opportunity record.
+
+    The v2 API carries no officeAddress.agency — the hierarchy lives in
+    fullParentPathName ("DEPT OF DEFENSE.DEPT OF THE NAVY..."), whose
+    first segment is the department. Fall back to department, then
+    office, then '?' (never crash the ingest on a missing field)."""
+    path = (o.get('fullParentPathName') or '').split('.')
+    if path and path[0].strip():
+        return path[0].strip().title()
+    return o.get('department') or o.get('office') or '?'
+
 def load_newsletter_digest():
     """Load data/newsletters.json — the daily digest distilled from Nic's
     nine morning newsletters (built by scripts/build-newsletter-digest.py
@@ -155,7 +167,7 @@ def ingest():
             opps = (sam or {}).get('opportunitiesData', [])
             d['opportunities'] = [{
                 'title': o.get('title', '?'),
-                'agency': (o.get('officeAddress') or {}).get('agency', '?'),
+                'agency': sam_agency(o),
                 'type': o.get('type', {}).get('value', '?') if isinstance(o.get('type'), dict) else o.get('type', '?'),
                 'posted': o.get('postedDate', '?'),
                 'deadline': o.get('responseDeadLine', '?'),
