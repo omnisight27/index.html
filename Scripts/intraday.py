@@ -1208,7 +1208,9 @@ def main():
     # Coins not tradable on major US exchanges (delisted / regulatory)
     BLOCKED = {'XMR',  # Monero — delisted from Coinbase
                # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
-               'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC'}
+               'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC',
+               # Pegged / money-market tokens that leaked into the 2026-10-25 longs (all ~$1, no upside)
+               'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL'}
     # Exchange listings — which coins Nic can actually trade
     listings_cb, listings_cdc = set(), set()
     try:
