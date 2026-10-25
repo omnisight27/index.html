@@ -47,6 +47,7 @@
     overlay.className = 'guard-overlay';
     overlay.id = 'guard-overlay';
     overlay.hidden = true;
+    overlay.style.display = 'none';
     overlay.innerHTML =
       '<div class="guard-box" role="alertdialog" aria-labelledby="guard-title">' +
         '<h3 id="guard-title">You\'re leaving OmniSight</h3>' +
@@ -80,9 +81,13 @@
     }
     goEl.href = url;
     overlay.hidden = false;
+    overlay.style.display = 'flex';
   }
 
-  function hide() { if (overlay) overlay.hidden = true; }
+  // Visibility is set inline as well as via the hidden attribute: inline
+  // display beats every stylesheet rule, so the modal stays hidden even
+  // if a stale cached stylesheet (without the [hidden] rule) is served.
+  function hide() { if (overlay) { overlay.hidden = true; overlay.style.display = 'none'; } }
 
   function init() {
     buildModal();
