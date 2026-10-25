@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OmniSight | NexIntel AI Engine</title>
+  <title>OmniSight | See it before it happens</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="OmniSight NexIntel AI Engine — live picks, government foresight, and contract intel, built to put you ahead of the move." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -18,57 +19,128 @@
       <a href="dashboard.html">Dashboard</a>
       <a href="picks.html">Picks</a>
       <a href="alerts.html">Alerts</a>
-      <a href="reports.html">Reports</a>
-      <a href="engines.html">Engines</a>
-      <a href="debt.html">Debt Payoff</a>
       <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="hub.html">Hub</a>
       <a href="profile.html">Profile</a>
     </nav>
   </header>
 
-  <section class="hero">
-    <h1>OmniSight</h1>
-    <h2>NexIntel AI Engine</h2>
-    <p>Real‑time predictions, multi‑engine intelligence, and risk‑aware alerts.</p>
-    <a class="btn primary" href="dashboard.html">Launch Dashboard</a>
+  <section class="hero hero-home">
+    <p class="eyebrow">NexIntel AI Engine · Live</p>
+    <h1>See it <span class="grad">before it happens.</span></h1>
+    <p class="hero-sub">Picks scored every 6 hours. Government plans leaking in public, matched to your life. Contract opportunities a nonprofit can actually pursue. One engine, ahead of the move.</p>
+    <div class="hero-cta">
+      <a class="btn primary" href="picks.html">Today's Picks →</a>
+      <a class="btn ghost" href="dashboard.html">Open Dashboard</a>
+    </div>
+    <p class="hero-status"><span class="pulse-dot"></span><span id="hero-status">Loading live status…</span></p>
+    <p class="live-stamp" id="data-stamp"></p>
   </section>
 
-  <section class="section">
-    <h3>Integrated Engines</h3>
-    <div class="grid">
-      <div class="card">
-        <h4>Contract Intel</h4>
-        <p>Government contracts & sector signals.</p>
-      </div>
-      <div class="card">
-        <h4>Liquidity Engine</h4>
-        <p>Cash‑flow, debt, liquidity windows.</p>
-      </div>
-      <div class="card">
-        <h4>Crypto Pulse</h4>
-        <p>Crypto flow pressure & order books.</p>
-      </div>
-      <div class="card">
-        <h4>Commerce Radar</h4>
-        <p>Consumer demand & scarcity.</p>
-      </div>
-      <div class="card">
-        <h4>Macro Scope</h4>
-        <p>GDP, inflation, war risk, rates.</p>
-      </div>
-      <div class="card">
-        <h4>Chain Signal</h4>
-        <p>Whale moves & liquidity stress.</p>
-      </div>
+  <main class="section">
+    <p class="eyebrow">Start here</p>
+    <h2>Three ways in. Pick one.</h2>
+    <p class="section-lead">Everything on OmniSight flows from three questions: what do I trade, what's coming, and where does my money stand?</p>
+    <div class="grid journey-grid">
+      <a class="card card-link journey" href="picks.html">
+        <div class="journey-icon">📈</div>
+        <h3>Trade today</h3>
+        <p>Top longs and shorts, scored every 6 hours — entry, target and stop on every pick. Nothing here is a trade until the gate says so.</p>
+        <p class="live-hint" id="hint-picks">Loading today's top pick…</p>
+        <span class="card-arrow">See the picks →</span>
+      </a>
+      <a class="card card-link journey" href="dashboard.html#foresight">
+        <div class="journey-icon">🔭</div>
+        <h3>See what's coming</h3>
+        <p>Federal rulemaking, budgets and contracts — the 50-year plans leaking in public, matched to the parts of your life they touch.</p>
+        <p class="live-hint" id="hint-foresight">Loading foresight…</p>
+        <span class="card-arrow">Open Foresight →</span>
+      </a>
+      <a class="card card-link journey" href="portfolio.html">
+        <div class="journey-icon">💰</div>
+        <h3>Grow the money</h3>
+        <p>Holdings, the debt GPS, and the road to debt-free — your money in one place, with the plan attached.</p>
+        <p class="live-hint" id="hint-money">Loading conditions…</p>
+        <span class="card-arrow">Open Portfolio →</span>
+      </a>
     </div>
-  </section>
+
+    <p class="eyebrow">Explore everything</p>
+    <h2>Every tool, one click away.</h2>
+    <p class="section-lead">No dead ends — every card below opens something real.</p>
+    <div class="grid">
+      <a class="card card-link" href="dashboard.html">
+        <div class="journey-icon">📊</div>
+        <h4>Dashboard</h4>
+        <p>Live markets, sentiment, foresight and the quantum lab, on one page.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="picks.html">
+        <div class="journey-icon">🎯</div>
+        <h4>Picks</h4>
+        <p>Top longs and shorts with entry, target and stop.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="alerts.html">
+        <div class="journey-icon">🔔</div>
+        <h4>Alerts</h4>
+        <p>High-conviction signals, the moment they print.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="govgistics.html">
+        <div class="journey-icon">🏛️</div>
+        <h4>Contract Intel</h4>
+        <p>Federal awards and the nonprofit opportunity watch.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="dashboard.html#quantum-lab">
+        <div class="journey-icon">⚛️</div>
+        <h4>Quantum Lab</h4>
+        <p>Quantum algorithms, simulated and graded against classical methods.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="portfolio.html">
+        <div class="journey-icon">💼</div>
+        <h4>Portfolio</h4>
+        <p>Holdings, staked positions and the full picture.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="debt.html">
+        <div class="journey-icon">🧭</div>
+        <h4>Debt Payoff</h4>
+        <p>The Financial GPS: debt-free date and the month-by-month route.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="reports.html">
+        <div class="journey-icon">📑</div>
+        <h4>Reports</h4>
+        <p>The graded record — Proof Book, calibration and reviews.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="engines.html">
+        <div class="journey-icon">⚙️</div>
+        <h4>Engines</h4>
+        <p>Six engines, their status and what each one watches.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+      <a class="card card-link" href="hub.html">
+        <div class="journey-icon">🗂️</div>
+        <h4>Command Hub</h4>
+        <p>Every account, tool and resource in one place.</p>
+        <span class="card-arrow">Open →</span>
+      </a>
+    </div>
+  </main>
 
   <footer class="footer">
-    <p>© OmniSight — NexIntel AI Engine</p>
+    <p>© OmniSight — NexIntel AI Engine · Educational only, not financial advice.</p>
   </footer>
   <script src="ticker-tape.js"></script>
   <script src="nav.js"></script>
   <script src="config.js"></script>
   <script src="auth.js"></script>
+  <script src="data-stamp.js"></script>
+  <script src="home.js"></script>
 </body>
 </html>

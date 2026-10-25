@@ -654,3 +654,107 @@ details.sched-full summary { cursor: pointer; color: var(--accent); }
     width: 100%;
   }
 }
+
+/* ---------- Homepage redesign (2026-10-25) ----------
+   Psychologically: one idea per screen, one primary action, live proof
+   above the fold, everything clickable, nothing faked. */
+html { scroll-behavior: smooth; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Glassy sticky nav */
+.nav {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Eyebrow labels — wayfinding above each section */
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+.section-lead {
+  color: var(--text-muted);
+  max-width: 640px;
+  margin: 0 0 32px;
+}
+
+/* Hero: radial glows + gradient headline */
+.hero-home {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 217, 255, 0.16), transparent),
+    radial-gradient(ellipse 60% 40% at 85% 110%, rgba(16, 185, 129, 0.12), transparent),
+    linear-gradient(135deg, #1f2933 0%, var(--bg) 100%);
+}
+.hero-home .grad {
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero-sub {
+  font-size: 18px !important;
+  max-width: 680px !important;
+}
+.hero-cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+}
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.hero-status {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+.pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-right: 8px;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Whole-card links — no dead ends */
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.card-link:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 28px rgba(0, 217, 255, 0.16);
+  transform: translateY(-4px);
+}
+.card-arrow {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-block;
+  margin-top: 12px;
+  transition: transform 0.3s ease;
+}
+.card-link:hover .card-arrow { transform: translateX(4px); }
+
+/* Journey cards — the three ways in */
+.journey-icon { font-size: 32px; margin-bottom: 8px; }
+.journey h3 { font-size: 22px; }
+.live-hint {
+  color: var(--accent);
+  font-size: 13px;
+  margin-top: 12px;
+}
