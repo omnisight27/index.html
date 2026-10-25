@@ -606,6 +606,65 @@ def cosine_sim(a, b):
     """Cosine similarity: 1 = identical direction, -1 = opposite, 0 = orthogonal."""
     return dot(a, b) / (norm(a) * norm(b))
 
+DIVERSITY_FRACTION = 0.10  # max haircut on a pick's strength for being a near-twin of a chosen pick
+
+def select_diverse_top(picks, k=3, fraction=DIVERSITY_FRACTION):
+    """Greedy top-k with a co-movement haircut — the Quantum Lab lesson
+    (2026-10-25), now in the live engine.
+
+    The lab's portfolio QUBO measured greedy-by-score over-buying assets
+    that move together (0.325 cost on a toy universe: the top scorers were
+    one correlated cluster). Here each candidate's strength (|score|) is
+    docked by fraction * its highest cosine similarity to an already-chosen
+    pick, so the top 3 don't hand Nic three versions of the same trade.
+    Similarity is measured on the DE-MEANED 5-window return vector
+    (1h/24h/7d/14d/30d): de-meaning removes the shared market move, so
+    only idiosyncratic co-movement counts — on a green day everything
+    points the same way, and that must not trigger the dock. Picks without
+    a vector (stocks: Finnhub gives day change only) are never docked.
+    Returns the full list reordered: diversified top k first, the rest in
+    original (score) order. Deterministic. The raw score is untouched —
+    the dock lives on the pick as div_dock/div_twin for audit."""
+    vecs = [p.get('tf_vector') for p in picks if p.get('tf_vector')]
+    mean = None
+    if vecs:
+        mean = [sum(v[i] for v in vecs) / len(vecs)
+                for i in range(len(vecs[0]))]
+
+    def resid(p):
+        v = p.get('tf_vector')
+        if not v or mean is None:
+            return None
+        return [v[i] - mean[i] for i in range(len(v))]
+
+    chosen, rest = [], list(picks)
+    while rest and len(chosen) < k:
+        best, best_strength, best_sim, best_twin = None, None, 0.0, None
+        for p in rest:
+            strength = abs(p['score'])
+            r = resid(p)
+            sim, twin = 0.0, None
+            if r is not None:
+                for c in chosen:
+                    rc = resid(c)
+                    if rc is None:
+                        continue
+                    s = cosine_sim(r, rc)
+                    if s > sim:
+                        sim, twin = s, c['asset']
+            docked = strength * (1 - fraction * max(sim, 0.0))
+            if best is None or docked > best_strength:
+                best, best_strength, best_sim, best_twin = p, docked, sim, twin
+        dock = abs(best['score']) - best_strength
+        if dock > 0.5 and best_twin:
+            best['div_dock'] = round(dock, 1)
+            best['div_twin'] = best_twin
+            best['reason'] += (f' [Diversity: -{dock:.1f} strength — '
+                               f'moves with {best_twin}]')
+        chosen.append(best)
+        rest.remove(best)
+    return chosen + rest
+
 def geometric_edge(features, history):
     """
     Fast geometric pattern match: compare today's feature vector against the
@@ -853,6 +912,7 @@ def think(data, history):
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'tradable': tradable_on(sym),
                 'tf_align': tf_align,
+                'tf_vector': [round(w, 3) for w in tf_windows],
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
@@ -1007,6 +1067,14 @@ def think(data, history):
 
     longs.sort(key=lambda p: -p['score'])
     shorts.sort(key=lambda p: p['score'])
+
+    # --- Correlation-aware top picks (Quantum Lab lesson, 2026-10-25) ---
+    # Greedy-by-score over-buys assets that move together — the lab's
+    # portfolio QUBO measured it. The top 3 of each side are now chosen
+    # with a co-movement haircut on the 5-window return vector, so the
+    # Picks page doesn't hand Nic three versions of the same trade.
+    longs = select_diverse_top(longs)
+    shorts = select_diverse_top(shorts)
 
     # --- News-risk cross-reference: flag picks named in risk headlines ---
     # Motivated by the ZEC/NU7 miss (2026-10-20): the engine went long ZEC
