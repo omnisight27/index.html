@@ -199,7 +199,7 @@
         var rows = h.picks.slice(-10).reverse().map(function (run) {
           var fg = run.fear_greed !== undefined ? run.fear_greed : '—';
           var n = ((run.longs || []).length + (run.shorts || []).length);
-          var wins = (run.longs || []).concat(run.shorts || []).filter(function (p) { return p.return_pct > 0; }).length;
+          var wins = (run.longs || []).concat(run.shorts || []).filter(function (p) { return !p.excluded && p.return_pct > 0; }).length;
           return '<tr><td>' + (run.date || '').slice(0, 10) + '</td><td>' + fg +
             '</td><td>' + (run.scored ? 'Yes' : 'Pending') + '</td><td>' + n + ' picks</td><td>' + wins + ' winners</td></tr>';
         }).join('');

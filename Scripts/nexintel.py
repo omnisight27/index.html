@@ -467,6 +467,8 @@ def geometric_edge(features, history):
     for run in history.get('picks', []):
         if not run.get('scored'): continue
         for p in run.get('longs', []) + run.get('shorts', []):
+            if _excluded_pick(p):
+                continue
             f, r = p.get('features'), p.get('return_pct')
             if f and r is not None and len(f) <= N_FEATURES:
                 pf = _pad(f)
@@ -495,6 +497,8 @@ def learn_weights(history):
     for run in history.get('picks', []):
         if not run.get('scored'): continue
         for p in run.get('longs', []) + run.get('shorts', []):
+            if _excluded_pick(p):
+                continue
             f = p.get('features')
             r = p.get('return_pct')
             if f and r is not None and len(f) <= N_FEATURES:
@@ -646,14 +650,7 @@ def think(data, history):
     stats = history.get('stats', {})
     wr = (stats.get('win_rate') or 50) / 100.0
     # Estimate avg win/loss from scored history
-    wins_r, loss_r = [], []
-    for run in history.get('picks', []):
-        for p in run.get('longs', []) + run.get('shorts', []):
-            r = p.get('return_pct')
-            if r is not None:
-                (wins_r if r > 0 else loss_r).append(abs(r))
-    avg_w = sum(wins_r) / len(wins_r) if wins_r else 5.0
-    avg_l = sum(loss_r) / len(loss_r) if loss_r else 5.0
+    avg_w, avg_l = _avg_win_loss(history)
     kelly = kelly_fraction(wr, avg_w, avg_l)
     print(f"  kelly = {kelly:.3f} (win_rate={wr:.2f})")
 
@@ -1093,6 +1090,56 @@ def think(data, history):
         'long_term': lt_outlook,
     }
 
+def _excluded_pick(p):
+    """A pick removed from the graded record (e.g. the 9 fake CVX wins
+    scored against Chevron's price by the pre-fix symbol collision).
+    Excluded picks stay in the file for audit but never count again —
+    not in stats, calibration, error, weight training, geometry, or
+    Kelly sizing. Nic approved the removal 2026-10-24; the record
+    itself carries the correction note."""
+    return bool(p.get('excluded'))
+
+
+def calibration_from_picks(picks):
+    """Bucket scored picks by stated confidence band and compare against
+    realized win rate — "says 70-79% → actually wins X%". Excluded
+    picks never count."""
+    bands = CONF_BANDS
+    calib = {b[0]: {'n': 0, 'wins': 0} for b in bands}
+    for run in picks:
+        for p in run.get('longs', []) + run.get('shorts', []):
+            if _excluded_pick(p):
+                continue
+            if p.get('win') is None or p.get('confidence') is None:
+                continue
+            for label, lo, hi in bands:
+                if lo <= p['confidence'] <= hi:
+                    calib[label]['n'] += 1
+                    if p['win']: calib[label]['wins'] += 1
+                    break
+    return [
+        {'band': label, 'n': c['n'],
+         'win_rate': round(100 * c['wins'] / c['n'], 1) if c['n'] else None}
+        for label, c in calib.items()]
+
+
+def _avg_win_loss(history):
+    """Mean |win| / |loss| over scored, non-excluded picks. Feeds Kelly
+    sizing; a single absurd return (like the +9,000% fake CVX wins)
+    used to dominate the average and inflate every position size."""
+    wins_r, loss_r = [], []
+    for run in history.get('picks', []):
+        for p in run.get('longs', []) + run.get('shorts', []):
+            if _excluded_pick(p):
+                continue
+            r = p.get('return_pct')
+            if r is not None:
+                (wins_r if r > 0 else loss_r).append(abs(r))
+    avg_w = sum(wins_r) / len(wins_r) if wins_r else 5.0
+    avg_l = sum(loss_r) / len(loss_r) if loss_r else 5.0
+    return avg_w, avg_l
+
+
 def load_history():
     hist_path = os.path.join(DATA_DIR, 'history.json')
     try:
@@ -1132,6 +1179,8 @@ def remember(data, signals):
         if run.get('scored'): continue
         scored_any = False
         for p in run.get('longs', []) + run.get('shorts', []):
+            if _excluded_pick(p):
+                continue  # removed from the graded record — never re-score
             cur = price_for(p)
             if not cur or not p.get('price'): continue
             ret = (cur - p['price']) / p['price'] * 100
@@ -1163,21 +1212,7 @@ def remember(data, signals):
     s['win_rate'] = round(100 * s['wins'] / s['total'], 1) if s['total'] else None
     # Calibration: bucket scored picks by stated confidence band and compare
     # against realized win rate — "says 70-79% → actually wins X%"
-    bands = CONF_BANDS
-    calib = {b[0]: {'n': 0, 'wins': 0} for b in bands}
-    for run in history['picks']:
-        for p in run.get('longs', []) + run.get('shorts', []):
-            if p.get('win') is None or p.get('confidence') is None:
-                continue
-            for label, lo, hi in bands:
-                if lo <= p['confidence'] <= hi:
-                    calib[label]['n'] += 1
-                    if p['win']: calib[label]['wins'] += 1
-                    break
-    history['calibration'] = [
-        {'band': label, 'n': c['n'],
-         'win_rate': round(100 * c['wins'] / c['n'], 1) if c['n'] else None}
-        for label, c in calib.items()]
+    history['calibration'] = calibration_from_picks(history['picks'])
     # Error summary: mean absolute error + % within the 5% target
     if err['n']:
         err['mae'] = round(err['sum_abs_err'] / err['n'], 2)
