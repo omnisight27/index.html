@@ -65,6 +65,149 @@ def sam_agency(o):
         return path[0].strip().title()
     return o.get('department') or o.get('office') or '?'
 
+# ---------------------------------------------------------------- FORESIGHT
+# Where 50-year government plans leak in public, before they happen:
+# rulemaking (Federal Register), budget analysis (CBO), procurement
+# (SAM.gov — already live), Fed commentary (already live), spending
+# (USASpending — already live). Lenses are the parts of Nic's life the
+# plans touch; a document only becomes a signal when it matches a lens.
+FORESIGHT_LENSES = {
+    'Health': ['medicare', 'medicaid', 'drug pric', 'clinical', 'transplant',
+               'health insurance', '340b', 'prior authori', 'lab test',
+               'diagnostic'],
+    'Money & Tax': ['tax', 'retirement', 'social security', '401(k)',
+                    'capital gains', 'estate tax'],
+    'Small Business & Nonprofits': ['small business', 'nonprofit', '501(c)',
+                                    'charitable', 'grant', 'sba'],
+    'Energy & Infrastructure': ['energy', 'electric grid', 'infrastructure',
+                                'broadband', 'water system', 'highway'],
+    'Tech & AI': ['artificial intelligence', 'algorithm', 'data privacy',
+                  'cybersecurity', 'cryptocurrenc', 'digital asset',
+                  'stablecoin'],
+    'Markets & Budgets': ['federal reserve', 'interest rate', 'treasury',
+                          'federal debt', 'deficit', 'budget outlook',
+                          'long-term'],
+}
+FORESIGHT_WHY = {
+    'Health': 'Health rules change what care costs and what labs can charge — this touches transplant care directly.',
+    'Money & Tax': 'Tax and retirement rules change what you keep and what a business pays.',
+    'Small Business & Nonprofits': 'The lane NicNacs lives in — grants, nonprofit rules, small-business programs.',
+    'Energy & Infrastructure': 'Energy and infrastructure spending moves markets and construction years ahead.',
+    'Tech & AI': 'Rules for AI, crypto, and data decide what the platforms — and this engine — are allowed to do.',
+    'Markets & Budgets': 'Budgets and debt are the 50-year plan in numbers — this is where the future gets funded or cut.',
+}
+
+def foresight_lenses(text):
+    """Lens names whose keywords appear in the text (title/abstract)."""
+    t = (text or '').lower()
+    return [name for name, kws in FORESIGHT_LENSES.items()
+            if any(k in t for k in kws)]
+
+def collect_foresight(ledger_path=None):
+    """Pull this week's long-horizon signals from public sources.
+
+    Federal Register (no key): newest rulemaking documents, lens-matched.
+    CBO publications RSS (no key): budget analysis, lens-matched, with
+    Long-Term/Outlook items always kept. Returns the fresh signals and
+    appends first-seen entries to the graded ledger
+    (data/foresight.json — committed by the loop like history.json).
+    A signal is a hint, not a prediction: the ledger is the record the
+    system earns trust against, graded as rules finalize or budgets pass.
+    Never raises — a failed feed degrades to an empty list."""
+    from datetime import timedelta as _td
+    import re as _re, subprocess as _sp
+    signals = []
+    today = datetime.now(timezone.utc).date()
+    week_ago = (today - _td(days=7)).isoformat()
+    # --- Federal Register: rulemaking is where policy first appears ---
+    # Routine paperwork notices (information collections, Privacy Act
+    # system-of-records notices, Sunshine Act meetings) match keywords
+    # in their boilerplate but carry no policy signal — skip them.
+    _ROUTINE = ('information collection', 'privacy act of 1974',
+                'sunshine act', 'agency information collection',
+                'data collection available')
+    try:
+        fed = fetch_json('https://www.federalregister.gov/api/v1/documents.json'
+                         '?per_page=100&order=newest')
+        for r in (fed or {}).get('results', []) or []:
+            pub = (r.get('publication_date') or '')[:10]
+            if pub and pub < week_ago:
+                continue
+            title = (r.get('title') or '')
+            if title.lower().startswith(_ROUTINE):
+                continue
+            text = title + ' ' + (r.get('abstract') or '')
+            lenses = foresight_lenses(text)
+            if not lenses:
+                continue
+            signals.append({
+                'source': 'Federal Register',
+                'title': (r.get('title') or '?')[:160],
+                'agency': (r.get('agency_names') or [{}])[0].get('name', '?')
+                          if isinstance(r.get('agency_names'), list) and r.get('agency_names')
+                          else '?',
+                'date': pub,
+                'url': r.get('html_url', ''),
+                'lens': lenses[0],
+                'why': FORESIGHT_WHY[lenses[0]],
+            })
+    except Exception as e:
+        print(f'  Foresight Federal Register failed: {e}')
+    # --- CBO: the nonpartisan budget scorekeeper ---
+    try:
+        rss = _sp.run(['curl', '-sL', '--max-time', '25',
+                       'https://www.cbo.gov/publications/all/rss.xml'],
+                      capture_output=True, text=True, timeout=30).stdout
+        if rss:
+            for it in _re.findall(r'<item>(.*?)</item>', rss, _re.DOTALL)[:20]:
+                tm = _re.search(r'<title>(.*?)</title>', it, _re.DOTALL)
+                lm = _re.search(r'<link>(.*?)</link>', it, _re.DOTALL)
+                dm = _re.search(r'<pubDate>(.*?)</pubDate>', it)
+                if not tm:
+                    continue
+                title = _re.sub(r'<!\[CDATA\[(.*?)\]\]>', r'\1', tm.group(1)).strip()
+                lenses = foresight_lenses(title)
+                if not lenses and 'long-term' not in title.lower() \
+                        and 'outlook' not in title.lower():
+                    continue
+                signals.append({
+                    'source': 'CBO',
+                    'title': title[:160],
+                    'agency': 'Congressional Budget Office',
+                    'date': (dm.group(1)[:16] if dm else ''),
+                    'url': lm.group(1).strip() if lm else '',
+                    'lens': lenses[0] if lenses else 'Markets & Budgets',
+                    'why': FORESIGHT_WHY[lenses[0]] if lenses
+                           else FORESIGHT_WHY['Markets & Budgets'],
+                })
+    except Exception as e:
+        print(f'  Foresight CBO failed: {e}')
+    signals = signals[:12]
+    print(f'  Foresight: {len(signals)} signals this week')
+    # --- Graded ledger: first-seen record, deduped by URL ---
+    try:
+        path = ledger_path or os.path.join(DATA_DIR, 'foresight.json')
+        ledger = []
+        if os.path.exists(path):
+            with open(path) as f:
+                ledger = json.load(f)
+        seen = {e.get('url') for e in ledger}
+        new = 0
+        for s in signals:
+            if s.get('url') and s['url'] not in seen:
+                ledger.append({**s, 'first_seen': today.isoformat(),
+                               'status': 'watching'})
+                seen.add(s['url'])
+                new += 1
+        ledger = ledger[-200:]
+        with open(path, 'w') as f:
+            json.dump(ledger, f, indent=2)
+        if new:
+            print(f'  Foresight ledger: +{new} new (total {len(ledger)})')
+    except Exception as e:
+        print(f'  Foresight ledger failed: {e}')
+    return signals
+
 def load_newsletter_digest():
     """Load data/newsletters.json — the daily digest distilled from Nic's
     nine morning newsletters (built by scripts/build-newsletter-digest.py
@@ -224,6 +367,12 @@ def ingest():
             print(f"  Fed commentary: {len(d['fed_commentary'])} articles")
     except Exception as e:
         print(f'  Fed RSS failed: {e}')
+
+    # Foresight — where 50-year plans leak in public: Federal Register
+    # rulemaking + CBO budget analysis. Lens-matched to Nic's life, with
+    # a graded first-seen ledger (data/foresight.json). Keyless feeds;
+    # a failure degrades to an empty list, never a dead run.
+    d['foresight'] = collect_foresight()
 
     # --- Keyed feeds (graceful if absent) ---
     fred_key = os.environ.get('FRED_API_KEY')
@@ -1084,6 +1233,7 @@ def think(data, history):
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
+        'foresight': data.get('foresight', []),
         'fed_commentary': data.get('fed_commentary', []),
         'headlines': headlines_out,
         'alerts': alerts,
@@ -1277,6 +1427,7 @@ def publish(data, signals, history, data_pulled_at=None):
         'weight_info': signals.get('weight_info'),
         'contracts_watch': signals['contracts_watch'],
         'opportunities': signals.get('opportunities', []),
+        'foresight': signals.get('foresight', []),
         'fed_commentary': data.get('fed_commentary', []),
         'headlines': signals['headlines'],
         'newsletters': ({'date': data['newsletter_digest'].get('date'),
