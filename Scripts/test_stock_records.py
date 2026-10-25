@@ -172,3 +172,34 @@ def test_think_emits_market_field():
     assert stock_picks, 'fixture produced no stock pick'
     assert all(p.get('market') == 'crypto' for p in crypto_picks)
     assert all(p.get('market') == 'stock' for p in stock_picks)
+
+
+# ------------------------------------------------------------- watchlist (NRR + SCHD, 2026-10-25)
+
+def test_watchlist_includes_nrr_and_schd():
+    # Nic asked for the Bitwise NEAR ETF and the Schwab dividend ETF to be
+    # scored every run like the other ETFs. The universe is a module-level
+    # constant now so it cannot drift from the ingest loop.
+    assert 'NRR' in nexintel.STOCK_SYMBOLS
+    assert 'SCHD' in nexintel.STOCK_SYMBOLS
+    assert len(nexintel.STOCK_SYMBOLS) == 46
+    assert len(set(nexintel.STOCK_SYMBOLS)) == 46  # no duplicates
+
+
+def test_think_scores_nrr_on_a_strong_day():
+    # NRR up 5% on the day must surface as an equity long with its real
+    # display name — the same path every other ETF takes.
+    data = {
+        'fear_greed': [{'value': 50}, {'value': 50}],
+        'metals': {}, 'forex': {}, 'macro': {},
+        'listings': {'coinbase': set(), 'cryptocom': set()},
+        'crypto': {},
+        'stocks': {'NRR': {'c': 26.0, 'dp': 5.0},
+                   'SCHD': {'c': 35.27, 'dp': 1.0}},
+    }
+    history = {'picks': [], 'stats': {'win_rate': 50}, 'calibration': []}
+    sig = nexintel.think(data, history)
+    nrr = [p for p in sig['longs'] + sig['shorts'] if p.get('asset') == 'NRR']
+    assert nrr, sig['longs'] + sig['shorts']
+    assert nrr[0].get('class') == 'equity'
+    assert nrr[0].get('name') == 'Bitwise NEAR ETF'

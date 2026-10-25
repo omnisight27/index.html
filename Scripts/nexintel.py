@@ -18,6 +18,16 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data'
 SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
 os.makedirs(SNAP_DIR, exist_ok=True)
 
+# Stock + ETF universe scored every run (Finnhub quotes). NRR + SCHD added
+# 2026-10-25 at Nic's request: NRR is the Bitwise NEAR ETF (trading since
+# 2026-09-29), SCHD the dividend ETF from the Oct 23 dividend lane.
+STOCK_SYMBOLS = ['SPY', 'QQQ', 'DIA', 'IWM',                      # indices
+                 'XLK', 'XLF', 'XLE', 'XLV', 'XLI', 'XLU', 'XLP', 'XLY', 'XLRE', 'XLB', 'XLC',  # sectors
+                 'AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'JPM',
+                 'V', 'MA', 'XOM', 'CVX', 'UNH', 'LLY', 'COST', 'HD', 'PG', 'JNJ', 'BAC',
+                 'CRM', 'ORCL', 'AMD', 'NFLX', 'DIS', 'INTC', 'COIN', 'MSTR', 'PLTR',  # mega-caps + crypto-adjacent
+                 'NRR', 'SCHD']  # crypto + dividend ETFs
+
 def _retryable_fetch_error(e):
     """Retry timeouts, DNS/connection blips, 429s and 5xx — not other 4xx."""
     if isinstance(e, urllib.error.HTTPError):
@@ -565,11 +575,7 @@ def ingest():
     d['stocks'] = {}
     if finnhub_key:
         # Indices, sector ETFs, mega-caps — the stocks that move markets
-        symbols = ['SPY', 'QQQ', 'DIA', 'IWM',                      # indices
-                   'XLK', 'XLF', 'XLE', 'XLV', 'XLI', 'XLU', 'XLP', 'XLY', 'XLRE', 'XLB', 'XLC',  # sectors
-                   'AAPL', 'MSFT', 'NVDA', 'AMZN', 'META', 'GOOGL', 'TSLA', 'AVGO', 'JPM',
-                   'V', 'MA', 'XOM', 'CVX', 'UNH', 'LLY', 'COST', 'HD', 'PG', 'JNJ', 'BAC',
-                   'CRM', 'ORCL', 'AMD', 'NFLX', 'DIS', 'INTC', 'COIN', 'MSTR', 'PLTR']  # mega-caps + crypto-adjacent
+        symbols = STOCK_SYMBOLS
         for sym in symbols:
             q = fetch_json(f'https://finnhub.io/api/v1/quote?symbol={sym}&token={finnhub_key}')
             if q and q.get('c'): d['stocks'][sym] = q
@@ -1108,6 +1114,7 @@ def think(data, history):
         'JPM': 'JPMorgan Chase & Co.', 'V': 'Visa Inc.', 'MA': 'Mastercard Inc.', 'XOM': 'Exxon Mobil Corp.',
         'CVX': 'Chevron Corp.', 'UNH': 'UnitedHealth Group Inc.', 'LLY': 'Eli Lilly and Co.', 'COST': 'Costco Wholesale Corp.',
         'HD': 'Home Depot Inc.', 'PG': 'Procter & Gamble Co.', 'JNJ': 'Johnson & Johnson', 'BAC': 'Bank of America Corp.',
+        'NRR': 'Bitwise NEAR ETF', 'SCHD': 'Schwab US Dividend Equity ETF',
         'CRM': 'Salesforce Inc.', 'ORCL': 'Oracle Corp.', 'AMD': 'Advanced Micro Devices Inc.', 'NFLX': 'Netflix Inc.',
         'DIS': 'Walt Disney Co.', 'INTC': 'Intel Corp.', 'COIN': 'Coinbase Global Inc.', 'MSTR': 'MicroStrategy Inc.',
         'PLTR': 'Palantir Technologies Inc.',
