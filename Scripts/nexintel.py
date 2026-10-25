@@ -1014,7 +1014,10 @@ def think(data, history):
                        # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
                        'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC',
                        # Pegged / money-market tokens that leaked into the 2026-10-25 longs (all ~$1, no upside)
-                       'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL'}
+                       'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL',
+                       # Second wave, same morning: SG-FORGE euro/dollar stables
+                       # (EURCV/USDCV), Origin Dollar (OUSD) and Web 3 Dollar (USD3)
+                       'EURCV', 'USDCV', 'OUSD', 'USD3'}
     listings = data.get('listings', {})
     def tradable_on(sym):
         """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom']."""
@@ -1028,6 +1031,16 @@ def think(data, history):
         price = info.get('usd') or 0
         sym = info.get('symbol') or cid.upper()
         if sym in BLOCKED_SYMBOLS:
+            continue
+        # Behavioral peg filter: a coin that has not moved more than 1% on
+        # ANY window (1h/24h/7d/14d/30d) is cash, not a trade. The name
+        # blocklist keeps missing new stablecoins — EURCV, OUSD and USD3
+        # leaked into the 2026-10-25 longs hours after the 03:10 blocklist
+        # fix. A real swing candidate moves >1% in a month; a flat coin
+        # only fills the top-10 when the market is weak.
+        windows = [info.get('usd_1h_change') or 0, chg24, chg7d,
+                   info.get('usd_14d_change') or 0, info.get('usd_30d_change') or 0]
+        if max(abs(w) for w in windows) < 1.0:
             continue
         # Skip dust / illiquid: no price, or market cap under $100M (only liquid, tradable assets)
         if not price or price <= 0:

@@ -1210,7 +1210,10 @@ def main():
                # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
                'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC',
                # Pegged / money-market tokens that leaked into the 2026-10-25 longs (all ~$1, no upside)
-               'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL'}
+               'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL',
+               # Second wave, same morning: SG-FORGE stables (EURCV/USDCV),
+               # Origin Dollar (OUSD), Web 3 Dollar (USD3)
+               'EURCV', 'USDCV', 'OUSD', 'USD3'}
     # Exchange listings — which coins Nic can actually trade
     listings_cb, listings_cdc = set(), set()
     try:
