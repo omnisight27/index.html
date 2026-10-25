@@ -770,6 +770,10 @@ html { scroll-behavior: smooth; }
   padding: 20px;
   z-index: 1000;
 }
+/* The hidden attribute loses to `display: flex` above (author rules beat
+   the browser's built-in [hidden] rule), so without this the modal shows
+   on load and can never be dismissed. This rule restores hiding. */
+.guard-overlay[hidden] { display: none; }
 .guard-box {
   background: var(--surface);
   border: 1px solid var(--accent);

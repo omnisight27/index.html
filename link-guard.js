@@ -15,6 +15,9 @@
   'use strict';
 
   // Domains verified live (200 + legitimate destination) on 2026-10-25.
+  // Includes the site's own generated reference links (CoinGecko info,
+  // SEC filings, St. Louis Fed articles) — the guard is for the Hub's
+  // third-party link farm, not for the site's own content.
   var ALLOW = {
     'coinbase.com': 1, 'www.coinbase.com': 1,
     'coinmarketcap.com': 1,
@@ -25,7 +28,10 @@
     'www.moneymaxaccount.com': 1, 'mydemosystem.com': 1,
     'my.rapidfunnel.com': 1, 'app.rapidfunnel.com': 1,
     'portal.ufinancialfreedom.com': 1, 'uffpowerteam.com': 1,
-    'www.creditinfocenter.com': 1
+    'www.creditinfocenter.com': 1,
+    'coingecko.com': 1, 'www.coingecko.com': 1,
+    'sec.gov': 1, 'www.sec.gov': 1,
+    'stlouisfed.org': 1, 'www.stlouisfed.org': 1
   };
 
   // Flagged links carry data-risk on the anchor; the text names the problem.
@@ -86,6 +92,9 @@
     document.addEventListener('click', function (e) {
       var a = e.target.closest ? e.target.closest('a[href^="http"]') : null;
       if (!a) return;
+      // The modal's own Continue button is an external link too — never
+      // guard it, or Continue re-triggers the modal instead of leaving.
+      if (a.closest('#guard-overlay')) return;
       var host = '';
       try { host = new URL(a.href).hostname; } catch (err) { return; }
       if (host === window.location.hostname) return;
