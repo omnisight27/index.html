@@ -1,0 +1,28 @@
+{
+  "generated": "2026-10-25T04:11:33.081755+00:00",
+  "note": "Simulated classically with the Python standard library \u2014 no quantum hardware. The lab proves the algorithms and benchmarks them against the classical methods, so the system is ready the day hardware can run them at scale. A simulated result is never a speedup claim.",
+  "grover": {
+    "n_items": 16,
+    "target": 7,
+    "quantum_steps": 3,
+    "classical_expected_checks": 8.0,
+    "classical_worst_checks": 16,
+    "success_probability": 0.9613,
+    "verdict": "Found 1 in 16 in 3 steps with 96.1% probability; checking one by one takes 8 on average. Square-root speedup, not magic \u2014 and only once hardware exists."
+  },
+  "qaoa": {
+    "graph": "6 nodes, 8 edges",
+    "optimum_cut": 8,
+    "classical_greedy_cut": 8,
+    "qaoa_expected_cut": 5.632,
+    "gamma": 5.629,
+    "beta": 2.749,
+    "verdict": "QAOA (simulated, p=1) expects a cut of 5.63 against greedy 8 and optimal 8. On this graph the classical method wins \u2014 p=1 is a shallow circuit. Deeper circuits and real hardware are what would pull ahead; the lab says so plainly instead of pretending otherwise."
+  },
+  "vqc": {
+    "task": "2-feature direction classification (8 toy points)",
+    "vqc_accuracy": 1.0,
+    "classical_perceptron_accuracy": 1.0,
+    "verdict": "VQC (simulated) scores 100% against the classical perceptron at 100% on the same toy data. The quantum classifier works \u2014 it ties the classical one at this scale and does not beat it. That is the honest result."
+  }
+}

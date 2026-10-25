@@ -83,10 +83,10 @@ FORESIGHT_LENSES = {
                                 'broadband', 'water system', 'highway'],
     'Tech & AI': ['artificial intelligence', 'algorithm', 'data privacy',
                   'cybersecurity', 'cryptocurrenc', 'digital asset',
-                  'stablecoin'],
+                  'stablecoin', 'quantum'],
     'Markets & Budgets': ['federal reserve', 'interest rate', 'treasury',
                           'federal debt', 'deficit', 'budget outlook',
-                          'long-term'],
+                          'long-term', 'deflation'],
 }
 FORESIGHT_WHY = {
     'Health': 'Health rules change what care costs and what labs can charge — this touches transplant care directly.',
