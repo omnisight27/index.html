@@ -811,3 +811,7 @@ html { scroll-behavior: smooth; }
   margin-bottom: 32px;
 }
 .safety-note h3 { color: var(--warning); }
+.paused-section { margin-top: 40px; border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+.paused-section summary { cursor: pointer; font-size: 18px; font-weight: 700; color: var(--text-light); }
+.paused-section .grid { margin-top: 16px; }
+.paused-section .card { opacity: 0.75; }

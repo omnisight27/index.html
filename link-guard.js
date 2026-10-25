@@ -28,6 +28,7 @@
     'www.moneymaxaccount.com': 1, 'mydemosystem.com': 1,
     'my.rapidfunnel.com': 1, 'app.rapidfunnel.com': 1,
     'portal.ufinancialfreedom.com': 1, 'uffpowerteam.com': 1,
+    'www.uffopportunity.com': 1,
     'www.creditinfocenter.com': 1,
     'coingecko.com': 1, 'www.coingecko.com': 1,
     'sec.gov': 1, 'www.sec.gov': 1,
