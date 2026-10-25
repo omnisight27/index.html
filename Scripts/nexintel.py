@@ -155,6 +155,96 @@ def _past_deadline(deadline):
     except Exception:
         return False
 
+def build_sam_pulse(sam_response, records, history_path=None):
+    """Market-direction read from the SAM.gov pull — the deciding-factor
+    view of government contracting (Nic, 2026-10-25).
+
+    Individual solicitations (a DOE gasket set, a DoD cooler) never change
+    a buy or sell call, so the pages show the pulse, not the raw list:
+    how many solicitations posted in the 7-day window, which agencies are
+    most active among the sampled rows, and whether volume is rising or
+    cooling vs ~24h ago. The API's totalRecords is the true window count
+    when it carries it; otherwise the count is the sampled rows, labeled
+    so. Direction needs a stored history (data/sam_pulse.json, kept by
+    the loop like history.json); the first reading has no direction.
+    Never raises — a failed pulse is an honest empty one."""
+    pulse = {'total': 0, 'total_is_sample': True, 'window_days': 7,
+             'top_agencies': [], 'direction': 'unknown',
+             'direction_pct': None, 'sampled': len(records or [])}
+    try:
+        from datetime import timedelta as _td
+        total = None
+        if isinstance(sam_response, dict):
+            tr = sam_response.get('totalRecords')
+            if isinstance(tr, int):
+                total = tr
+                pulse['total_is_sample'] = False
+        if total is None:
+            total = len(records or [])
+        pulse['total'] = total
+        counts = {}
+        for r in (records or []):
+            a = (r or {}).get('agency') or '?'
+            counts[a] = counts.get(a, 0) + 1
+        pulse['top_agencies'] = [
+            {'agency': a, 'count': c}
+            for a, c in sorted(counts.items(), key=lambda kv: -kv[1])[:5]]
+        path = history_path or os.path.join(DATA_DIR, 'sam_pulse.json')
+        hist = []
+        try:
+            with open(path) as f:
+                saved = json.load(f)
+            if isinstance(saved, list):
+                hist = saved
+        except Exception:
+            pass
+        now = datetime.now(timezone.utc)
+        entry = {'t': now.isoformat(), 'total': total}
+        if hist:
+            target = now - _td(hours=24)
+            best, best_gap = None, None
+            for h in hist:
+                try:
+                    ht = datetime.fromisoformat(
+                        str(h.get('t', '')).replace('Z', '+00:00'))
+                except Exception:
+                    continue
+                if ht.tzinfo is None:
+                    ht = ht.replace(tzinfo=timezone.utc)
+                gap = abs((ht - target).total_seconds())
+                if best_gap is None or gap < best_gap:
+                    best, best_gap = h, gap
+            age_h = 0
+            if best is not None:
+                try:
+                    bt = datetime.fromisoformat(
+                        str(best.get('t', '')).replace('Z', '+00:00'))
+                    if bt.tzinfo is None:
+                        bt = bt.replace(tzinfo=timezone.utc)
+                    age_h = (now - bt).total_seconds() / 3600
+                except Exception:
+                    age_h = 0
+            if (best is not None and isinstance(best.get('total'), (int, float))
+                    and best['total'] and age_h >= 12):
+                pct = round((total - best['total']) / best['total'] * 100, 1)
+                pulse['direction_pct'] = pct
+                pulse['direction'] = ('rising' if pct > 5 else
+                                      'cooling' if pct < -5 else 'flat')
+            else:
+                pulse['direction'] = 'first'
+        else:
+            pulse['direction'] = 'first'
+        hist.append(entry)
+        hist = hist[-28:]
+        try:
+            with open(path, 'w') as f:
+                json.dump(hist, f, indent=2)
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return pulse
+
 def collect_nonprofit_opportunities(ledger_path=None):
     """Nonprofit-focused SAM.gov watch (the NicNacs lane).
 
@@ -440,6 +530,7 @@ def ingest():
     # SAM.gov contract opportunities (solicitations — what's coming, not just awarded)
     sam_key = os.environ.get('SAM_GOV_API_KEY')
     d['opportunities'] = []
+    sam = None
     if sam_key:
         try:
             from datetime import timedelta as _td
@@ -456,6 +547,10 @@ def ingest():
             print(f'  SAM.gov failed: {e}')
     else:
         print('  [info] SAM_GOV_API_KEY absent — opportunities feed skipped')
+
+    # Contracting pulse — the deciding-factor view: volume + direction,
+    # not the raw list of individual solicitations (see build_sam_pulse).
+    d['sam_pulse'] = build_sam_pulse(sam, d['opportunities'])
 
     # Nonprofit watch — the NicNacs lane (rotating NAICS, persistent
     # ledger; self-contained key check, never breaks the run).

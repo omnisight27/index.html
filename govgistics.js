@@ -40,6 +40,27 @@
     })
     .catch(function () { /* no engine data yet — strip stays hidden */ });
 
+  // ---------- 1b. Contracting pulse (deciding-factor view) ----------
+  // Volume + direction from the engine's SAM.gov pull — the raw list of
+  // individual solicitations is gone from this page on purpose: a DOE
+  // gasket set never changes a buy or sell call.
+  fetch('data/latest.json?_=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var p = d.sam_pulse;
+      if (!p) return;
+      var dir = '';
+      if (p.direction === 'rising' || p.direction === 'cooling' || p.direction === 'flat') {
+        dir = ' — volume ' + p.direction + (p.direction_pct != null ? ' ' + Math.abs(p.direction_pct) + '% vs yesterday' : '');
+      }
+      var top = (p.top_agencies && p.top_agencies.length)
+        ? '<p class="live-stamp">Most active: ' + p.top_agencies.map(function (a) { return esc(a.agency) + ' (' + a.count + ')'; }).join(', ') + ' — among the latest ' + (p.sampled || 25) + ' sampled.</p>' : '';
+      document.getElementById('gv-pulse').innerHTML =
+        '<p><strong>' + (p.total ? p.total.toLocaleString() + ' solicitations posted in the last 7 days' + (p.total_is_sample ? ' (sampled rows)' : '') : 'No solicitation count this run') + dir + '</strong></p>' + top;
+      document.getElementById('pulse-strip').style.display = 'block';
+    })
+    .catch(function () { /* no engine data yet — strip stays hidden */ });
+
   // ---------- 3. Nonprofit opportunities (NicNacs lane) ----------
   // Same latest.json the engine strip reads — the engine's rotating
   // NAICS watch, merged into one ledger. Empty and error states shown

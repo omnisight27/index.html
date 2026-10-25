@@ -573,12 +573,16 @@
             html += '<h4>🏛️ Nonprofit opportunities (SAM.gov)</h4>' +
               '<p class="live-stamp">No nonprofit-relevant solicitations in the watch right now — the engine checks one NAICS code per run, rotating through the list.</p>';
           }
-          if (d.opportunities && d.opportunities.length) {
-            html += '<h4>Open solicitations (SAM.gov)</h4>' +
-              d.opportunities.slice(0, 10).map(function (o) {
-                return '<p>· <strong>' + o.title + '</strong><br><span class="live-stamp">' +
-                  o.agency + ' · ' + o.type + ' · due ' + o.deadline + ' · NAICS ' + o.naics + '</span></p>';
-              }).join('');
+          if (d.sam_pulse) {
+            var p = d.sam_pulse;
+            var dir = '';
+            if (p.direction === 'rising' || p.direction === 'cooling' || p.direction === 'flat') {
+              dir = ' — volume ' + p.direction + (p.direction_pct != null ? ' ' + Math.abs(p.direction_pct) + '% vs yesterday' : '');
+            }
+            var top = (p.top_agencies && p.top_agencies.length)
+              ? '<br><span class="live-stamp">Most active: ' + p.top_agencies.map(function (a) { return a.agency + ' (' + a.count + ')'; }).join(', ') + ' — among the latest ' + (p.sampled || 25) + ' sampled.</span>' : '';
+            html += '<h4>📡 Federal contracting pulse (SAM.gov)</h4><p>' +
+              (p.total ? p.total.toLocaleString() + ' solicitations posted in the last 7 days' + (p.total_is_sample ? ' (sampled rows)' : '') : 'No solicitation count this run') + dir + top + '</p>';
           }
           cw.innerHTML = html || '<p class="live-stamp">No contracts flagged this run.</p>';
         }
