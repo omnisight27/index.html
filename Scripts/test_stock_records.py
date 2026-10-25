@@ -142,3 +142,33 @@ def test_remember_falls_back_to_class_for_legacy_picks(tmp_path, monkeypatch):
     p = out['picks'][0]['shorts'][0]
     assert abs(p['return_pct'] - 1.38) < 0.01, p  # scored vs stock price
     assert p['win'] is True
+
+
+# ------------------------------------------------------------- market field
+
+def test_think_emits_market_field():
+    # Minimal fixture: one crypto long, one stock short. The market field
+    # is what the graded ledger filters on — it must not silently drop.
+    data = {
+        'fear_greed': [{'value': 50}, {'value': 50}],
+        'metals': {}, 'forex': {}, 'macro': {},
+        'listings': {'coinbase': {'CVX', 'COMP'}, 'cryptocom': {'CVX'}},
+        'crypto': {
+            'convex-finance': {'usd': 2.49, 'symbol': 'CVX',
+                'usd_24h_change': 1.0, 'usd_7d_change': 2.0,
+                'usd_1h_change': 0.5, 'usd_14d_change': 1.5,
+                'usd_30d_change': 3.0, 'market_cap': 200_000_000,
+                'name': 'Convex Finance'},
+        },
+        'stocks': {'CVX': {'c': 233.21, 'dp': -1.5}},
+    }
+    history = {'picks': [], 'stats': {'win_rate': 50}, 'calibration': []}
+    sig = nexintel.think(data, history)
+    crypto_picks = [p for p in sig['longs'] + sig['shorts']
+                    if p.get('class') == 'crypto']
+    stock_picks = [p for p in sig['longs'] + sig['shorts']
+                   if p.get('class') == 'equity']
+    assert crypto_picks, 'fixture produced no crypto pick'
+    assert stock_picks, 'fixture produced no stock pick'
+    assert all(p.get('market') == 'crypto' for p in crypto_picks)
+    assert all(p.get('market') == 'stock' for p in stock_picks)
