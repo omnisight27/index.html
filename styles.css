@@ -758,3 +758,52 @@ html { scroll-behavior: smooth; }
   font-size: 13px;
   margin-top: 12px;
 }
+
+/* ---------- Outbound link guard (2026-10-25) ---------- */
+.guard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.guard-box {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+.guard-box.guard-risk-box { border-color: var(--danger); }
+.guard-box h3 { margin: 0 0 10px; color: var(--accent); font-size: 20px; }
+.guard-risk-box h3 { color: var(--danger); }
+.guard-domain {
+  color: var(--text);
+  font-weight: 600;
+  word-break: break-all;
+  margin: 0 0 10px;
+}
+.guard-risk {
+  color: var(--danger);
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.guard-note { color: var(--text-light); font-size: 14px; margin: 0 0 20px; }
+.guard-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.link-risk-badge {
+  color: var(--warning);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 6px 0 0;
+}
+.safety-note {
+  border-color: var(--warning);
+  background: rgba(245, 158, 11, 0.07);
+  margin-bottom: 32px;
+}
+.safety-note h3 { color: var(--warning); }
