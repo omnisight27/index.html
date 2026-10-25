@@ -21,7 +21,7 @@
       if (stamp && d.generated) {
         stamp.textContent = 'Benchmark run — ' + new Date(d.generated).toLocaleString();
       }
-      var g = d.grover || {}, q = d.qaoa || {}, v = d.vqc || {};
+      var g = d.grover || {}, q = d.qaoa || {}, v = d.vqc || {}, p = d.portfolio || {};
       var html = '';
       if (g.verdict) {
         html += '<p><strong>🔍 Grover\u2019s search</strong> — ' + esc(g.verdict) + '</p>';
@@ -31,6 +31,9 @@
       }
       if (v.verdict) {
         html += '<p><strong>🧠 VQC classifier</strong> — ' + esc(v.verdict) + '</p>';
+      }
+      if (p.verdict) {
+        html += '<p><strong>📈 Portfolio QUBO</strong> — ' + esc(p.verdict) + '</p>';
       }
       if (!html) {
         list.innerHTML = '<p class="live-stamp">No quantum lab results yet — the lab runs when its code changes.</p>';

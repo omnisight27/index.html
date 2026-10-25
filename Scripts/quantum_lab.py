@@ -277,6 +277,137 @@ def vqc():
     }
 
 
+# ------------------------------------------------- portfolio QUBO
+# The videos' finance thread, turned into a lab benchmark on the
+# engine's own job: picking k assets from a universe. Markowitz ->
+# QUBO -> annealing / QAOA is the pipeline the banks run (JPMorgan,
+# HSBC/IBM, Raiffeisen/D-Wave). Here it runs on a toy 8-asset universe
+# with the engine's own selection logic as the classical baseline.
+_PORTFOLIO_SCORES = [0.22, 0.18, 0.25, 0.12, 0.30, 0.15, 0.20, 0.10]
+# Pairwise correlations (upper triangle, row-major): assets 0-2 move
+# together, 3-4 move together, the rest are mostly independent — so a
+# score-only ranking over-buys one cluster and pays for it in risk.
+_PORTFOLIO_CORR = [
+    [0.80, 0.80, 0.20, 0.10, 0.15, 0.10, 0.20],
+    [0.75, 0.15, 0.10, 0.20, 0.10, 0.15],
+    [0.10, 0.15, 0.10, 0.20, 0.10],
+    [0.70, 0.10, 0.15, 0.10],
+    [0.20, 0.10, 0.15],
+    [0.10, 0.25],
+    [0.10],
+]
+_PORTFOLIO_K = 3
+_PORTFOLIO_LAMBDA = 0.5
+_PORTFOLIO_PENALTY = 1.0
+
+
+def _portfolio_corr(i, j):
+    if i == j:
+        return 0.0
+    a, b = (i, j) if i < j else (j, i)
+    return _PORTFOLIO_CORR[a][b - a - 1]
+
+
+def _portfolio_cost(bits):
+    """QUBO cost to MINIMIZE: -return + risk + penalty for wrong size."""
+    ret = sum(s * b for s, b in zip(_PORTFOLIO_SCORES, bits))
+    risk = sum(_PORTFOLIO_LAMBDA * _portfolio_corr(i, j) * bits[i] * bits[j]
+               for i in range(len(bits)) for j in range(i + 1, len(bits)))
+    size = _PORTFOLIO_PENALTY * (sum(bits) - _PORTFOLIO_K) ** 2
+    return -ret + risk + size
+
+
+def _portfolio_greedy():
+    """Engine-style baseline: rank by score, take the top k. Ignores
+    correlation — the flaw the risk term exists to punish."""
+    order = sorted(range(len(_PORTFOLIO_SCORES)),
+                   key=lambda i: -_PORTFOLIO_SCORES[i])
+    bits = [0] * len(_PORTFOLIO_SCORES)
+    for i in order[:_PORTFOLIO_K]:
+        bits[i] = 1
+    return _portfolio_cost(bits), [i for i in order[:_PORTFOLIO_K]]
+
+
+def _portfolio_anneal(seed=7, iters=3000):
+    """Classical simulated annealing with swap moves (always exactly k
+    assets held). Seeded — deterministic."""
+    import random
+    rng = random.Random(seed)
+    n = len(_PORTFOLIO_SCORES)
+    bits = [0] * n
+    for i in rng.sample(range(n), _PORTFOLIO_K):
+        bits[i] = 1
+    cur = _portfolio_cost(bits)
+    best, best_bits = cur, list(bits)
+    for t in range(iters):
+        temp = 1.0 * (0.01 / 1.0) ** (t / iters)
+        held = [i for i, b in enumerate(bits) if b]
+        free = [i for i, b in enumerate(bits) if not b]
+        out, inn = rng.choice(held), rng.choice(free)
+        bits[out], bits[inn] = 0, 1
+        nxt = _portfolio_cost(bits)
+        if nxt <= cur or rng.random() < math.exp(-(nxt - cur) / max(temp, 1e-9)):
+            cur = nxt
+            if cur < best:
+                best, best_bits = cur, list(bits)
+        else:
+            bits[out], bits[inn] = 1, 0
+    return best, [i for i, b in enumerate(best_bits) if b]
+
+
+def _qaoa_portfolio_expected(gamma, beta):
+    """p=1 QAOA on the portfolio QUBO. The cost unitary is diagonal —
+    phase exp(-i*gamma*C(x)) per basis state — and the mixer is
+    Rx(2*beta) on every qubit. Same machinery as the MaxCut QAOA,
+    different cost function."""
+    n = len(_PORTFOLIO_SCORES)
+    state = [complex(1 / math.sqrt(2 ** n))] * (2 ** n)
+    for idx in range(2 ** n):
+        bits = [(idx >> (n - 1 - q)) & 1 for q in range(n)]
+        state[idx] *= cmath.exp(-1j * gamma * _portfolio_cost(bits))
+    for q in range(n):
+        state = _apply_1q(state, n, q, _rx(2 * beta))
+    return sum(p * _portfolio_cost(
+        [(idx >> (n - 1 - q)) & 1 for q in range(n)])
+        for idx, p in enumerate(_probs(state)))
+
+
+def portfolio():
+    """Portfolio QUBO benchmark: brute-force optimum is the anchor,
+    greedy-by-score is the engine's current logic, annealing is the
+    strong classical method, QAOA is the quantum candidate."""
+    n = len(_PORTFOLIO_SCORES)
+    optimum = min(_portfolio_cost(
+        [(i >> (n - 1 - q)) & 1 for q in range(n)])
+        for i in range(2 ** n))
+    greedy_cost, greedy_pick = _portfolio_greedy()
+    sa_cost, sa_pick = _portfolio_anneal()
+    best = (float('inf'), 0.0, 0.0)
+    for gi in range(24):
+        for bi in range(12):
+            g = gi * 2 * math.pi / 24
+            b = bi * math.pi / 12
+            val = _qaoa_portfolio_expected(g, b)
+            if val < best[0]:
+                best = (val, g, b)
+    return {
+        'universe': f'{n} assets, pick {_PORTFOLIO_K}',
+        'optimum_cost': round(optimum, 4),
+        'greedy_cost': round(greedy_cost, 4),
+        'greedy_pick': greedy_pick,
+        'annealing_cost': round(sa_cost, 4),
+        'annealing_pick': sa_pick,
+        'qaoa_expected_cost': round(best[0], 4),
+        'verdict': (f'Portfolio QUBO: optimum {optimum:.3f}, annealing '
+                    f'{sa_cost:.3f}, greedy-by-score {greedy_cost:.3f}, '
+                    f'QAOA (simulated) expects {best[0]:.3f}. Annealing '
+                    f'finds the optimum; QAOA at p=1 does not beat the '
+                    f'classical methods yet — the quantum edge, if it '
+                    f'comes, comes from deeper circuits and real '
+                    f'hardware, not from this simulation.'),
+    }
+
+
 # ------------------------------------------------------------ runner
 def run_lab(out_path=None):
     """Run all three lab benchmarks and write data/quantum_lab.json.
@@ -293,6 +424,7 @@ def run_lab(out_path=None):
         'grover': grover(),
         'qaoa': qaoa(),
         'vqc': vqc(),
+        'portfolio': portfolio(),
     }
     path = out_path or os.path.join(DATA_DIR, 'quantum_lab.json')
     with open(path, 'w') as f:
@@ -302,7 +434,11 @@ def run_lab(out_path=None):
           f'(greedy {result["qaoa"]["classical_greedy_cut"]}, '
           f'opt {result["qaoa"]["optimum_cut"]}), '
           f'VQC acc={result["vqc"]["vqc_accuracy"]} '
-          f'(perceptron {result["vqc"]["classical_perceptron_accuracy"]})')
+          f'(perceptron {result["vqc"]["classical_perceptron_accuracy"]}), '
+          f'Portfolio QAOA={result["portfolio"]["qaoa_expected_cost"]} '
+          f'(opt {result["portfolio"]["optimum_cost"]}, '
+          f'annealing {result["portfolio"]["annealing_cost"]}, '
+          f'greedy {result["portfolio"]["greedy_cost"]})')
     return result
 
 

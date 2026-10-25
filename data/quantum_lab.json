@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-25T04:11:33.081755+00:00",
+  "generated": "2026-10-25T04:17:13.035333+00:00",
   "note": "Simulated classically with the Python standard library \u2014 no quantum hardware. The lab proves the algorithms and benchmarks them against the classical methods, so the system is ready the day hardware can run them at scale. A simulated result is never a speedup claim.",
   "grover": {
     "n_items": 16,
@@ -24,5 +24,23 @@
     "vqc_accuracy": 1.0,
     "classical_perceptron_accuracy": 1.0,
     "verdict": "VQC (simulated) scores 100% against the classical perceptron at 100% on the same toy data. The quantum classifier works \u2014 it ties the classical one at this scale and does not beat it. That is the honest result."
+  },
+  "portfolio": {
+    "universe": "8 assets, pick 3",
+    "optimum_cost": -0.57,
+    "greedy_cost": -0.245,
+    "greedy_pick": [
+      4,
+      2,
+      0
+    ],
+    "annealing_cost": -0.57,
+    "annealing_pick": [
+      0,
+      4,
+      6
+    ],
+    "qaoa_expected_cost": 0.4359,
+    "verdict": "Portfolio QUBO: optimum -0.570, annealing -0.570, greedy-by-score -0.245, QAOA (simulated) expects 0.436. Annealing finds the optimum; QAOA at p=1 does not beat the classical methods yet \u2014 the quantum edge, if it comes, comes from deeper circuits and real hardware, not from this simulation."
   }
 }

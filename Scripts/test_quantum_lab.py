@@ -22,9 +22,18 @@ def test_vqc_runs_and_scores():
     assert r['classical_perceptron_accuracy'] == 1.0, r
 
 
+def test_portfolio_qubo():
+    r = quantum_lab.portfolio()
+    assert r['optimum_cost'] <= r['annealing_cost'] <= r['greedy_cost'], r
+    assert r['qaoa_expected_cost'] >= r['optimum_cost'], r
+    assert len(r['annealing_pick']) == 3
+    assert len(r['greedy_pick']) == 3
+
+
 def test_lab_writes_json(tmp_path='/tmp/quantum_lab_test.json'):
     result = quantum_lab.run_lab(out_path=tmp_path)
-    assert set(result) == {'generated', 'note', 'grover', 'qaoa', 'vqc'}
+    assert set(result) == {'generated', 'note', 'grover', 'qaoa', 'vqc',
+                           'portfolio'}
 
 
 if __name__ == '__main__':
