@@ -702,6 +702,7 @@ def think(data, history):
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
         pick = {'asset': sym, 'price': round_price(price), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
+                'market': 'crypto',
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'tradable': tradable_on(sym),
@@ -805,6 +806,7 @@ def think(data, history):
         reason = f'{sym} {dp:+.2f}% today @ ${c:,.2f}. Ensemble score {score:+.1f} (w·x + geo + {regime}).'
         pick = {'asset': sym, 'price': round_price(c), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'equity',
+                'market': 'stock',
                 'name': STOCK_NAMES.get(sym, sym),
                 'info_url': f'https://finance.yahoo.com/quote/{sym}',
                 'edgar_url': edgar_url(sym),
@@ -1106,20 +1108,31 @@ def remember(data, signals):
     # Error tracking: 5% margin-of-error target — |predicted| vs |realized|
     err = history.setdefault('error', {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0})
 
-    # Current prices for scoring — keyed by SYMBOL to match pick assets
-    # (CoinGecko ids like 'arbitrum' never match pick symbols like 'ARB')
-    px = {}
+    # Current prices for scoring — keyed by MARKET then symbol. Crypto and
+    # stock tickers collide (CVX = Convex Finance AND Chevron; META =
+    # MetaDAO AND Meta Platforms). One symbol-keyed dict let the stock
+    # quote overwrite the crypto price and scored crypto CVX longs at
+    # +9,000% — nine fake wins in the graded record. Keep the books
+    # separate and match each pick to its own market's price.
+    px_crypto = {}
     for cid, info in data.get('crypto', {}).items():
-        if info.get('usd'): px[(info.get('symbol') or cid).upper()] = info['usd']
+        if info.get('usd'): px_crypto[(info.get('symbol') or cid).upper()] = info['usd']
+    px_stock = {}
     for sym, q in data.get('stocks', {}).items():
-        if q.get('c'): px[sym] = q['c']
+        if q.get('c'): px_stock[sym] = q['c']
+
+    def price_for(p):
+        # Picks written before the market field existed fall back to class;
+        # crypto is the default (the engine was crypto-only for months).
+        market = p.get('market') or ('stock' if p.get('class') == 'equity' else 'crypto')
+        return (px_stock if market == 'stock' else px_crypto).get(p['asset'])
 
     # Score any unscored picks from prior runs
     for run in history['picks']:
         if run.get('scored'): continue
         scored_any = False
         for p in run.get('longs', []) + run.get('shorts', []):
-            cur = px.get(p['asset'])
+            cur = price_for(p)
             if not cur or not p.get('price'): continue
             ret = (cur - p['price']) / p['price'] * 100
             if p in run.get('shorts', []): ret = -ret
