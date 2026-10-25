@@ -561,6 +561,18 @@
             html += '<h4>Awarded (USASpending)</h4>' +
               d.contracts_watch.map(function (c) { return '<p>· ' + c + '</p>'; }).join('');
           }
+          if (d.opportunities_nonprofit && d.opportunities_nonprofit.length) {
+            html += '<h4>🏛️ Nonprofit opportunities (SAM.gov)</h4>' +
+              d.opportunities_nonprofit.slice(0, 10).map(function (o) {
+                return '<p>· <strong>' + o.title + '</strong><br><span class="live-stamp">' +
+                  o.agency + ' · due ' + o.deadline + ' · NAICS ' + o.naics +
+                  (o.state && o.state !== '?' ? ' · ' + o.state : '') +
+                  (o.nonprofit_match ? ' · ' + o.nonprofit_match : '') + '</span></p>';
+              }).join('');
+          } else if (d.opportunities_nonprofit) {
+            html += '<h4>🏛️ Nonprofit opportunities (SAM.gov)</h4>' +
+              '<p class="live-stamp">No nonprofit-relevant solicitations in the watch right now — the engine checks one NAICS code per run, rotating through the list.</p>';
+          }
           if (d.opportunities && d.opportunities.length) {
             html += '<h4>Open solicitations (SAM.gov)</h4>' +
               d.opportunities.slice(0, 10).map(function (o) {

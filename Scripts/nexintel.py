@@ -65,6 +65,138 @@ def sam_agency(o):
         return path[0].strip().title()
     return o.get('department') or o.get('office') or '?'
 
+# ------------------------------------------------------- NONPROFIT WATCH
+# Contract watch, focused on what a 501(c)(3) thrift + community
+# nonprofit can actually pursue. Federal procurement has no general
+# nonprofit set-aside, so relevance is matched two ways: NAICS codes
+# for the work NicNacs does (used-merchandise retail, materials
+# recovery, community and family services, vocational rehab) and
+# keywords in the solicitation title.
+NONPROFIT_NAICS = {
+    '453310': 'Used merchandise stores',
+    '562920': 'Materials recovery',
+    '562111': 'Solid waste collection',
+    '562119': 'Other waste collection',
+    '562998': 'Other waste management',
+    '624190': 'Individual & family services',
+    '624210': 'Community food services',
+    '624220': 'Community housing services',
+    '624230': 'Emergency & relief services',
+    '624310': 'Vocational rehabilitation',
+    '624120': 'Services for elderly & disabled',
+    '624110': 'Child & youth services',
+    '813410': 'Civic & social organizations',
+    '453998': 'Misc store retailers',
+    '812990': 'Other personal services',
+}
+NONPROFIT_KEYWORDS = [
+    'nonprofit', 'non-profit', '501(c)(3)', '501c3', 'community',
+    'thrift', 'used merchandise', 'donation', 'donated',
+    'surplus property', 'recycling', 'materials recovery',
+    'vocational rehabilitation', 'food bank', 'shelter', 'homeless',
+    'family services', 'social services', 'workforce development',
+    'job training', 'charitable', 'community development',
+]
+
+def nonprofit_match(title, naics):
+    """Why a SAM.gov opportunity is relevant to a nonprofit like NicNacs:
+    returns a short reason string, or None. NAICS match first, then a
+    title keyword — both are reported when both hit."""
+    reasons = []
+    label = NONPROFIT_NAICS.get(str(naics or '').strip())
+    if label:
+        reasons.append(f'NAICS {naics} — {label}')
+    t = (title or '').lower()
+    hit = next((k for k in NONPROFIT_KEYWORDS if k in t), None)
+    if hit:
+        reasons.append(f'keyword: {hit}')
+    return '; '.join(reasons) if reasons else None
+
+def _sam_record(o):
+    """One SAM.gov opportunity, normalized for the dashboard. Place of
+    performance state is kept when the API carries it (OR vs national
+    matters for a Grants Pass nonprofit)."""
+    pop = o.get('placeOfPerformance') or {}
+    state = pop.get('state') or {}
+    title = o.get('title', '?')
+    naics = o.get('naicsCode', '?')
+    return {
+        'title': title,
+        'agency': sam_agency(o),
+        'type': o.get('type', {}).get('value', '?') if isinstance(o.get('type'), dict) else o.get('type', '?'),
+        'posted': o.get('postedDate', '?'),
+        'deadline': o.get('responseDeadLine', '?'),
+        'naics': naics,
+        'state': state.get('code') or '?',
+        'notice_id': o.get('noticeId', '?'),
+        'nonprofit': bool(nonprofit_match(title, naics)),
+        'nonprofit_match': nonprofit_match(title, naics),
+    }
+
+def _past_deadline(deadline):
+    """True when a response deadline has already passed. Unparseable
+    values keep the row — never drop an opportunity on bad data."""
+    try:
+        d = str(deadline).replace('Z', '+00:00')
+        dt = datetime.fromisoformat(d)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt < datetime.now(timezone.utc)
+    except Exception:
+        return False
+
+def collect_nonprofit_opportunities(ledger_path=None):
+    """Nonprofit-focused SAM.gov watch (the NicNacs lane).
+
+    The API takes ONE NAICS code per request (ncode) and a non-associated
+    key gets ~10 requests/day, while the loop runs 4x/day and the general
+    feed already uses 4. So each run queries ONE code, rotating through
+    NONPROFIT_NAICS, and merges the results into a persistent ledger
+    (data/sam_nonprofit.json, committed by the loop like history.json).
+    A 30-day window per code means a ~4-day rotation never misses a
+    posting. Past-deadline rows are pruned on every merge; a failed fetch
+    keeps the old ledger and just logs it. Never raises."""
+    path = ledger_path or os.path.join(DATA_DIR, 'sam_nonprofit.json')
+    ledger = {'rows': [], 'next_index': 0}
+    try:
+        with open(path) as f:
+            saved = json.load(f)
+        if isinstance(saved, dict):
+            ledger = saved
+    except Exception:
+        pass
+    sam_key = os.environ.get('SAM_GOV_API_KEY')
+    if sam_key:
+        try:
+            codes = list(NONPROFIT_NAICS)
+            idx = ledger.get('next_index', 0) % len(codes)
+            code = codes[idx]
+            from datetime import timedelta as _td
+            today = datetime.now(timezone.utc).date()
+            posted_from = (today - _td(days=30)).strftime('%m/%d/%Y')
+            posted_to = today.strftime('%m/%d/%Y')
+            sam = fetch_json(
+                f'https://api.sam.gov/opportunities/v2/search?api_key={sam_key}'
+                f'&postedFrom={posted_from}&postedTo={posted_to}&limit=25&ptype=o'
+                f'&ncode={code}')
+            opps = (sam or {}).get('opportunitiesData', [])
+            fresh = [_sam_record(o) for o in opps[:25]]
+            rows = [r for r in ledger.get('rows', [])
+                    if r.get('naics') != code]
+            rows.extend(fresh)
+            rows = [r for r in rows if not _past_deadline(r.get('deadline'))]
+            rows.sort(key=lambda r: str(r.get('posted', '')), reverse=True)
+            ledger = {'rows': rows[:100], 'next_index': (idx + 1) % len(codes)}
+            with open(path, 'w') as f:
+                json.dump(ledger, f, indent=2)
+            print(f"  SAM.gov nonprofit: {len(fresh)} fresh for NAICS {code} "
+                  f"({NONPROFIT_NAICS[code]}), {len(ledger['rows'])} tracked")
+        except Exception as e:
+            print(f'  SAM.gov nonprofit query failed: {e}')
+    else:
+        print('  [info] SAM_GOV_API_KEY absent — nonprofit watch skipped')
+    return ledger.get('rows', [])
+
 # ---------------------------------------------------------------- FORESIGHT
 # Where 50-year government plans leak in public, before they happen:
 # rulemaking (Federal Register), budget analysis (CBO), procurement
@@ -308,19 +440,28 @@ def ingest():
                 f'https://api.sam.gov/opportunities/v2/search?api_key={sam_key}'
                 f'&postedFrom={posted_from}&postedTo={posted_to}&limit=25&ptype=o')
             opps = (sam or {}).get('opportunitiesData', [])
-            d['opportunities'] = [{
-                'title': o.get('title', '?'),
-                'agency': sam_agency(o),
-                'type': o.get('type', {}).get('value', '?') if isinstance(o.get('type'), dict) else o.get('type', '?'),
-                'posted': o.get('postedDate', '?'),
-                'deadline': o.get('responseDeadLine', '?'),
-                'naics': o.get('naicsCode', '?'),
-            } for o in opps[:25]]
+            d['opportunities'] = [_sam_record(o) for o in opps[:25]]
             print(f"  SAM.gov: {len(d['opportunities'])} opportunities ingested")
         except Exception as e:
             print(f'  SAM.gov failed: {e}')
     else:
         print('  [info] SAM_GOV_API_KEY absent — opportunities feed skipped')
+
+    # Nonprofit watch — the NicNacs lane (rotating NAICS, persistent
+    # ledger; self-contained key check, never breaks the run).
+    d['opportunities_nonprofit'] = collect_nonprofit_opportunities()
+    # Contracting officers don't always code NAICS consistently, so a
+    # nonprofit-relevant solicitation can surface in the general feed
+    # under another code. Merge any general-feed row the matcher tags
+    # into the nonprofit list (dedup by notice id) — the ledger stays
+    # the rotation store; this union is what publishes.
+    seen = {r.get('notice_id') for r in d['opportunities_nonprofit']}
+    for r in d.get('opportunities', []):
+        if r.get('nonprofit') and r.get('notice_id') not in seen:
+            d['opportunities_nonprofit'].append(r)
+            seen.add(r.get('notice_id'))
+    d['opportunities_nonprofit'].sort(
+        key=lambda r: str(r.get('posted', '')), reverse=True)
 
     # Headlines
     news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
@@ -1301,6 +1442,7 @@ def think(data, history):
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
+        'opportunities_nonprofit': data.get('opportunities_nonprofit', []),
         'foresight': data.get('foresight', []),
         'fed_commentary': data.get('fed_commentary', []),
         'headlines': headlines_out,
@@ -1495,6 +1637,7 @@ def publish(data, signals, history, data_pulled_at=None):
         'weight_info': signals.get('weight_info'),
         'contracts_watch': signals['contracts_watch'],
         'opportunities': signals.get('opportunities', []),
+        'opportunities_nonprofit': signals.get('opportunities_nonprofit', []),
         'foresight': signals.get('foresight', []),
         'fed_commentary': data.get('fed_commentary', []),
         'headlines': signals['headlines'],

@@ -40,6 +40,33 @@
     })
     .catch(function () { /* no engine data yet — strip stays hidden */ });
 
+  // ---------- 3. Nonprofit opportunities (NicNacs lane) ----------
+  // Same latest.json the engine strip reads — the engine's rotating
+  // NAICS watch, merged into one ledger. Empty and error states shown
+  // plainly; rows are never invented.
+  fetch('data/latest.json?_=' + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var el = document.getElementById('gv-nonprofit');
+      if (!el) return;
+      var rows = d.opportunities_nonprofit || [];
+      if (!rows.length) {
+        el.innerHTML = '<p class="live-stamp">No nonprofit-relevant federal solicitations in the watch right now — the engine checks one NAICS code per run, rotating through the list, and the ledger keeps 30 days of postings. Check back after a few runs.</p>';
+        return;
+      }
+      var t = '<table class="sched-table"><tr><th>Title</th><th>Agency</th><th>Due</th><th>NAICS</th><th>State</th><th>Why it matches</th></tr>';
+      rows.slice(0, 25).forEach(function (o) {
+        t += '<tr><td>' + esc(o.title) + '</td><td>' + esc(o.agency) +
+          '</td><td>' + esc(o.deadline) + '</td><td>' + esc(o.naics) +
+          '</td><td>' + esc(o.state || '—') + '</td><td>' + esc(o.nonprofit_match || '—') + '</td></tr>';
+      });
+      el.innerHTML = t + '</table>';
+    })
+    .catch(function () {
+      var el = document.getElementById('gv-nonprofit');
+      if (el) el.innerHTML = '<p class="live-stamp">Watch unavailable right now — the engine data did not load. Try again in a minute.</p>';
+    });
+
   // ---------- 2. Live Awards Explorer ----------
   var API = 'https://api.usaspending.gov/api/v2/search/spending_by_award/';
   var statusEl = document.getElementById('gv-status');
