@@ -1629,8 +1629,26 @@ def remember(data, signals):
     print('REMEMBER: scoring prior picks...')
     history = load_history()
     stats = history.setdefault('stats', {'wins': 0, 'losses': 0, 'total': 0})
-    # Error tracking: 5% margin-of-error target — |predicted| vs |realized|
+    # Error tracking: 5% margin-of-error target — the thesis's stated
+    # expected return (%) vs the realized return (%). Both are percents,
+    # so MAE reads in %-points and "within 5%" means the call landed
+    # within 5 points of its own expectation. (2026-10-26: the old metric
+    # compared the unitless ensemble score (~15) against the realized
+    # return (%), so MAE printed as 223% and within-5% drifted down to
+    # 13.4% — a units mismatch, not model decay. The counters below are
+    # reset once by the migration so the series stays honest.)
     err = history.setdefault('error', {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0})
+    if err.get('metric') != 'return_pct_v1':
+        before_err = {k: v for k, v in err.items()}
+        history.setdefault('corrections', []).append({
+            'date': datetime.now(timezone.utc).isoformat(),
+            'action': 'redefined model-error metric (score-vs-return -> expected-return-vs-realized-return)',
+            'reason': 'Old metric compared the unitless ensemble score (~15) with the realized return (%), so MAE printed 223% and within-5% drifted to 13.4% — a units mismatch, not model decay. New metric: |thesis expected_return_pct - realized return_pct| (return is direction-adjusted, so a winning short counts positive). Counters reset; old values preserved here.',
+            'before': {'error': before_err},
+            'after': {'error': {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0, 'metric': 'return_pct_v1'}},
+        })
+        err.clear()
+        err.update({'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0, 'metric': 'return_pct_v1'})
 
     # Current prices for scoring — keyed by MARKET then symbol. Crypto and
     # stock tickers collide (CVX = Convex Finance AND Chevron; META =
@@ -1664,11 +1682,18 @@ def remember(data, signals):
             if p in run.get('shorts', []): ret = -ret
             p['exit'] = round_price(cur); p['return_pct'] = round(ret, 2)
             p['win'] = ret > 0
-            # Error metric: how far was |predicted score| from |actual return|?
-            abs_err = abs(abs(p.get('score') or 0) - abs(ret))
-            err['sum_abs_err'] += abs_err; err['n'] += 1
-            if abs_err <= 5.0: err['within_5pct'] += 1
-            p['abs_error'] = round(abs_err, 2)
+            # Error metric: how far was the thesis's expected return (%) from
+            # the realized return (%)? `ret` is direction-adjusted (a winning
+            # short is positive), and expected_return_pct is a positive
+            # magnitude, so this penalizes wrong-direction calls too. Picks
+            # without a thesis expectation (pre-thesis era) skip error
+            # tracking — they still count in win/loss.
+            exp_ret = (p.get('thesis') or {}).get('expected_return_pct')
+            if exp_ret is not None:
+                abs_err = abs(abs(exp_ret) - ret)
+                err['sum_abs_err'] += abs_err; err['n'] += 1
+                if abs_err <= 5.0: err['within_5pct'] += 1
+                p['abs_error'] = round(abs_err, 2)
             scored_any = True
             stats['total'] += 1
             stats['wins' if ret > 0 else 'losses'] += 1
