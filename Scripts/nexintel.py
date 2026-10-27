@@ -1463,7 +1463,8 @@ def think(data, history):
         alerts.append({
             'type': 'CONTRACT',
             'asset': ticker or name,
-            'price': round(amt / 1e9, 2),
+            'price': 0,  # no tradable price here — award size lives in award_billions, not price
+            'award_billions': round(amt / 1e9, 2),
             'confidence': 85,
             'asset_class': 'contract',
             'reason': f"${amt/1e9:.2f}B award → {name}" + (f" [{ticker}]" if ticker else "") + f" ({c.get('Awarding Agency','?')}).",
