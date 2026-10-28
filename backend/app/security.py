@@ -46,6 +46,20 @@ def decrypt_credentials(ciphertext: str) -> dict:
 _JWKS_CACHE = {"keys": None, "fetched_at": 0.0}
 
 
+def _supabase_url() -> str:
+    """SUPABASE_URL with a scheme, tolerating a bare hostname in Render.
+
+    Nic pasted the Project URL into Render without https://, so the raw
+    value was 'xafnsaefesfzucrccuht.supabase.co' and urllib failed with
+    "unknown url type". Prepending https:// here fixes it without
+    requiring a Render env-var edit (and future bare-hostname pastes).
+    """
+    url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+    if url and not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    return url
+
+
 def _jwks_public_key(kid: str):
     """Public key for a Supabase ES256 signing key, from the project's JWKS.
 
@@ -54,7 +68,7 @@ def _jwks_public_key(kid: str):
     with "The specified alg value is not allowed". JWKS is public by design.
     Cached 10 minutes so a key rotation is picked up promptly.
     """
-    supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    supabase_url = _supabase_url()
     if not supabase_url:
         raise ConfigError("SUPABASE_URL is not set")
     now = time.time()

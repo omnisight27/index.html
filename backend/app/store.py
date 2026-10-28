@@ -43,7 +43,9 @@ class SupabaseStore:
     """PostgREST-backed store. `transport` is injectable for tests."""
 
     def __init__(self, transport: httpx.BaseTransport | None = None):
-        self.base = os.environ.get("SUPABASE_URL", "").rstrip("/")
+        self.base = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+        if self.base and not self.base.startswith(("http://", "https://")):
+            self.base = "https://" + self.base
         self.service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
         if not self.base or not self.service_key:
             raise RuntimeError("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set")
