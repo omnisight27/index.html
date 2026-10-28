@@ -11,9 +11,9 @@
 // (Row Level Security in Supabase is what protects the data). NEVER put the
 // Supabase service-role key, a Coinbase key, or any other secret in this file.
 window.OMNISIGHT_CONFIG = {
-  SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
-  BACKEND_URL: 'https://YOUR-BACKEND.onrender.com'
+  SUPABASE_URL: 'https://xafnsaefesfzucrccuht.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhZm5zYWVmZXNmenVjcmNjdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MjM1MDUsImV4cCI6MjEwODE5OTUwNX0.VmOfxhT2BeUD7JJKPtX0-iuygbxG4Ou1UtsmX7qFB0g',
+  BACKEND_URL: 'https://omnisight-backend-4mbs.onrender.com'
 };
 
 // True once real values replace the placeholders. When false, login and
