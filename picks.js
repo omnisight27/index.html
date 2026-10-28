@@ -262,8 +262,8 @@
   // ---------- 🎯 Today's Verdicts ----------
   // One plain-word verdict per surfaced asset, computed in the browser from
   // the two payloads this page already loads — no new engine fields.
-  //   BUY      — intraday LONG signal with confidence >= 65; OR swing long
-  //              with confidence >= 65 AND >= 4 of 5 timeframes agreeing;
+  //   BUY      — intraday LONG signal with confidence >= 60; OR swing long
+  //              with confidence >= 60 AND >= 4 of 5 timeframes agreeing;
   //              OR a mover carrying a plan whose 1h change is still
   //              positive AND whose 24h change is >= +15%.
   //   CLOSEST  — only when no BUY exists: the highest-confidence long
@@ -336,17 +336,17 @@
 
     // BUY — intraday signals, then aligned swing longs, then hot movers
     intraLongs.forEach(function (s) {
-      if ((s.confidence || 0) >= 65 && !newsFlagged[s.asset]) {
+      if ((s.confidence || 0) >= 60 && !newsFlagged[s.asset]) {
         var t = s.thesis || {};
         push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url, 'class': s['class'], tradable: s.tradable,
-          reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 65% buy bar.',
+          reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 60% buy bar.',
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null,
           detail: detailLink(s, 'intraday') });
       }
     });
     swingLongs.forEach(function (p) {
       var agree = tfAgree(p);
-      if ((p.confidence || 0) >= 65 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
+      if ((p.confidence || 0) >= 60 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
         var t = p.thesis || {};
         push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
           reason: p.confidence + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
@@ -375,8 +375,8 @@
       cands.sort(function (a, b) { return b.conf - a.conf; });
       if (cands.length) {
         var c = cands[0], p = c.p, t = p.thesis || {}, gap;
-        if (c.conf < 65) {
-          gap = c.conf + '% confidence — the buy bar is 65%.';
+        if (c.conf < 60) {
+          gap = c.conf + '% confidence — the buy bar is 60%.';
         } else {
           var ag = tfAgree(p);
           gap = c.conf + '% confidence, but ' +
