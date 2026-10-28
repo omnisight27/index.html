@@ -1021,7 +1021,13 @@ def regime_adjustment(regime):
 def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_edge, cls):
     """Readable investment thesis: bull/bear case, stop/target, risk-reward."""
     direction = 'LONG' if score > 0 else 'SHORT'
-    vol = max(abs(chg24), 2.0)
+    # Cap the daily-move input: a meme-coin +273% day would otherwise
+    # project a +546% swing target in 1-5 days — not a credible thesis,
+    # and it blows up the model-error MAE when the coin reverts (Q,
+    # 2026-10-27: expected +545.86%, realized -66.83%, abs error 612.69
+    # — the single biggest contributor to MAE rising 12.39 -> 18.68).
+    # 25% caps the expected return at 50% / max loss at 37.5%.
+    vol = min(max(abs(chg24), 2.0), 25.0)
     if direction == 'LONG':
         stop = price * (1 - vol / 100 * 1.5)
         target = price * (1 + vol / 100 * 2.0)
@@ -1164,7 +1170,7 @@ def think(data, history):
                   f'Ensemble score {score:+.1f} (w·x + geo {g_edge:+.2f} + {regime}).')
         pick = {'asset': sym, 'price': round_price(price), 'score': round(score, 1),
                 'confidence': round(conf), 'reason': reason, 'class': 'crypto',
-                'market': 'crypto',
+                'market': 'crypto', 'coin_id': cid,
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'tradable': tradable_on(sym),
@@ -1657,9 +1663,20 @@ def remember(data, signals):
     # quote overwrite the crypto price and scored crypto CVX longs at
     # +9,000% — nine fake wins in the graded record. Keep the books
     # separate and match each pick to its own market's price.
-    px_crypto = {}
+    px_crypto = {}        # symbol -> (price, market_cap): largest cap wins
+    px_crypto_by_id = {}  # CoinGecko id -> price (exact match, no collisions)
     for cid, info in data.get('crypto', {}).items():
-        if info.get('usd'): px_crypto[(info.get('symbol') or cid).upper()] = info['usd']
+        if not info.get('usd'):
+            continue
+        px_crypto_by_id[cid] = info['usd']
+        sym = (info.get('symbol') or cid).upper()
+        cap = info.get('market_cap') or 0
+        # Duplicate symbols exist inside crypto itself: a $0.03 token can
+        # share BTC's symbol, and the feed's market-cap order lets the
+        # late low-cap impostor overwrite Bitcoin (2026-10-27: a BTC long
+        # scored at $0.028489, return -100%). Keep the largest cap.
+        if sym not in px_crypto or cap > px_crypto[sym][1]:
+            px_crypto[sym] = (info['usd'], cap)
     px_stock = {}
     for sym, q in data.get('stocks', {}).items():
         if q.get('c'): px_stock[sym] = q['c']
@@ -1668,7 +1685,16 @@ def remember(data, signals):
         # Picks written before the market field existed fall back to class;
         # crypto is the default (the engine was crypto-only for months).
         market = p.get('market') or ('stock' if p.get('class') == 'equity' else 'crypto')
-        return (px_stock if market == 'stock' else px_crypto).get(p['asset'])
+        if market == 'stock':
+            return px_stock.get(p['asset'])
+        # Prefer the CoinGecko id the pick was built from (picks carry
+        # coin_id since 2026-10-28); fall back to the symbol map.
+        if p.get('coin_id'):
+            v = px_crypto_by_id.get(p['coin_id'])
+            if v:
+                return v
+        v = px_crypto.get(p['asset'])
+        return v[0] if v else None
 
     # Score any unscored picks from prior runs
     for run in history['picks']:
