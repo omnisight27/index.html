@@ -16,16 +16,27 @@
     return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
   }
 
+  // Freshness: a failed 60s refresh used to be swallowed silently, so
+  // the tape kept scrolling prices that could be hours old with nothing
+  // saying so. One missed refresh is a blip — keep showing. Two in a
+  // row (>2 min since the last good fetch) hides the tape, same as a
+  // failed first load: no price shown beats a stale price shown as live.
+  var lastGood = 0;
+
   function render(prices) {
     var tape = document.getElementById('ticker-tape');
     if (!tape) return;
+    lastGood = Date.now();
+    tape.style.display = '';
     var items = COINS.map(function (c) {
-      var d = prices[c.id] || {};
+      var d = prices[c.id];
+      if (!d || d.usd == null) return null; // missing coin: skip, never $0.00
       var chg = d.usd_24h_change || 0;
       var cls = chg >= 0 ? 'up' : 'down';
-      return '<span class="ticker-item"><strong>' + c.symbol + '</strong> ' + fmt(d.usd || 0) +
+      return '<span class="ticker-item"><strong>' + c.symbol + '</strong> ' + fmt(d.usd) +
         ' <span class="' + cls + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%</span></span>';
-    }).join('<span class="ticker-sep">·</span>');
+    }).filter(function (x) { return x; }).join('<span class="ticker-sep">·</span>');
+    if (!items) { tape.style.display = 'none'; return; }
     // duplicate for seamless loop
     tape.innerHTML = '<div class="ticker-track">' + items +
       '<span class="ticker-sep">·</span>' + items + '</div>';
@@ -47,7 +58,10 @@
         '&vs_currencies=usd&include_24hr_change=true')
         .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
         .then(render)
-        .catch(function () {});
+        .catch(function () {
+          var tape = document.getElementById('ticker-tape');
+          if (tape && lastGood && Date.now() - lastGood > 120000) tape.style.display = 'none';
+        });
     }, 60000);
   }
 

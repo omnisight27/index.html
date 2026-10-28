@@ -12,6 +12,11 @@
     { id: 'ripple', symbol: 'XRP', label: 'XRP' }
   ];
 
+  // Freshness: the cards keep showing the last good prices after a
+  // failed refresh, so the stamp must say how old they are — a stale
+  // price with no age on it reads as a live one.
+  var lastGood = null;
+
   function fmt(n) {
     if (n >= 1000) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
     return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -23,9 +28,10 @@
     var grid = section.querySelector('.grid');
     if (!grid) return;
     grid.innerHTML = '';
+    lastGood = new Date();
     COINS.forEach(function (c) {
       var d = prices[c.id];
-      if (!d) return;
+      if (!d || d.usd == null) return; // missing coin: skip, never show $0.00
       var chg = d.usd_24h_change;
       var cls = chg >= 0 ? 'up' : 'down';
       var arrow = chg >= 0 ? '▲' : '▼';
@@ -54,7 +60,11 @@
         .then(render)
         .catch(function () {
           var stamp = document.getElementById('live-stamp');
-          if (stamp) stamp.textContent = 'Live data unavailable — showing last known layout';
+          if (stamp) {
+            stamp.textContent = lastGood
+              ? 'Live data unavailable — prices from ' + lastGood.toLocaleTimeString() + ' (stale)'
+              : 'Live data unavailable — no live prices yet';
+          }
         });
     }
     load();

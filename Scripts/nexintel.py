@@ -482,11 +482,10 @@ def ingest():
     except Exception as e:
         print(f'  crypto markets failed: {e}')
 
-    # Coinbase real-time tickers
-    d['tickers'] = {}
-    for pair in ['BTC-USD', 'ETH-USD', 'SOL-USD']:
-        t = fetch_json(f'https://api.exchange.coinbase.com/products/{pair}/ticker')
-        if t: d['tickers'][pair] = t
+    # NOTE (2026-10-28 cleanup): the Coinbase real-time tickers for
+    # BTC/ETH/SOL used to be fetched here, but nothing ever read them —
+    # think()/remember() price everything from the CoinGecko feed above,
+    # so the three calls were dead weight. Removed, not replaced.
 
     # Exchange listings — which coins Nic can actually trade (Coinbase + Crypto.com)
     d['listings'] = {'coinbase': set(), 'cryptocom': set()}
@@ -671,9 +670,22 @@ def ingest():
     if finnhub_key:
         # Indices, sector ETFs, mega-caps — the stocks that move markets
         symbols = STOCK_SYMBOLS
+        # Freshness check (2026-10-28): a Finnhub quote carries 't', the
+        # unix time of the last price. A delisted/halted ticker can keep
+        # returning a fossil close forever — never score that as today's
+        # price. Quotes older than 7 days are dropped (a long weekend or
+        # holiday close is ~3 days, so real closes always pass).
+        _quote_max_age = 7 * 24 * 3600
+        _quote_now = int(datetime.now(timezone.utc).timestamp())
         for sym in symbols:
             q = fetch_json(f'https://finnhub.io/api/v1/quote?symbol={sym}&token={finnhub_key}')
-            if q and q.get('c'): d['stocks'][sym] = q
+            if q and q.get('c'):
+                qt = q.get('t')
+                if qt and _quote_now - int(qt) > _quote_max_age:
+                    print(f"  stocks: {sym} quote is stale "
+                          f"({(_quote_now - int(qt)) // 86400}d old) — dropped, not scored")
+                    continue
+                d['stocks'][sym] = q
         print(f"  stocks: {len(d['stocks'])} symbols ingested")
     else:
         print('  [info] FINNHUB_API_KEY absent — stocks feed skipped (add key in GitHub Secrets)')
@@ -1688,11 +1700,14 @@ def remember(data, signals):
         if market == 'stock':
             return px_stock.get(p['asset'])
         # Prefer the CoinGecko id the pick was built from (picks carry
-        # coin_id since 2026-10-28); fall back to the symbol map.
+        # coin_id since 2026-10-28). If the id is gone from this run's
+        # feed (delisted, fell out of the top 1000), do NOT fall back to
+        # the symbol map: the symbol may now belong to a different coin,
+        # and scoring against the wrong coin's price is the BTC-$0.03 bug
+        # all over again. Returning None leaves the pick unscored — a
+        # missed grade beats a wrong grade.
         if p.get('coin_id'):
-            v = px_crypto_by_id.get(p['coin_id'])
-            if v:
-                return v
+            return px_crypto_by_id.get(p['coin_id'])
         v = px_crypto.get(p['asset'])
         return v[0] if v else None
 
@@ -1766,32 +1781,63 @@ def publish(data, signals, history, data_pulled_at=None):
     # Don't publish an empty dashboard section because of that: carry the
     # previous run's values forward so the site never regresses to blank
     # between keyed runs. Flags let the frontend label them as carried.
+    # FRESHNESS GATE (2026-10-28): the *_carried flags are published but
+    # no page ever displays them, so an unbounded carry would serve
+    # days-old macro/rates as if fresh. Only carry forward from a
+    # previous run published within the last 24h; older than that the
+    # section goes blank instead of stale. The carried-from timestamp
+    # rides along in latest.json so the age is visible, not implied.
+    def _prev_fresh_enough(prev):
+        try:
+            prev_pub = datetime.fromisoformat(str(prev.get('published_at') or ''))
+            if prev_pub.tzinfo is None:
+                prev_pub = prev_pub.replace(tzinfo=timezone.utc)
+            return (now - prev_pub).total_seconds() < 24 * 3600, prev.get('published_at')
+        except Exception:
+            return False, None
+
     macro = data.get('macro') or {}
     rates = data.get('rates') or {}
     macro_carried = rates_carried = False
+    macro_carried_from = rates_carried_from = None
     if not macro or not rates:
         try:
             with open(os.path.join(DATA_DIR, 'latest.json')) as f:
                 prev = json.load(f)
-            if not macro and prev.get('macro'):
-                macro = prev['macro']; macro_carried = True
-            if not rates and prev.get('rates'):
-                rates = prev['rates']; rates_carried = True
-            if macro_carried or rates_carried:
-                print(f'  publish: carried forward macro={macro_carried} rates={rates_carried} from previous run')
+            fresh, prev_pub = _prev_fresh_enough(prev)
+            if not fresh:
+                print(f'  publish: previous run too old to carry forward '
+                      f'(published {prev_pub}) — macro/rates left blank')
+            else:
+                if not macro and prev.get('macro'):
+                    macro = prev['macro']; macro_carried = True
+                    macro_carried_from = prev_pub
+                if not rates and prev.get('rates'):
+                    rates = prev['rates']; rates_carried = True
+                    rates_carried_from = prev_pub
+                if macro_carried or rates_carried:
+                    print(f'  publish: carried forward macro={macro_carried} rates={rates_carried} '
+                          f'from {prev_pub}')
         except Exception as e:
             print(f'  publish: carry-forward unavailable ({e})')
 
     # Same carry-forward protection for the Kalshi summary: a run where
-    # the Kalshi API hiccups must not blank the panel.
+    # the Kalshi API hiccups must not blank the panel. Same 24h freshness
+    # gate — a week-old Kalshi snapshot is not a panel, it's a fossil.
     kalshi = data.get('kalshi') or {}
     kalshi_carried = False
+    kalshi_carried_from = None
     if not kalshi:
         try:
             with open(os.path.join(DATA_DIR, 'latest.json')) as f:
                 prev_k = json.load(f)
-            if prev_k.get('kalshi'):
+            fresh_k, prev_pub_k = _prev_fresh_enough(prev_k)
+            if fresh_k and prev_k.get('kalshi'):
                 kalshi = prev_k['kalshi']; kalshi_carried = True
+                kalshi_carried_from = prev_pub_k
+            elif not fresh_k:
+                print(f'  publish: previous Kalshi snapshot too old to carry '
+                      f'(published {prev_pub_k})')
         except Exception:
             pass
 
@@ -1825,10 +1871,13 @@ def publish(data, signals, history, data_pulled_at=None):
         'kelly_pct': signals.get('kelly_pct'),
         'macro': macro,
         'macro_carried': macro_carried,
+        'macro_carried_from': macro_carried_from,
         'rates': rates,
         'rates_carried': rates_carried,
+        'rates_carried_from': rates_carried_from,
         'kalshi': kalshi,
         'kalshi_carried': kalshi_carried,
+        'kalshi_carried_from': kalshi_carried_from,
         'alerts': signals.get('alerts', []),
         'long_term': signals.get('long_term', {}),
     }

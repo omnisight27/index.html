@@ -26,8 +26,10 @@ import nexintel
 @pytest.fixture(autouse=True)
 def _restore_data_dir():
     orig = nexintel.DATA_DIR
+    orig_snap = nexintel.SNAP_DIR
     yield
     nexintel.DATA_DIR = orig
+    nexintel.SNAP_DIR = orig_snap
 
 
 # --- Thesis vol cap -------------------------------------------------------
@@ -126,3 +128,91 @@ def test_coin_id_beats_symbol_map(tmp_path):
     p = hist['picks'][0]['longs'][0]
     assert p['exit'] == 80000.0, p
     assert p['win'] is True
+
+
+def test_coin_id_missing_never_falls_back_to_symbol(tmp_path):
+    # The pick's coin vanished from this run's feed (delisted, fell out
+    # of the top 1000) and its symbol now belongs to a different coin.
+    # Pre-fix, price_for fell back to the symbol map and scored a
+    # $79,788 BTC long at the impostor's $0.03 (-100%) — the same bug
+    # class as the 2026-10-27 BTC score. It must stay unscored instead:
+    # a missed grade beats a wrong grade.
+    run = {'date': '2026-10-27T02:58:08+00:00', 'scored': False,
+           'longs': [_pick('BTC', 79788.0, coin_id='bitcoin')],
+           'shorts': []}
+    _seed(tmp_path, [run])
+    data = {'crypto': {
+                'btc-impostor': {'symbol': 'BTC', 'usd': 0.03,
+                                 'market_cap': 50_000}},
+            'stocks': {}}
+    hist = nexintel.remember(data, _signals())
+    p = hist['picks'][0]['longs'][0]
+    assert 'exit' not in p, p
+    assert hist['picks'][0]['scored'] is False
+    assert hist['stats']['total'] == 0
+
+
+# --- Carry-forward freshness gate (publish) --------------------------------
+
+def _prev_latest(published_at):
+    return {'published_at': published_at,
+            'macro': {'cpi': {'value': 300.0, 'date': '2026-09-01'}},
+            'rates': {'us10y': '5'},
+            'kalshi': {'watch_total': 116}}
+
+
+def _publish_signals():
+    return {'longs': [], 'shorts': [],
+            'psychology': {'fear_greed': 50}, 'regime': 'NEUTRAL',
+            'weights': [], 'weight_info': {}, 'contracts_watch': [],
+            'opportunities': [], 'opportunities_nonprofit': [],
+            'foresight': [], 'headlines': [], 'alerts': [],
+            'long_term': {}, 'buy_pct': 50, 'buy_text': 'Mixed',
+            'kelly_pct': 1.0}
+
+
+def _publish_setup(tmp_path, prev_age_hours):
+    from datetime import datetime, timedelta, timezone
+    nexintel.DATA_DIR = str(tmp_path)
+    snap = tmp_path / 'snapshots'
+    snap.mkdir()
+    nexintel.SNAP_DIR = str(snap)
+    prev_pub = (datetime.now(timezone.utc)
+                - timedelta(hours=prev_age_hours)).isoformat()
+    (tmp_path / 'latest.json').write_text(json.dumps(_prev_latest(prev_pub)))
+    hist = {'stats': {'wins': 0, 'losses': 0, 'total': 0},
+            'error': {}, 'calibration': []}
+    return prev_pub, hist
+
+
+def test_carry_forward_refuses_stale_previous_run(tmp_path):
+    # Previous run is 2 days old: macro/rates/Kalshi must NOT be carried
+    # — the section goes blank instead of serving stale values as fresh.
+    _, hist = _publish_setup(tmp_path, prev_age_hours=48)
+    data = {'macro': {}, 'rates': {}, 'kalshi': {},
+            'fed_commentary': [], 'newsletter_digest': None}
+    nexintel.publish(data, _publish_signals(), hist)
+    latest = json.loads((tmp_path / 'latest.json').read_text())
+    assert latest['macro'] == {}, latest
+    assert latest['rates'] == {}, latest
+    assert latest['kalshi'] == {}, latest
+    assert latest['macro_carried'] is False
+    assert latest['rates_carried'] is False
+    assert latest['kalshi_carried'] is False
+
+
+def test_carry_forward_keeps_fresh_previous_run(tmp_path):
+    # Previous run is 1 hour old: carrying forward still works, and the
+    # carried-from timestamp rides along so the age is visible.
+    prev_pub, hist = _publish_setup(tmp_path, prev_age_hours=1)
+    data = {'macro': {}, 'rates': {}, 'kalshi': {},
+            'fed_commentary': [], 'newsletter_digest': None}
+    nexintel.publish(data, _publish_signals(), hist)
+    latest = json.loads((tmp_path / 'latest.json').read_text())
+    assert latest['macro'] == {'cpi': {'value': 300.0, 'date': '2026-09-01'}}, latest
+    assert latest['rates'] == {'us10y': '5'}, latest
+    assert latest['kalshi'] == {'watch_total': 116}, latest
+    assert latest['macro_carried'] is True
+    assert latest['macro_carried_from'] == prev_pub
+    assert latest['rates_carried_from'] == prev_pub
+    assert latest['kalshi_carried_from'] == prev_pub
