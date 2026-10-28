@@ -42,6 +42,24 @@
     var asset = (params.get('asset') || '').toUpperCase();
     var type = params.get('type') || 'swing'; // swing | intraday
     var side = params.get('side') || 'long';
+    // Market qualifier: CVX is two assets (crypto Convex Finance, stock
+    // Chevron) that share one symbol. ?market=crypto or &market=stock
+    // picks one; with no market the page disambiguates instead of
+    // silently showing whichever the engine listed first.
+    var marketParam = (params.get('market') || '').toLowerCase();
+    if (marketParam === 'equity') marketParam = 'stock';
+    if (marketParam !== 'crypto' && marketParam !== 'stock') marketParam = '';
+
+    // Which market a pick belongs to, from the engine's own class field.
+    function marketOf(p) {
+      var cls = (p['class'] || '').toLowerCase();
+      if (cls === 'crypto') return 'crypto';
+      if (cls === 'equity') return 'stock';
+      if (p.info_url && p.info_url.indexOf('coingecko') > -1) return 'crypto';
+      if (p.cik) return 'stock';
+      return '';
+    }
+    function marketLabel(m) { return m === 'crypto' ? 'Crypto' : (m === 'stock' ? 'Stock' : ''); }
 
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
     // Engine clock strings arrive as "HH:MM UTC"; Nic reads ET. Dates pass through.
@@ -91,7 +109,8 @@
       var feats = (p.features || []).map(function (f, i) {
         return '<tr><td>' + (featNames[i] || ('F' + (i + 1))) + '</td><td>' + (f >= 0 ? '📈' : '📉') + ' ' + Number(f).toFixed(2) + '</td></tr>';
       }).join('');
-      return '<div class="card"><h2>' + arrow + ' ' + esc(p.asset) + ' <span class="asset-name">' + esc(p.name || '') + '</span></h2>' +
+      var mkt = marketLabel(marketOf(p));
+      return '<div class="card"><h2>' + arrow + ' ' + esc(p.asset) + ' <span class="asset-name">' + esc(p.name || '') + '</span>' + (mkt ? ' <span class="live-stamp">· ' + mkt + '</span>' : '') + '</h2>' +
         '<p>' + badge(p.class, p.name) + '</p>' + tradableLine(p) +
         '<h3>The Trade</h3>' +
         '<p><strong>Direction:</strong> ' + dir + ' &nbsp; <strong>Confidence:</strong> ' + p.confidence + '%</p>' +
@@ -116,7 +135,7 @@
     function renderIntraday(s) {
       var t = s.thesis || {};
       var arrow = s.direction === 'LONG' ? '▲' : '▼';
-      return '<div class="card"><h2>' + arrow + ' ' + esc(s.asset) + ' <span class="asset-name">' + esc(s.name || '') + '</span></h2>' +
+      return '<div class="card"><h2>' + arrow + ' ' + esc(s.asset) + ' <span class="asset-name">' + esc(s.name || '') + '</span> <span class="live-stamp">· Crypto</span></h2>' +
         '<p><span class="asset-badge badge-crypto">🪙 Crypto</span> <span class="live-stamp">Intraday signal</span></p>' + tradableLine(s) +
         '<h3>The Trade</h3>' +
         '<p><strong>Direction:</strong> ' + s.direction + ' &nbsp; <strong>Confidence:</strong> ' + s.confidence + '%</p>' +
@@ -159,6 +178,32 @@
         });
     }
 
+    // One symbol, two assets (CVX = Convex Finance in crypto, Chevron in
+    // stocks): list every match with its market, name, and price, each
+    // linking to the same page with &market= so the choice is explicit.
+    function disambigList(matches, type) {
+      var items = matches.map(function (m) {
+        var p = m.p, mkt = marketOf(p), lbl = marketLabel(mkt) || 'Unknown market';
+        var dir = (p.direction || (p.thesis && p.thesis.direction) || m.side || '').toUpperCase();
+        var link = 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=' + type +
+          (type === 'swing' ? '&side=' + m.side : '') + (mkt ? '&market=' + mkt : '');
+        var price = p.price !== undefined ? Number(p.price).toLocaleString()
+          : (p.thesis && p.thesis.entry !== undefined ? Number(p.thesis.entry).toLocaleString() : '—');
+        return '<li><strong>' + esc(p.asset) + ' — ' + esc(p.name || '') + '</strong> (' + lbl + ')' +
+          (dir ? ' · ' + dir : '') + ' · $' + price +
+          (p.news_flag ? ' · 🚫 flagged' : '') +
+          ' — <a class="asset-link" href="' + link + '">View this one →</a></li>';
+      }).join('');
+      return '<ul class="thesis-list">' + items + '</ul>';
+    }
+
+    function renderDisambiguation(matches, type) {
+      return '<div class="card"><h3>Two assets share the symbol ' + esc(asset) + '</h3>' +
+        '<p>That symbol means two different things — pick which one you meant. Crypto is the token, Stock is the listed company.</p>' +
+        disambigList(matches, type) +
+        '<p><a href="picks.html" class="asset-link">← Back to Picks</a></p></div>';
+    }
+
     function load() {
       var url = type === 'intraday' ? 'data/intraday.json' : 'data/latest.json';
       fetch(url, { cache: 'no-store' })
@@ -167,35 +212,63 @@
           // Unified freshness stamp from whichever engine file this page
           // loaded (intraday detail → intraday.json, swing → latest.json)
           if (window.nxStampInto) window.nxStampInto(document.getElementById('data-stamp'), d);
-          var found = null, isIntra = false;
-          if (type === 'intraday') {
-            var all = (d.longs || []).concat(d.shorts || []);
-            found = all.find(function (s) { return (s.asset || '').toUpperCase() === asset; });
-            isIntra = true;
-          } else {
-            var picks = (d.longs || []).concat(d.shorts || []);
-            found = picks.find(function (p) { return (p.asset || '').toUpperCase() === asset; });
-          }
           var el = document.getElementById('pick-detail');
-          if (!found) {
+          // Collect every pick with this symbol, tagged with its market
+          // and side. CVX is two assets (crypto Convex Finance, stock
+          // Chevron) — never silently show whichever the engine listed first.
+          var tagged = [];
+          if (type === 'intraday') {
+            (d.longs || []).concat(d.shorts || []).forEach(function (s) {
+              tagged.push({ p: s, side: (s.direction || '').toUpperCase() === 'SHORT' ? 'short' : 'long', intra: true });
+            });
+          } else {
+            (d.longs || []).forEach(function (p) { tagged.push({ p: p, side: 'long', intra: false }); });
+            (d.shorts || []).forEach(function (p) { tagged.push({ p: p, side: 'short', intra: false }); });
+          }
+          var matches = tagged.filter(function (m) { return (m.p.asset || '').toUpperCase() === asset; });
+          var unfiltered = matches.slice();
+          if (marketParam) matches = matches.filter(function (m) { return marketOf(m.p) === marketParam; });
+          if (!matches.length) {
+            if (marketParam && unfiltered.length) {
+              // The symbol exists, just not in the market asked for —
+              // point at the one(s) that do exist instead of a dead end.
+              el.innerHTML = '<div class="card"><h3>No ' + esc(asset) + ' in the ' + esc(marketLabel(marketParam)) + ' market</h3>' +
+                '<p class="live-stamp">' + esc(asset) + ' is in the current ' + esc(type) + ' picks, but not as ' + esc(marketLabel(marketParam)) + '. Try the other market:</p>' +
+                disambigList(unfiltered, type) +
+                '<p><a href="picks.html" class="asset-link">← Back to Picks</a></p></div>';
+              return;
+            }
             el.innerHTML = '<div class="card"><h3>Pick not found</h3><p class="live-stamp">' + esc(asset) + ' is not in the current ' + esc(type) + ' picks. It may have rotated out — check the Picks page for the latest.</p></div>';
             return;
           }
+          if (!marketParam && matches.length > 1) {
+            var markets = {};
+            matches.forEach(function (m) { markets[marketOf(m.p)] = 1; });
+            if (Object.keys(markets).length > 1) {
+              // Same symbol in more than one market — show both, pick neither.
+              el.innerHTML = renderDisambiguation(matches, type);
+              document.title = asset + ' — Which one? — OmniSight';
+              return;
+            }
+          }
+          var found = matches[0].p, isIntra = matches[0].intra;
+          if (!isIntra) side = matches[0].side; // side from the actual match, not the URL guess
           // News-flagged picks are scrubbed from the Picks page entirely
           // (Nic, 2026-10-22 — the ZEC lesson: a bad headline outranks a
           // model score). A hand-typed URL must not bypass that scrub, so a
           // flagged pick renders as a warning, never as a trade — no entry,
           // no target, no stop.
+          var foundMkt = marketLabel(marketOf(found));
           if (found.news_flag) {
-            el.innerHTML = '<div class="card"><h2>🚫 ' + esc(found.asset) + ' — Flagged, Not a Trade</h2>' +
+            el.innerHTML = '<div class="card"><h2>🚫 ' + esc(found.asset) + (found.name ? ' <span class="asset-name">' + esc(found.name) + '</span>' : '') + (foundMkt ? ' <span class="live-stamp">· ' + foundMkt + '</span>' : '') + ' — Flagged, Not a Trade</h2>' +
               '<p><strong>News risk:</strong> ' + esc(found.news_flag) + '</p>' +
               '<p class="live-stamp">The engine flagged this pick on a headline and excluded it from the Picks page. A headline outranks a model score — there is no trade here until the flag clears on a fresh run.</p>' +
               '<p><a href="picks.html" class="asset-link">← Back to Picks</a></p></div>';
-            document.title = found.asset + ' — Flagged — OmniSight';
+            document.title = found.asset + (foundMkt ? ' (' + foundMkt + ')' : '') + ' — Flagged — OmniSight';
             return;
           }
           el.innerHTML = isIntra ? renderIntraday(found) : renderSwing(found);
-          document.title = found.asset + ' — OmniSight Pick Detail';
+          document.title = found.asset + (foundMkt ? ' (' + foundMkt + ')' : '') + ' — OmniSight Pick Detail';
           // EDGAR deep dive: fetch recent SEC filings for equity picks
           if (!isIntra && found.cik) {
             loadEdgarFilings(found.cik, found.asset, found.edgar_url);

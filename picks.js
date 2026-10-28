@@ -28,6 +28,21 @@
     return '<span class="asset-badge badge-stock">📈 Stock</span>';
   }
 
+  // Market qualifier for detail links: CVX is two assets (crypto Convex
+  // Finance, stock Chevron), so every link to pick.html carries &market=
+  // and lands on the right one instead of whichever the page finds first.
+  function marketParamOf(p) {
+    var cls = (p['class'] || '').toLowerCase();
+    if (cls === 'crypto' || (p.info_url && p.info_url.indexOf('coingecko') > -1)) return 'crypto';
+    if (cls === 'equity' || p.cik) return 'stock';
+    return '';
+  }
+  function detailLink(p, type, side) {
+    var q = 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=' + type + (side ? '&side=' + side : '');
+    var m = marketParamOf(p);
+    return q + (m ? '&market=' + m : '');
+  }
+
   function tradableBadge(p) {
     if ((p['class'] || '').toLowerCase() === 'equity') return ' <span class="trade-badge trade-yes">✅ Schwab</span>';
     if ((p['class'] || '').toLowerCase() !== 'crypto' && !(p.info_url && p.info_url.indexOf('coingecko') > -1)) return '';
@@ -90,7 +105,7 @@
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
       '<p class="live-stamp">' + plainReason(p.reason) + '</p>' +
-      '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=' + side + '">📄 Full detail page →</a></p>' +
+      '<p><a class="details-toggle" href="' + detailLink(p, 'swing', side) + '">📄 Full detail page →</a></p>' +
       modelDetails(p) + '</div>';
   }
 
@@ -134,7 +149,7 @@
       ' &nbsp; <strong>Out by:</strong> ' + fmtClockET(t.exit_by) + '</p>' +
       '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
       '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
-      '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday">📄 Full detail page →</a></p>' +
+      '<p><a class="details-toggle" href="' + detailLink(s, 'intraday') + '">📄 Full detail page →</a></p>' +
       '</div>';
   }
 
@@ -187,9 +202,9 @@
     var intra = lastIntraday && ((lastIntraday.longs || []).concat(lastIntraday.shorts || []))
       .some(function (s) { return s.asset === m.asset; });
     if (intra) {
-      detail = '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(m.asset) + '&type=intraday">📄 Full detail page →</a></p>';
+      detail = '<p><a class="details-toggle" href="' + detailLink(m, 'intraday') + '">📄 Full detail page →</a></p>';
     } else if (swingSides[m.asset]) {
-      detail = '<p><a class="details-toggle" href="pick.html?asset=' + encodeURIComponent(m.asset) + '&type=swing&side=' + swingSides[m.asset] + '">📄 Full detail page →</a></p>';
+      detail = '<p><a class="details-toggle" href="' + detailLink(m, 'swing', swingSides[m.asset]) + '">📄 Full detail page →</a></p>';
     }
     var watchNote = m.watch_reason ? ' <span class="live-stamp">👀 ' + m.watch_reason + '</span>' : '';
     // Trade plan: buy / sell target / stop / out-by when the engine attached
@@ -268,9 +283,13 @@
 
   function detailFor(asset) {
     var intra = lastIntraday && ((lastIntraday.longs || []).concat(lastIntraday.shorts || []))
-      .some(function (s) { return s.asset === asset; });
-    if (intra) return 'pick.html?asset=' + encodeURIComponent(asset) + '&type=intraday';
-    if (swingSides[asset]) return 'pick.html?asset=' + encodeURIComponent(asset) + '&type=swing&side=' + swingSides[asset];
+      .find(function (s) { return s.asset === asset; });
+    if (intra) return detailLink(intra, 'intraday');
+    if (swingSides[asset] && lastSwing) {
+      var sw = ((lastSwing.longs || []).concat(lastSwing.shorts || []))
+        .find(function (p) { return p.asset === asset; });
+      if (sw) return detailLink(sw, 'swing', swingSides[asset]);
+    }
     return null;
   }
 
@@ -322,7 +341,7 @@
         push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url, 'class': s['class'], tradable: s.tradable,
           reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 70% buy bar.',
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null,
-          detail: 'pick.html?asset=' + encodeURIComponent(s.asset) + '&type=intraday' });
+          detail: detailLink(s, 'intraday') });
       }
     });
     swingLongs.forEach(function (p) {
@@ -332,7 +351,7 @@
         push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
           reason: p.confidence + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
           plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit },
-          detail: 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=long' });
+          detail: detailLink(p, 'swing', 'long') });
       }
     });
     movers.forEach(function (m) {
@@ -370,8 +389,8 @@
             ? { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit }
             : (t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null),
           detail: c.src === 'swing'
-            ? 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=swing&side=long'
-            : 'pick.html?asset=' + encodeURIComponent(p.asset) + '&type=intraday' };
+            ? detailLink(p, 'swing', 'long')
+            : detailLink(p, 'intraday') };
         seen[p.asset] = 1;
       }
     }
