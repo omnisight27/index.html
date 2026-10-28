@@ -1,6 +1,8 @@
 """Encryption at rest + Supabase JWT verification."""
 import json
 import os
+import time
+import urllib.request
 
 import jwt
 from cryptography.fernet import Fernet, InvalidToken
@@ -41,22 +43,64 @@ def decrypt_credentials(ciphertext: str) -> dict:
     return json.loads(blob)
 
 
+_JWKS_CACHE = {"keys": None, "fetched_at": 0.0}
+
+
+def _jwks_public_key(kid: str):
+    """Public key for a Supabase ES256 signing key, from the project's JWKS.
+
+    New Supabase projects sign user tokens with ES256 asymmetric keys, not
+    the legacy HS256 shared secret, so HS256-only verification rejects them
+    with "The specified alg value is not allowed". JWKS is public by design.
+    Cached 10 minutes so a key rotation is picked up promptly.
+    """
+    supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
+    if not supabase_url:
+        raise ConfigError("SUPABASE_URL is not set")
+    now = time.time()
+    if _JWKS_CACHE["keys"] is None or now - _JWKS_CACHE["fetched_at"] > 600:
+        jwks_url = supabase_url + "/auth/v1/.well-known/jwks.json"
+        try:
+            with urllib.request.urlopen(jwks_url, timeout=10) as resp:
+                data = json.loads(resp.read().decode())
+        except Exception as e:
+            raise jwt.InvalidTokenError(f"could not fetch Supabase JWKS: {e}")
+        _JWKS_CACHE["keys"] = data.get("keys", [])
+        _JWKS_CACHE["fetched_at"] = now
+    for key in _JWKS_CACHE["keys"]:
+        if key.get("kid") == kid and key.get("kty") == "EC":
+            return jwt.algorithms.ECAlgorithm.from_jwk(json.dumps(key))
+    raise jwt.InvalidTokenError("no matching Supabase signing key in JWKS")
+
+
 def verify_supabase_jwt(token: str) -> str:
     """Verify a Supabase access token, return the user id (`sub` claim).
 
-    Supabase signs user JWTs. Projects expose a JWT secret (Project Settings →
-    API → JWT Secret) used for HS256 verification of the legacy/shared secret.
-    If the project has been rotated to asymmetric signing keys, swap this for a
-    JWKS check against {SUPABASE_URL}/auth/v1/.well-known/jwks.json — the rest
-    of the service only depends on the returned user id.
+    Accepts both signing styles Supabase actually issues:
+    - HS256 with the legacy/shared JWT secret (older projects), and
+    - ES256 with the project's JWKS keys (new projects, default since 2025).
+    Anything else is rejected, never guessed.
     """
-    secret = os.environ.get("SUPABASE_JWT_SECRET", "")
-    if not secret:
-        raise ConfigError("SUPABASE_JWT_SECRET is not set")
+    try:
+        header = jwt.get_unverified_header(token)
+    except Exception as e:
+        raise jwt.InvalidTokenError(str(e))
+    alg = header.get("alg")
+    if alg == "HS256":
+        secret = os.environ.get("SUPABASE_JWT_SECRET", "")
+        if not secret:
+            raise ConfigError("SUPABASE_JWT_SECRET is not set")
+        key = secret
+        algorithms = ["HS256"]
+    elif alg == "ES256":
+        key = _jwks_public_key(header.get("kid"))
+        algorithms = ["ES256"]
+    else:
+        raise jwt.InvalidTokenError("The specified alg value is not allowed")
     payload = jwt.decode(
         token,
-        secret,
-        algorithms=["HS256"],
+        key,
+        algorithms=algorithms,
         audience="authenticated",
         options={"require": ["exp", "sub", "aud"]},
     )
