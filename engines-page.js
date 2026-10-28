@@ -97,7 +97,7 @@
     var btn = document.getElementById('cfg-save');
     if (btn) {
       btn.addEventListener('click', function () {
-        cfg.minConfidence = Math.max(0, Math.min(100, parseInt(minC.value, 10) || 70));
+        cfg.minConfidence = Math.max(0, Math.min(100, parseInt(minC.value, 10) || 65));
         cfg.maxRisk = Math.max(0, Math.min(10, parseInt(maxR.value, 10) || 3));
         window.OmniSightConfig.save(cfg);
         btn.textContent = 'Saved ✓';

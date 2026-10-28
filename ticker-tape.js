@@ -74,7 +74,7 @@
 
 // OmniSight picks tape — rolls on every page under the price tape.
 // Leads with 🎯 Today's Verdicts (the same gates as the Picks page:
-// intraday LONG >= 70, or swing long >= 70 with >= 4/5 timeframes
+// intraday LONG >= 65, or swing long >= 65 with >= 4/5 timeframes
 // agreeing, or a planned mover still climbing; news-flagged assets can
 // never be a BUY), then the top swing longs/shorts. Every item says
 // where it trades (Coinbase / Crypto.com / Schwab / not on your
@@ -146,7 +146,7 @@
     });
     function push(list, v) { if (!seen[v.asset]) { seen[v.asset] = 1; list.push(v); } }
     (intra.longs || []).filter(function (s) { return !s.direction || s.direction === 'LONG'; }).forEach(function (s) {
-      if ((s.confidence || 0) >= 70 && !newsFlagged[s.asset]) {
+      if ((s.confidence || 0) >= 65 && !newsFlagged[s.asset]) {
         var t = s.thesis || {};
         push(buys, { asset: s.asset, name: s.name, 'class': s['class'], tradable: s.tradable,
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null });
@@ -154,7 +154,7 @@
     });
     (swing.longs || []).forEach(function (p) {
       var agree = tfAgree(p);
-      if ((p.confidence || 0) >= 70 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
+      if ((p.confidence || 0) >= 65 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
         var t = p.thesis || {};
         push(buys, { asset: p.asset, name: p.name, 'class': p['class'], tradable: p.tradable,
           plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit } });

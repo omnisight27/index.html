@@ -16,7 +16,7 @@
       'Macro Scope': true,
       'Chain Signal': true
     },
-    minConfidence: 70,
+    minConfidence: 65,
     maxRisk: 3
   };
 
@@ -29,7 +29,7 @@
       Object.keys(DEFAULTS.engines).forEach(function (k) {
         if (!(k in cfg.engines)) cfg.engines[k] = true;
       });
-      if (typeof cfg.minConfidence !== 'number') cfg.minConfidence = 70;
+      if (typeof cfg.minConfidence !== 'number') cfg.minConfidence = 65;
       if (typeof cfg.maxRisk !== 'number') cfg.maxRisk = 3;
       return cfg;
     } catch (e) {

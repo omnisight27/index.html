@@ -73,13 +73,13 @@ def var_proxy(chg24, confidence=0.95):
 def kelly_fraction(win_rate, avg_win, avg_loss):
     """
     Kelly criterion: optimal fraction = (p*b - q) / b.
-    Returns 0 if inputs invalid; capped at 0.25 (quarter-Kelly for safety).
+    Returns 0 if inputs invalid; capped at 0.50 (half-Kelly, per Nic 2026-10-28 more-risk change).
     """
     try:
         if not avg_win or avg_win <= 0 or not avg_loss or avg_loss <= 0: return 0.0
         p = win_rate; q = 1 - p; b = avg_win / avg_loss
         f = (p * b - q) / b
-        return max(0.0, min(0.25, f))
+        return max(0.0, min(0.50, f))
     except: return 0.0
 
 def drawdown_guard(recent_returns, max_dd=15.0):
