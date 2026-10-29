@@ -332,7 +332,11 @@
     (swing.longs || []).concat(swing.shorts || []).forEach(function (p) {
       if (p.news_flag) newsFlagged[p.asset] = p;
     });
-    function push(list, v) { if (!seen[v.asset]) { seen[v.asset] = 1; list.push(v); } }
+    // 'seen' is keyed by asset+market so two different assets sharing a
+    // ticker (e.g. crypto CVX Convex Finance vs stock CVX Chevron) each get
+    // their own verdict card instead of the second being silently dropped.
+    function seenKey(p) { return p.asset + '|' + marketParamOf(p); }
+    function push(list, v) { var k = seenKey(v); if (!seen[k]) { seen[k] = 1; list.push(v); } }
 
     // BUY — intraday signals, then aligned swing longs, then hot movers
     intraLongs.forEach(function (s) {
@@ -367,10 +371,10 @@
     if (!buys.length) {
       var cands = [];
       swingLongs.forEach(function (p) {
-        if (!newsFlagged[p.asset] && !seen[p.asset]) cands.push({ src: 'swing', p: p, conf: p.confidence || 0 });
+        if (!newsFlagged[p.asset] && !seen[seenKey(p)]) cands.push({ src: 'swing', p: p, conf: p.confidence || 0 });
       });
       intraLongs.forEach(function (s) {
-        if (!newsFlagged[s.asset] && !seen[s.asset]) cands.push({ src: 'intra', p: s, conf: s.confidence || 0 });
+        if (!newsFlagged[s.asset] && !seen[seenKey(s)]) cands.push({ src: 'intra', p: s, conf: s.confidence || 0 });
       });
       cands.sort(function (a, b) { return b.conf - a.conf; });
       if (cands.length) {
@@ -391,7 +395,7 @@
           detail: c.src === 'swing'
             ? detailLink(p, 'swing', 'long')
             : detailLink(p, 'intraday') };
-        seen[p.asset] = 1;
+        seen[seenKey(p)] = 1;
       }
     }
 
