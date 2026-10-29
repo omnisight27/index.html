@@ -396,8 +396,8 @@
     if (btn) {
       readRows(true);
       holdings.splice(parseInt(btn.getAttribute('data-del'), 10), 1);
-      save();
-      render();
+      render();   // rebuild the DOM from the spliced holdings FIRST —
+      save();     // save() re-reads the DOM, so it must run after render()
       renderAnalysis();
       loadPrices().then(renderAnalysis);
     }
@@ -425,8 +425,8 @@
       if (value == null || value >= 1) kept.push(h);
     });
     holdings = kept;
-    save();
-    render();
+    render();   // rebuild the DOM from the filtered holdings FIRST —
+    save();     // save() re-reads the DOM, so it must run after render()
     renderAnalysis();
     loadPrices().then(renderAnalysis);
   });
