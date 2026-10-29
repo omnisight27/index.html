@@ -55352,7 +55352,7 @@
     },
     {
       "date": "2026-10-29T03:34:37.371238+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "PROM",
@@ -55419,7 +55419,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 57,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 5.56,
+          "return_pct": -0.54,
+          "win": false,
+          "abs_error": 4.54
         },
         {
           "asset": "TRAC",
@@ -55489,7 +55493,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 56,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.360306,
+          "return_pct": -1.01,
+          "win": false,
+          "abs_error": 5.01
         },
         {
           "asset": "XLB",
@@ -55549,7 +55557,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 69,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 51.86,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "MX",
@@ -55616,7 +55628,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 53,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 1.58,
+          "return_pct": 0.64,
+          "win": true,
+          "abs_error": 3.36
         },
         {
           "asset": "DIA",
@@ -55677,7 +55693,11 @@
           "regime": "NEUTRAL",
           "insider_recent": 0,
           "conf_raw": 69,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 524.68,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "FIGR_HELOC",
@@ -55744,7 +55764,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 56,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 1.031,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "XLV",
@@ -55804,7 +55828,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 68,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 179.72,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "SPY",
@@ -55865,7 +55893,11 @@
           "regime": "NEUTRAL",
           "insider_recent": 0,
           "conf_raw": 68,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 772.31,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "XLE",
@@ -55925,7 +55957,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 68,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 68.45,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "XLI",
@@ -55985,7 +56021,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 68,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 168.49,
+          "return_pct": 0.0,
+          "win": false,
+          "abs_error": 4.0
         }
       ],
       "shorts": [
@@ -56054,7 +56094,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 100,
-          "calib_band": "80+"
+          "calib_band": "80+",
+          "exit": 0.042384,
+          "return_pct": 35.0,
+          "win": true,
+          "abs_error": 10.87
         },
         {
           "asset": "APEPE",
@@ -56124,7 +56168,11 @@
           "div_dock": 1.8,
           "div_twin": "Q",
           "conf_raw": 97,
-          "calib_band": "80+"
+          "calib_band": "80+",
+          "exit": 1.39e-06,
+          "return_pct": -1.46,
+          "win": false,
+          "abs_error": 29.4
         },
         {
           "asset": "ORCL",
@@ -56186,7 +56234,11 @@
           "regime": "NEUTRAL",
           "insider_recent": 26,
           "conf_raw": 100,
-          "calib_band": "80+"
+          "calib_band": "80+",
+          "exit": 144.54,
+          "return_pct": -0.0,
+          "win": false,
+          "abs_error": 21.47
         },
         {
           "asset": "STRCX",
@@ -56254,7 +56306,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 59,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 107.74,
+          "return_pct": 1.39,
+          "win": true,
+          "abs_error": 7.46
         },
         {
           "asset": "M",
@@ -56321,7 +56377,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 61,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 1.054,
+          "return_pct": -1.35,
+          "win": false,
+          "abs_error": 8.44
         },
         {
           "asset": "COMP",
@@ -56391,7 +56451,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 60,
-          "calib_band": "60-69"
+          "calib_band": "60-69",
+          "exit": 21.52,
+          "return_pct": -1.99,
+          "win": false,
+          "abs_error": 5.99
         },
         {
           "asset": "AMD",
@@ -56452,7 +56516,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 58,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 578.44,
+          "return_pct": -0.0,
+          "win": false,
+          "abs_error": 6.49
         },
         {
           "asset": "DGAI",
@@ -56519,7 +56587,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 56,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.777765,
+          "return_pct": 0.82,
+          "win": true,
+          "abs_error": 3.18
         },
         {
           "asset": "GT",
@@ -56586,7 +56658,11 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 58,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 9.69,
+          "return_pct": -0.0,
+          "win": false,
+          "abs_error": 4.0
         },
         {
           "asset": "ZBCN",
@@ -56655,6 +56731,1378 @@
           "position_pct": 0.0,
           "regime": "NEUTRAL",
           "conf_raw": 58,
+          "calib_band": "50-59",
+          "exit": 0.0020493,
+          "return_pct": 0.33,
+          "win": true,
+          "abs_error": 3.67
+        }
+      ],
+      "fear_greed": 51,
+      "regime": "NEUTRAL"
+    },
+    {
+      "date": "2026-10-29T11:59:01.138391+00:00",
+      "scored": false,
+      "longs": [
+        {
+          "asset": "OKB",
+          "price": 110.98,
+          "score": 10.9,
+          "confidence": 46,
+          "reason": "OKB +0.2% (24h), -0.6% (7d) @ $110.98. Ensemble score +10.9 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "okb",
+          "name": "OKB",
+          "info_url": "https://www.coingecko.com/en/coins/okb",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.11,
+            0.207,
+            -0.572,
+            -5.046,
+            -8.363
+          ],
+          "features": [
+            0.145,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.021,
+            0.058,
+            0.014,
+            0.908,
+            -1.0,
+            0.096,
+            -1.0,
+            0.026,
+            1.815,
+            0.072,
+            0.034,
+            0.521,
+            0.036,
+            -0.959,
+            0.041,
+            0.0,
+            -0.068
+          ],
+          "geo_edge": 0.001,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 107.65,
+            "take_profit": 115.42,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "COCO",
+          "price": 0.154359,
+          "score": 10.7,
+          "confidence": 46,
+          "reason": "COCO +0.1% (24h), -0.4% (7d) @ $0.154359. Ensemble score +10.7 (w\u00b7x + geo -0.00 + NEUTRAL). [Diversity: -0.5 strength \u2014 moves with OKB]",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "coco-2",
+          "name": "coco",
+          "info_url": "https://www.coingecko.com/en/coins/coco-2",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -0.165,
+            0.092,
+            -0.386,
+            0.424,
+            -4.917
+          ],
+          "features": [
+            0.064,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.009,
+            0.029,
+            0.006,
+            0.804,
+            -1.0,
+            0.049,
+            -1.0,
+            0.011,
+            1.607,
+            0.037,
+            0.015,
+            0.509,
+            0.018,
+            -0.982,
+            0.018,
+            0.0,
+            -0.03
+          ],
+          "geo_edge": -0.001,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.149728,
+            "take_profit": 0.160533,
+            "risk_reward": 0.62,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "div_dock": 0.5,
+          "div_twin": "OKB",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "BSV",
+          "price": 17.71,
+          "score": 10.6,
+          "confidence": 46,
+          "reason": "BSV +0.3% (24h), -1.4% (7d) @ $17.71. Ensemble score +10.6 (w\u00b7x + geo +0.00 + NEUTRAL). [Diversity: -0.5 strength \u2014 moves with OKB]",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "bitcoin-cash-sv",
+          "name": "Bitcoin SV",
+          "info_url": "https://www.coingecko.com/en/coins/bitcoin-cash-sv",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.271,
+            0.299,
+            -1.426,
+            -0.677,
+            -13.412
+          ],
+          "features": [
+            0.209,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.03,
+            0.101,
+            0.02,
+            0.935,
+            -1.0,
+            0.168,
+            -1.0,
+            0.037,
+            1.871,
+            0.126,
+            0.05,
+            0.53,
+            0.063,
+            -0.94,
+            0.06,
+            0.0,
+            -0.099
+          ],
+          "geo_edge": 0.003,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 17.1787,
+            "take_profit": 18.4184,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "div_dock": 0.5,
+          "div_twin": "OKB",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "SUN",
+          "price": 0.016268,
+          "score": 10.8,
+          "confidence": 46,
+          "reason": "SUN +0.2% (24h), -1.1% (7d) @ $0.016268. Ensemble score +10.8 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "sun-token",
+          "name": "Sun Token",
+          "info_url": "https://www.coingecko.com/en/coins/sun-token",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.028,
+            0.178,
+            -1.074,
+            -1.376,
+            -5.505
+          ],
+          "features": [
+            0.124,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.018,
+            0.066,
+            0.012,
+            0.893,
+            -1.0,
+            0.11,
+            -1.0,
+            0.022,
+            1.787,
+            0.083,
+            0.03,
+            0.518,
+            0.041,
+            -0.964,
+            0.036,
+            0.0,
+            -0.059
+          ],
+          "geo_edge": 0.001,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.01578,
+            "take_profit": 0.016918,
+            "risk_reward": 0.07,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "LTC",
+          "price": 57.92,
+          "score": 10.4,
+          "confidence": 46,
+          "reason": "LTC +0.3% (24h), -2.7% (7d) @ $57.92. Ensemble score +10.4 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "litecoin",
+          "name": "Litecoin",
+          "info_url": "https://www.coingecko.com/en/coins/litecoin",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.707,
+            0.256,
+            -2.719,
+            -1.089,
+            -15.815
+          ],
+          "features": [
+            0.179,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.026,
+            0.129,
+            0.017,
+            0.925,
+            -1.0,
+            0.215,
+            -1.0,
+            0.032,
+            1.849,
+            0.161,
+            0.043,
+            0.526,
+            0.081,
+            -0.949,
+            0.051,
+            0.0,
+            -0.084
+          ],
+          "geo_edge": 0.004,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 56.1824,
+            "take_profit": 60.2368,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "XPL",
+          "price": 0.076873,
+          "score": 10.2,
+          "confidence": 46,
+          "reason": "XPL +0.4% (24h), -2.5% (7d) @ $0.076873. Ensemble score +10.2 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "plasma",
+          "name": "Plasma",
+          "info_url": "https://www.coingecko.com/en/coins/plasma",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.714,
+            0.371,
+            -2.54,
+            -1.839,
+            -22.675
+          ],
+          "features": [
+            0.26,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.037,
+            0.147,
+            0.025,
+            0.948,
+            -1.0,
+            0.245,
+            -1.0,
+            0.046,
+            1.895,
+            0.184,
+            0.062,
+            0.537,
+            0.092,
+            -0.926,
+            0.074,
+            0.0,
+            -0.123
+          ],
+          "geo_edge": 0.005,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.074567,
+            "take_profit": 0.079948,
+            "risk_reward": 0.31,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 57,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "NFT",
+          "price": 2.4e-07,
+          "score": 10.1,
+          "confidence": 44,
+          "reason": "NFT +0.6% (24h), -0.6% (7d) @ $0.00000024. Ensemble score +10.1 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "apenft",
+          "name": "AINFT",
+          "info_url": "https://www.coingecko.com/en/coins/apenft",
+          "tradable": [],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            -0.668,
+            0.551,
+            -0.589,
+            -1.172,
+            -2.437
+          ],
+          "features": [
+            0.386,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.055,
+            0.127,
+            0.037,
+            0.964,
+            -1.0,
+            0.212,
+            -1.0,
+            0.069,
+            1.929,
+            0.159,
+            0.092,
+            0.555,
+            0.079,
+            -0.89,
+            0.11,
+            0.0,
+            -0.182
+          ],
+          "geo_edge": 0.004,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 2.3e-07,
+            "take_profit": 2.5e-07,
+            "risk_reward": 0.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 54,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "XLB",
+          "price": 51.86,
+          "score": 9.3,
+          "confidence": 55,
+          "reason": "XLB +0.15% today @ $51.86. Ensemble score +9.3 (w\u00b7x + geo + NEUTRAL).",
+          "class": "equity",
+          "market": "stock",
+          "name": "Materials Select Sector SPDR",
+          "info_url": "https://finance.yahoo.com/quote/XLB",
+          "edgar_url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=XLB&type=&dateb=&owner=include&count=10",
+          "cik": null,
+          "tf_align": null,
+          "features": [
+            0.232,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.015,
+            0.022,
+            0.01,
+            0.878,
+            1.0,
+            0.037,
+            1.0,
+            0.019,
+            1.757,
+            0.028,
+            0.026,
+            0.515,
+            0.025,
+            -0.969,
+            0.031,
+            0.0,
+            -0.051
+          ],
+          "geo_edge": 0.015,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 50.3042,
+            "take_profit": 53.9344,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 69,
+          "calib_band": "60-69"
+        },
+        {
+          "asset": "TWT",
+          "price": 0.445504,
+          "score": 9.2,
+          "confidence": 45,
+          "reason": "TWT +0.8% (24h), -1.6% (7d) @ $0.445504. Ensemble score +9.2 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "trust-wallet-token",
+          "name": "Trust Wallet",
+          "info_url": "https://www.coingecko.com/en/coins/trust-wallet-token",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            3.999,
+            0.764,
+            -1.607,
+            -6.534,
+            -24.05
+          ],
+          "features": [
+            0.535,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.076,
+            0.199,
+            0.051,
+            0.974,
+            -1.0,
+            0.331,
+            -1.0,
+            0.096,
+            1.948,
+            0.248,
+            0.127,
+            0.576,
+            0.124,
+            -0.847,
+            0.153,
+            0.0,
+            -0.252
+          ],
+          "geo_edge": 0.006,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.432139,
+            "take_profit": 0.463324,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 56,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "MX",
+          "price": 1.58,
+          "score": 9.2,
+          "confidence": 45,
+          "reason": "MX +0.6% (24h), -4.5% (7d) @ $1.58. Ensemble score +9.2 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "mx-token",
+          "name": "MX",
+          "info_url": "https://www.coingecko.com/en/coins/mx-token",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.517,
+            0.567,
+            -4.472,
+            -15.185,
+            -15.645
+          ],
+          "features": [
+            0.397,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.057,
+            0.241,
+            0.038,
+            0.965,
+            -1.0,
+            0.402,
+            -1.0,
+            0.071,
+            1.931,
+            0.301,
+            0.094,
+            0.557,
+            0.151,
+            -0.887,
+            0.113,
+            0.0,
+            -0.187
+          ],
+          "geo_edge": 0.008,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 1.5326,
+            "take_profit": 1.6432,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 56,
+          "calib_band": "50-59"
+        }
+      ],
+      "shorts": [
+        {
+          "asset": "APEPE",
+          "price": 1.39e-06,
+          "score": -60.8,
+          "confidence": 78,
+          "reason": "APEPE +16.1% (24h), +18.5% (7d) @ $0.00000139. Ensemble score -60.8 (w\u00b7x + geo -0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "ape-and-pepe",
+          "name": "Ape and Pepe",
+          "info_url": "https://www.coingecko.com/en/coins/ape-and-pepe",
+          "tradable": [],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            -0.079,
+            16.129,
+            18.455,
+            18.193,
+            4.346
+          ],
+          "features": [
+            24.194,
+            -6.452,
+            0.0,
+            0.02,
+            0.0,
+            1.613,
+            2.699,
+            1.0,
+            0.999,
+            1.0,
+            3.0,
+            1.0,
+            2.016,
+            1.998,
+            3.0,
+            2.688,
+            1.5,
+            2.346,
+            2.0,
+            3.0,
+            -1.008,
+            -3.0
+          ],
+          "geo_edge": -0.001,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+16.1%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 1.73e-06,
+            "take_profit": 9.4e-07,
+            "risk_reward": 0.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 32.26,
+            "max_loss_pct": 24.19
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 97,
+          "calib_band": "80+"
+        },
+        {
+          "asset": "ORCL",
+          "price": 144.54,
+          "score": -35.8,
+          "confidence": 79,
+          "reason": "ORCL +10.73% today @ $144.54. Ensemble score -35.8 (w\u00b7x + geo + NEUTRAL). Insider activity: 26 Form 4 filings in 90d \u2014 see SEC deep dive.",
+          "class": "equity",
+          "market": "stock",
+          "name": "Oracle Corp.",
+          "info_url": "https://finance.yahoo.com/quote/ORCL",
+          "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=1341439&owner=exclude",
+          "cik": 1341439,
+          "tf_align": null,
+          "features": [
+            16.1,
+            -4.293,
+            0.0,
+            0.02,
+            0.0,
+            1.073,
+            1.533,
+            0.716,
+            0.998,
+            1.0,
+            2.556,
+            1.0,
+            1.342,
+            1.996,
+            1.917,
+            1.789,
+            1.5,
+            1.725,
+            1.147,
+            2.147,
+            -0.671,
+            -3.0
+          ],
+          "geo_edge": 0.002,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+10.7%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 167.81,
+            "take_profit": 113.51,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 21.47,
+            "max_loss_pct": 16.1
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "insider_recent": 26,
+          "conf_raw": 100,
+          "calib_band": "80+"
+        },
+        {
+          "asset": "HYPE",
+          "price": 87.52,
+          "score": -22.3,
+          "confidence": 69,
+          "reason": "HYPE +7.6% (24h), +8.1% (7d) @ $87.52. Ensemble score -22.3 (w\u00b7x + geo +0.00 + NEUTRAL). [Diversity: -2.1 strength \u2014 moves with APEPE]",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "hyperliquid",
+          "name": "Hyperliquid",
+          "info_url": "https://www.coingecko.com/en/coins/hyperliquid",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            6.884,
+            7.643,
+            8.139,
+            6.114,
+            -4.237
+          ],
+          "features": [
+            11.464,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.764,
+            1.296,
+            0.51,
+            0.997,
+            1.0,
+            2.16,
+            1.0,
+            0.955,
+            1.995,
+            1.62,
+            1.274,
+            1.264,
+            1.101,
+            0.529,
+            1.529,
+            0.0,
+            -2.522
+          ],
+          "geo_edge": 0.002,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+7.6%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 97.5531,
+            "take_profit": 74.1425,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 15.29,
+            "max_loss_pct": 11.46
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "div_dock": 2.1,
+          "div_twin": "APEPE",
+          "conf_raw": 80,
+          "calib_band": "80+"
+        },
+        {
+          "asset": "KNTQ",
+          "price": 0.480182,
+          "score": -21.5,
+          "confidence": 65,
+          "reason": "KNTQ +6.6% (24h), +22.2% (7d) @ $0.480182. Ensemble score -21.5 (w\u00b7x + geo -0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "kinetiq",
+          "name": "Kinetiq",
+          "info_url": "https://www.coingecko.com/en/coins/kinetiq",
+          "tradable": [],
+          "tf_align": "0/5 timeframes agree",
+          "tf_vector": [
+            4.986,
+            6.642,
+            22.219,
+            62.017,
+            54.37
+          ],
+          "features": [
+            9.963,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.664,
+            0.694,
+            0.443,
+            0.997,
+            1.0,
+            1.156,
+            1.0,
+            0.83,
+            1.994,
+            0.867,
+            1.107,
+            1.164,
+            1.227,
+            0.328,
+            1.328,
+            0.0,
+            -2.192
+          ],
+          "geo_edge": -0.0,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+6.6%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.528023,
+            "take_profit": 0.416394,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 13.28,
+            "max_loss_pct": 9.96
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 79,
+          "calib_band": "70-79"
+        },
+        {
+          "asset": "SPX",
+          "price": 0.396329,
+          "score": -5.3,
+          "confidence": 46,
+          "reason": "SPX +3.4% (24h), +8.9% (7d) @ $0.396329. Ensemble score -5.3 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "spx6900",
+          "name": "SPX6900",
+          "info_url": "https://www.coingecko.com/en/coins/spx6900",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -0.116,
+            3.426,
+            8.871,
+            12.14,
+            -4.972
+          ],
+          "features": [
+            5.139,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.343,
+            0.432,
+            0.228,
+            0.994,
+            1.0,
+            0.72,
+            1.0,
+            0.428,
+            1.988,
+            0.54,
+            0.571,
+            0.843,
+            0.587,
+            -0.315,
+            0.685,
+            0.0,
+            -1.131
+          ],
+          "geo_edge": 0.004,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+3.4%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.416697,
+            "take_profit": 0.369171,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 6.85,
+            "max_loss_pct": 5.14
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "DGAI",
+          "price": 0.777765,
+          "score": -5.2,
+          "confidence": 51,
+          "reason": "DGAI -0.2% (24h), -15.4% (7d) @ $0.777765. Ensemble score -5.2 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "dgrid-ai",
+          "name": "DGrid AI",
+          "info_url": "https://www.coingecko.com/en/coins/dgrid-ai",
+          "tradable": [],
+          "tf_align": "5/5 timeframes agree",
+          "tf_vector": [
+            -0.036,
+            -0.163,
+            -15.376,
+            -13.518,
+            -20.892
+          ],
+          "features": [
+            -0.245,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.016,
+            0.407,
+            -0.011,
+            -0.885,
+            1.0,
+            0.678,
+            1.0,
+            -0.02,
+            -1.769,
+            0.508,
+            -0.027,
+            0.484,
+            0.295,
+            -0.967,
+            -0.033,
+            0.0,
+            -0.054
+          ],
+          "geo_edge": 0.008,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.801098,
+            "take_profit": 0.746654,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 61,
+          "calib_band": "60-69"
+        },
+        {
+          "asset": "BTW",
+          "price": 1.8,
+          "score": -5.0,
+          "confidence": 46,
+          "reason": "BTW +3.7% (24h), +2.8% (7d) @ $1.80. Ensemble score -5.0 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "bitway",
+          "name": "Bitway",
+          "info_url": "https://www.coingecko.com/en/coins/bitway",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -4.532,
+            3.701,
+            2.785,
+            -12.896,
+            43.831
+          ],
+          "features": [
+            5.552,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.37,
+            0.661,
+            0.247,
+            0.995,
+            1.0,
+            1.101,
+            1.0,
+            0.463,
+            1.989,
+            0.826,
+            0.617,
+            0.87,
+            0.512,
+            -0.26,
+            0.74,
+            0.0,
+            -1.221
+          ],
+          "geo_edge": 0.005,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+3.7%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 1.8999,
+            "take_profit": 1.6668,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 7.4,
+            "max_loss_pct": 5.55
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 58,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "COMP",
+          "price": 21.52,
+          "score": -4.1,
+          "confidence": 45,
+          "reason": "COMP -0.1% (24h), -15.1% (7d) @ $21.52. Ensemble score -4.1 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "compound-governance-token",
+          "name": "Compound",
+          "info_url": "https://www.coingecko.com/en/coins/compound-governance-token",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "4/5 timeframes agree",
+          "tf_vector": [
+            0.738,
+            -0.062,
+            -15.108,
+            -1.232,
+            -14.486
+          ],
+          "features": [
+            -0.093,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.006,
+            0.419,
+            -0.004,
+            -0.722,
+            1.0,
+            0.699,
+            1.0,
+            -0.008,
+            -1.445,
+            0.524,
+            -0.01,
+            0.494,
+            0.278,
+            -0.988,
+            -0.012,
+            0.0,
+            -0.02
+          ],
+          "geo_edge": 0.01,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 22.1656,
+            "take_profit": 20.6592,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 56,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "GENIUS",
+          "price": 0.327668,
+          "score": -4.1,
+          "confidence": 44,
+          "reason": "GENIUS +3.2% (24h), +8.1% (7d) @ $0.327668. Ensemble score -4.1 (w\u00b7x + geo +0.00 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "genius-3",
+          "name": "Genius",
+          "info_url": "https://www.coingecko.com/en/coins/genius-3",
+          "tradable": [],
+          "tf_align": "0/5 timeframes agree",
+          "tf_vector": [
+            0.172,
+            3.165,
+            8.124,
+            4.397,
+            1.447
+          ],
+          "features": [
+            4.748,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.317,
+            0.401,
+            0.211,
+            0.994,
+            1.0,
+            0.668,
+            1.0,
+            0.396,
+            1.987,
+            0.501,
+            0.528,
+            0.817,
+            0.541,
+            -0.367,
+            0.633,
+            0.0,
+            -1.045
+          ],
+          "geo_edge": 0.004,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "strong 24h momentum (+3.2%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.343226,
+            "take_profit": 0.306924,
+            "risk_reward": 1.33,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 6.33,
+            "max_loss_pct": 4.75
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 53,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "APE",
+          "price": 0.121819,
+          "score": -4.0,
+          "confidence": 45,
+          "reason": "APE -1.2% (24h), -12.6% (7d) @ $0.121819. Ensemble score -4.0 (w\u00b7x + geo +0.01 + NEUTRAL).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "apecoin",
+          "name": "ApeCoin",
+          "info_url": "https://www.coingecko.com/en/coins/apecoin",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "4/5 timeframes agree",
+          "tf_vector": [
+            0.672,
+            -1.172,
+            -12.634,
+            -10.273,
+            -19.174
+          ],
+          "features": [
+            -1.758,
+            0.0,
+            0.0,
+            0.02,
+            0.0,
+            0.117,
+            0.127,
+            -0.078,
+            -0.983,
+            1.0,
+            0.211,
+            1.0,
+            -0.146,
+            -1.966,
+            0.158,
+            -0.195,
+            0.383,
+            0.372,
+            -0.766,
+            -0.234,
+            0.0,
+            -0.387
+          ],
+          "geo_edge": 0.012,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "trend alignment across timeframes"
+            ],
+            "stop_loss": 0.125474,
+            "take_profit": 0.116946,
+            "risk_reward": 0.49,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-29",
+            "projected_exit": "2026-11-01",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 3.0
+          },
+          "position_pct": 0.0,
+          "regime": "NEUTRAL",
+          "conf_raw": 56,
           "calib_band": "50-59"
         }
       ],
@@ -56663,24 +58111,24 @@
     }
   ],
   "stats": {
-    "wins": 387,
-    "losses": 410,
-    "total": 797,
-    "win_rate": 48.6
+    "wins": 392,
+    "losses": 425,
+    "total": 817,
+    "win_rate": 48.0
   },
   "error": {
-    "sum_abs_err": 1984.5592267349773,
-    "n": 238,
-    "within_5pct": 112,
+    "sum_abs_err": 2126.4464939142063,
+    "n": 258,
+    "within_5pct": 124,
     "metric": "return_pct_v1",
-    "mae": 8.34,
-    "within_5pct_rate": 47.1
+    "mae": 8.24,
+    "within_5pct_rate": 48.1
   },
   "calibration": [
     {
       "band": "50-59",
-      "n": 117,
-      "win_rate": 34.2
+      "n": 125,
+      "win_rate": 32.0
     },
     {
       "band": "60-69",
@@ -56689,8 +58137,8 @@
     },
     {
       "band": "70-79",
-      "n": 334,
-      "win_rate": 51.5
+      "n": 337,
+      "win_rate": 51.3
     },
     {
       "band": "80+",
