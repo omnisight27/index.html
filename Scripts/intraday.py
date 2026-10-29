@@ -13,6 +13,10 @@ try:
     import funding as funding_feed  # Feed #2: Binance funding rates (fail-open)
 except ImportError:  # engine must never die on a feed import
     funding_feed = None
+try:
+    import oi_flow  # Feed #3: open-interest flow (fail-open)
+except ImportError:
+    oi_flow = None
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'data')
 # Resolve relative to repo root
@@ -214,7 +218,8 @@ STRETCH_RSI_CAP = 70     # not overbought — no runner into an RSI ceiling
 STRETCH_VOL_MULT = 2.0   # runner sits one more vol-step past the base target
 
 def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
-                     funding_score=None, funding_ann_pct=None):
+                     funding_score=None, funding_ann_pct=None,
+                     oi_score=None, oi_chg_1h_pct=None):
     """LONG trade plan for an UP mover, using the same hourly-vol math as
     build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
     (1 + vol x 1.2)). Volatility comes from the markets payload's sparkline
@@ -232,9 +237,11 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
 
     Funding gate (Feed #2): when funding_score is passed and the longs are
     crowded past the suppression line, the runner is withheld — no riding
-    into a crowded-long ceiling. The plan records stretch_suppressed=True
-    with an explanatory stretch_note so the card can say why. Missing
-    funding data fails open (runner allowed; momentum gates still bind)."""
+    into a crowded-long ceiling. OI gate (Feed #3): when oi_score is passed
+    and open-interest flow is strongly adverse, the runner is withheld too.
+    The plan records stretch_suppressed=True with an explanatory
+    stretch_note so the card can say why. Missing feed data fails open
+    (runner allowed; momentum gates still bind)."""
     from datetime import timedelta
     if not price or not vol:
         return None
@@ -262,7 +269,11 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
         funding_ok = funding_feed.runner_allowed(funding_score)
     else:
         funding_ok = True  # feed unavailable — fail open
-    if momentum_ok and not_overbought and funding_ok:
+    if oi_flow is not None:
+        oi_ok = oi_flow.runner_ok(oi_score)
+    else:
+        oi_ok = True  # feed unavailable — fail open
+    if momentum_ok and not_overbought and funding_ok and oi_ok:
         stretch = entry * (1 + vol / 100 * STRETCH_VOL_MULT)
         _, stretch_r, _ = _round_plan(entry, stretch, stop)
         # Guard: the runner must sit strictly above the base target.
@@ -275,11 +286,19 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
                 bits.append(f"RSI {rsi:.0f}")
             plan['stretch_note'] = (", ".join(bits)
                                     + " — momentum supports a runner")
-    elif momentum_ok and not_overbought and not funding_ok:
-        # The tape wanted a runner but the longs are too crowded to ride.
-        ann = f"{funding_ann_pct:+.0f}%/yr" if funding_ann_pct is not None else "high"
+    elif momentum_ok and not_overbought and not (funding_ok and oi_ok):
+        # The tape wanted a runner but positioning says don't ride it.
+        blocks = []
+        if not funding_ok:
+            ann = (f"{funding_ann_pct:+.0f}%/yr"
+                   if funding_ann_pct is not None else "high")
+            blocks.append(f"crowded longs (funding {ann})")
+        if not oi_ok:
+            ox = (f"{oi_chg_1h_pct:+.0f}%/1h"
+                  if oi_chg_1h_pct is not None else "adverse")
+            blocks.append(f"adverse OI flow (OI {ox})")
         plan['stretch_suppressed'] = True
-        plan['stretch_note'] = (f"crowded longs (funding {ann})")
+        plan['stretch_note'] = "; ".join(blocks)
     return plan
 
 def build_accum_plan(price, vol, range_high=None):
@@ -1271,6 +1290,13 @@ def main():
             prior_history = (json.load(f) or {}).get('accum_history') or {}
     except Exception:
         pass
+    # Feed #3 cross-run memory: OI history rides in the feed too.
+    prior_oi_history = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_oi_history = (json.load(f) or {}).get('oi_history') or {}
+    except Exception:
+        pass
     # Same persistence trick for the 📒 Proof Book ledger (see proof block).
     prior_proof = []
     prior_cumulative = {}
@@ -1347,6 +1373,16 @@ def main():
                 {(c['symbol'] or '').upper() for c in scanned}, fetch_json)
         except Exception:
             fund_map = {}
+    # Feed #3: open-interest flow — what traders did in the last hour.
+    # OI rides free inside the Feed #2 call; history persists in the feed.
+    run_ts = datetime.now(timezone.utc).timestamp()
+    oi_hist = prior_oi_history
+    if oi_flow is not None:
+        try:
+            oi_hist = oi_flow.update_oi_history(prior_oi_history, fund_map,
+                                                run_ts)
+        except Exception:
+            oi_hist = prior_oi_history
     mkts = universe[:50]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -1491,15 +1527,26 @@ def main():
             return
         vol = vol_by_id.get(m.get('id')) or median_vol
         fentry = fund_map.get(m.get('asset')) or {}
+        oflow = None
+        if oi_flow is not None:
+            try:
+                oflow = oi_flow.flow_for(m.get('asset'), oi_hist,
+                                         m.get('chg_1h'), run_ts)
+            except Exception:
+                oflow = None
         m['plan'] = build_mover_plan(m.get('price') or 0, vol,
                                      chg_1h=m.get('chg_1h'),
                                      chg_24h=m.get('chg_24h'),
                                      rsi=rsi_by_id.get(m.get('id')),
                                      funding_score=fentry.get('score'),
-                                     funding_ann_pct=fentry.get('ann_pct'))
+                                     funding_ann_pct=fentry.get('ann_pct'),
+                                     oi_score=(oflow or {}).get('score'),
+                                     oi_chg_1h_pct=(oflow or {}).get('oi_chg_1h_pct'))
         if fentry:
             m['funding'] = {'ann_pct': fentry['ann_pct'],
                             'score': fentry['score']}
+        if oflow:
+            m['oi_flow'] = oflow
         if m['plan'] is None and with_note:
             m['plan_note'] = 'Plan unavailable — price feed hiccup.'
     for m in movers:
@@ -1645,6 +1692,7 @@ def main():
         'watch': watch,
         'accum': accum,
         'accum_history': new_history,
+        'oi_history': oi_hist,
         'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative},
         'coins_scanned': len(mkts),
     }

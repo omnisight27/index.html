@@ -223,6 +223,50 @@ def test_sparkline_rsi_too_short_is_none():
     assert intraday.sparkline_rsi(None) is None
 
 
+# --------------------------- Feed #3: OI-gated runner (2026-10-29)
+
+def test_runner_suppressed_on_adverse_oi_flow():
+    """Momentum + calm funding want a runner, but OI is piling in against
+    the move — withheld, with the reason named."""
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=58,
+                                     funding_score=0.0,
+                                     oi_score=-0.8, oi_chg_1h_pct=22.0)
+    assert 'stretch_target' not in plan
+    assert plan['stretch_suppressed'] is True
+    assert 'adverse OI flow' in plan['stretch_note']
+    assert '+22%/1h' in plan['stretch_note']
+    assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
+
+
+def test_runner_suppressed_names_both_blocks():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=58,
+                                     funding_score=-0.8,
+                                     funding_ann_pct=85.0,
+                                     oi_score=-0.8, oi_chg_1h_pct=22.0)
+    assert plan['stretch_suppressed'] is True
+    assert 'crowded longs' in plan['stretch_note']
+    assert 'adverse OI flow' in plan['stretch_note']
+
+
+def test_runner_healthy_oi_flow_allowed():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=58,
+                                     funding_score=0.0,
+                                     oi_score=0.76, oi_chg_1h_pct=15.0)
+    assert plan['stretch_target'] > plan['take_profit']
+    assert 'stretch_suppressed' not in plan
+
+
+def test_runner_missing_oi_fails_open():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=58,
+                                     funding_score=0.0,
+                                     oi_score=None, oi_chg_1h_pct=None)
+    assert plan['stretch_target'] > plan['take_profit']
+
+
 # --------------------------- Feed #2: funding-gated runner (2026-10-29)
 
 def test_runner_suppressed_on_crowded_longs():
