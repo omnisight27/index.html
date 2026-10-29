@@ -392,9 +392,10 @@
   document.getElementById('pf-list').addEventListener('change', function () { save(); renderAnalysis(); });
 
   document.getElementById('pf-list').addEventListener('click', function (e) {
-    if (e.target.dataset && e.target.dataset.del !== undefined) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-del]') : null;
+    if (btn) {
       readRows(true);
-      holdings.splice(parseInt(e.target.dataset.del, 10), 1);
+      holdings.splice(parseInt(btn.getAttribute('data-del'), 10), 1);
       save();
       render();
       renderAnalysis();
