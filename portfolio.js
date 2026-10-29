@@ -66,7 +66,7 @@
         (h.source === 'coinbase' ? ' <span class="asset-badge badge-crypto">⟳ Synced from Coinbase</span>' : '') +
         '<input type="hidden" data-f="source" value="' + esc(h.source || '') + '">' +
       '</div>' +
-      '<button class="btn-small" data-del="' + i + '">✕ Remove</button>';
+      '<button type="button" class="btn-small" data-del="' + i + '">✕ Remove</button>';
     return div;
   }
 
