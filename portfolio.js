@@ -410,6 +410,27 @@
     save();
   });
 
+  // One-tap cleanup: remove every row currently worth less than $1.
+  // Rows with no price yet are kept (never nuke something unpriced).
+  document.getElementById('pf-clear-dust').addEventListener('click', function () {
+    readRows(true);
+    var kept = [];
+    holdings.forEach(function (h) {
+      var sym = String(h.symbol || '').toUpperCase().trim();
+      var units = parseFloat(h.units) || 0;
+      if (!sym || units <= 0) { kept.push(h); return; }
+      var pf = null;
+      try { pf = priceFor(h); } catch (err) { pf = null; }
+      var value = pf ? units * pf.price : null;
+      if (value == null || value >= 1) kept.push(h);
+    });
+    holdings = kept;
+    save();
+    render();
+    renderAnalysis();
+    loadPrices().then(renderAnalysis);
+  });
+
   // ---------- Coinbase sync hook (used by coinbase-link.js) ----------
   // Merges backend-normalized positions [{symbol, units, price_usd, staked}]
   // into the on-device holdings: existing rows keep their avg cost, units are
