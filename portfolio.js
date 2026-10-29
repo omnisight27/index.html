@@ -410,6 +410,30 @@
     save();
   });
 
+  // Tap-to-sort: order holdings by current value. Tapping again flips direction.
+  var sortDesc = true;
+  function holdingValue(h) {
+    var sym = String(h.symbol || '').toUpperCase().trim();
+    if (!sym) return -1; // blank rows sink to the bottom
+    var units = parseFloat(h.units) || 0;
+    try {
+      var pf = priceFor(h);
+      return pf ? units * pf.price : 0;
+    } catch (err) { return 0; }
+  }
+  document.getElementById('pf-sort').addEventListener('click', function () {
+    readRows(true);
+    holdings.sort(function (a, b) {
+      var va = holdingValue(a), vb = holdingValue(b);
+      return sortDesc ? vb - va : va - vb;
+    });
+    sortDesc = !sortDesc;
+    document.getElementById('pf-sort').textContent = sortDesc ? 'Sort by value ↓' : 'Sort by value ↑';
+    render();   // rebuild the DOM from the sorted holdings FIRST —
+    save();     // save() re-reads the DOM, so it must run after render()
+    renderAnalysis();
+  });
+
   // One-tap cleanup: remove every row currently worth less than $1.
   // Rows with no price yet are kept (never nuke something unpriced).
   document.getElementById('pf-clear-dust').addEventListener('click', function () {
