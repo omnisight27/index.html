@@ -10,6 +10,8 @@
   .pf-chart-box { text-align: center; }
   .pf-chart-box h3 { color: var(--accent); margin: 0 0 10px; font-size: 17px; }
   .pf-chart-box canvas { max-width: 220px; width: 100%; height: auto; }
+  .pf-bars-box { width: 100%; }
+  .pf-bars-box canvas { max-width: 480px; }
   .pf-legend { margin-top: 10px; text-align: left; font-size: 13px; color: var(--text-light); }
   .pf-legend div { margin: 3px 0; white-space: nowrap; }
   .pf-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: middle; }
@@ -52,6 +54,10 @@
         <h3>What today's conditions suggest</h3>
         <canvas id="pf-pie-target" width="220" height="220"></canvas>
         <div class="pf-legend" id="pf-legend-target"></div>
+      </div>
+      <div class="pf-chart-box pf-bars-box">
+        <h3>Holdings by value</h3>
+        <canvas id="pf-bars"></canvas>
       </div>
     </div>
   </section>
