@@ -9,6 +9,11 @@ Horizon: 1-4 hours. Tighter stops than swing (0.8x hourly vol).
 import json, os, math, urllib.request, subprocess
 from datetime import datetime, timezone
 
+try:
+    import funding as funding_feed  # Feed #2: Binance funding rates (fail-open)
+except ImportError:  # engine must never die on a feed import
+    funding_feed = None
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'data')
 # Resolve relative to repo root
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -208,7 +213,8 @@ STRETCH_24H_PCT = 10     # already a genuine mover, not a twitch
 STRETCH_RSI_CAP = 70     # not overbought — no runner into an RSI ceiling
 STRETCH_VOL_MULT = 2.0   # runner sits one more vol-step past the base target
 
-def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None):
+def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
+                     funding_score=None, funding_ann_pct=None):
     """LONG trade plan for an UP mover, using the same hourly-vol math as
     build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
     (1 + vol x 1.2)). Volatility comes from the markets payload's sparkline
@@ -222,7 +228,13 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None):
     (hourly momentum >= STRETCH_1H_PCT, 24h >= STRETCH_24H_PCT, RSI below
     STRETCH_RSI_CAP — a missing RSI fails open, the momentum gates still
     bind), the plan also carries stretch_target = entry x (1 + vol x 2.0).
-    The base take_profit remains the graded target; the runner is bonus."""
+    The base take_profit remains the graded target; the runner is bonus.
+
+    Funding gate (Feed #2): when funding_score is passed and the longs are
+    crowded past the suppression line, the runner is withheld — no riding
+    into a crowded-long ceiling. The plan records stretch_suppressed=True
+    with an explanatory stretch_note so the card can say why. Missing
+    funding data fails open (runner allowed; momentum gates still bind)."""
     from datetime import timedelta
     if not price or not vol:
         return None
@@ -246,7 +258,11 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None):
     momentum_ok = (chg_1h is not None and chg_1h >= STRETCH_1H_PCT
                    and chg_24h is not None and chg_24h >= STRETCH_24H_PCT)
     not_overbought = rsi is None or rsi < STRETCH_RSI_CAP
-    if momentum_ok and not_overbought:
+    if funding_feed is not None:
+        funding_ok = funding_feed.runner_allowed(funding_score)
+    else:
+        funding_ok = True  # feed unavailable — fail open
+    if momentum_ok and not_overbought and funding_ok:
         stretch = entry * (1 + vol / 100 * STRETCH_VOL_MULT)
         _, stretch_r, _ = _round_plan(entry, stretch, stop)
         # Guard: the runner must sit strictly above the base target.
@@ -259,6 +275,11 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None):
                 bits.append(f"RSI {rsi:.0f}")
             plan['stretch_note'] = (", ".join(bits)
                                     + " — momentum supports a runner")
+    elif momentum_ok and not_overbought and not funding_ok:
+        # The tape wanted a runner but the longs are too crowded to ride.
+        ann = f"{funding_ann_pct:+.0f}%/yr" if funding_ann_pct is not None else "high"
+        plan['stretch_suppressed'] = True
+        plan['stretch_note'] = (f"crowded longs (funding {ann})")
     return plan
 
 def build_accum_plan(price, vol, range_high=None):
@@ -1317,6 +1338,15 @@ def main():
         r = sparkline_rsi((c.get('sparkline_in_7d') or {}).get('price'))
         if r is not None:
             rsi_by_id[c.get('id')] = r
+    # Feed #2: Binance funding rates — crowded-long detection. One bulk
+    # public call; any failure yields {} and the engine runs unchanged.
+    fund_map = {}
+    if funding_feed is not None:
+        try:
+            fund_map = funding_feed.funding_by_asset(
+                {(c['symbol'] or '').upper() for c in scanned}, fetch_json)
+        except Exception:
+            fund_map = {}
     mkts = universe[:50]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -1460,10 +1490,16 @@ def main():
                 m['plan_note'] = 'Falling mover — no buy plan (long-only). Watch for reversal.'
             return
         vol = vol_by_id.get(m.get('id')) or median_vol
+        fentry = fund_map.get(m.get('asset')) or {}
         m['plan'] = build_mover_plan(m.get('price') or 0, vol,
                                      chg_1h=m.get('chg_1h'),
                                      chg_24h=m.get('chg_24h'),
-                                     rsi=rsi_by_id.get(m.get('id')))
+                                     rsi=rsi_by_id.get(m.get('id')),
+                                     funding_score=fentry.get('score'),
+                                     funding_ann_pct=fentry.get('ann_pct'))
+        if fentry:
+            m['funding'] = {'ann_pct': fentry['ann_pct'],
+                            'score': fentry['score']}
         if m['plan'] is None and with_note:
             m['plan_note'] = 'Plan unavailable — price feed hiccup.'
     for m in movers:
