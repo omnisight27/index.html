@@ -163,6 +163,26 @@ def sparkline_vol(prices, points=48):
     vol = (sum(r * r for r in rets) / len(rets)) ** 0.5
     return max(vol, 0.3)
 
+def sparkline_rsi(prices, period=14):
+    """Hourly RSI(14) from a CoinGecko sparkline price series (168 hourly
+    points in sparkline_in_7d). Same Wilder's RSI math as hourly_features.
+    Returns None when the series is too short to trust (needs period + 1
+    closes)."""
+    if not prices:
+        return None
+    closes = [p for p in prices[-(period + 1):] if p]
+    if len(closes) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        d = closes[i] - closes[i - 1]
+        gains.append(max(d, 0))
+        losses.append(max(-d, 0))
+    avg_g = sum(gains) / period
+    avg_l = sum(losses) / period
+    rsi = 100 - 100 / (1 + avg_g / avg_l) if avg_l else 50
+    return rsi
+
 def sparkline_vol_map(universe):
     """{coin_id: hourly vol %} from each coin's sparkline embedded in the
     markets payload, plus the universe median — the fallback for coins
@@ -177,7 +197,18 @@ def sparkline_vol_map(universe):
     median = vols[len(vols) // 2] if vols else None
     return vol_by_id, median
 
-def build_mover_plan(price, vol):
+# --- Runner / stretch target (Nic 2026-10-29: HYPE printed its +1.6% target
+# then ran to +6% — "a little quick on the sell"). When hourly momentum is
+# strong and the coin is NOT overbought, the plan carries a second, farther
+# target: sell half at the base target, ride the rest to the runner. The base
+# target stays the graded one (Proof Book scores against take_profit); the
+# runner is a bonus line, shown only when the tape supports it.
+STRETCH_1H_PCT = 1.5    # hourly momentum strong enough to support a runner
+STRETCH_24H_PCT = 10     # already a genuine mover, not a twitch
+STRETCH_RSI_CAP = 70     # not overbought — no runner into an RSI ceiling
+STRETCH_VOL_MULT = 2.0   # runner sits one more vol-step past the base target
+
+def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None):
     """LONG trade plan for an UP mover, using the same hourly-vol math as
     build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
     (1 + vol x 1.2)). Volatility comes from the markets payload's sparkline
@@ -185,7 +216,13 @@ def build_mover_plan(price, vol):
     never a per-coin chart fetch: CoinGecko's free tier throttles those,
     and on 2026-10-20 every UP mover plan silently died that way. Returns
     None when no volatility is available from anywhere, so the caller can
-    show the honest hiccup note instead of a fabricated plan."""
+    show the honest hiccup note instead of a fabricated plan.
+
+    Runner: when chg_1h/chg_24h/rsi are passed and the stretch gate holds
+    (hourly momentum >= STRETCH_1H_PCT, 24h >= STRETCH_24H_PCT, RSI below
+    STRETCH_RSI_CAP — a missing RSI fails open, the momentum gates still
+    bind), the plan also carries stretch_target = entry x (1 + vol x 2.0).
+    The base take_profit remains the graded target; the runner is bonus."""
     from datetime import timedelta
     if not price or not vol:
         return None
@@ -196,7 +233,7 @@ def build_mover_plan(price, vol):
     # Adaptive precision (round_price, as in the swing engine) so sub-cent
     # plans keep entry < target / entry > stop visibly distinct.
     entry_r, target_r, stop_r = _round_plan(entry, target, stop)
-    return {
+    plan = {
         'entry': entry_r,
         'take_profit': target_r,
         'stop_loss': stop_r,
@@ -205,6 +242,24 @@ def build_mover_plan(price, vol):
         'expected_return_pct': round(abs(target - entry) / entry * 100, 2),
         'max_loss_pct': round(abs(entry - stop) / entry * 100, 2),
     }
+    # Runner: only when the tape supports reaching higher.
+    momentum_ok = (chg_1h is not None and chg_1h >= STRETCH_1H_PCT
+                   and chg_24h is not None and chg_24h >= STRETCH_24H_PCT)
+    not_overbought = rsi is None or rsi < STRETCH_RSI_CAP
+    if momentum_ok and not_overbought:
+        stretch = entry * (1 + vol / 100 * STRETCH_VOL_MULT)
+        _, stretch_r, _ = _round_plan(entry, stretch, stop)
+        # Guard: the runner must sit strictly above the base target.
+        if stretch_r > target_r:
+            plan['stretch_target'] = stretch_r
+            plan['stretch_return_pct'] = round(
+                abs(stretch - entry) / entry * 100, 2)
+            bits = [f"+{chg_1h:.1f}% last hour"]
+            if rsi is not None:
+                bits.append(f"RSI {rsi:.0f}")
+            plan['stretch_note'] = (", ".join(bits)
+                                    + " — momentum supports a runner")
+    return plan
 
 def build_accum_plan(price, vol, range_high=None):
     """Trigger plan for a setting-up (accumulation) entry — the levels a
@@ -1254,6 +1309,14 @@ def main():
     # this map (median fallback included); per-coin chart fetches are NOT
     # used for plans (free-tier throttling killed them, 2026-10-20).
     vol_by_id, median_vol = sparkline_vol_map(universe)
+    # RSI per coin from the same sparkline series — feeds the runner/stretch
+    # gate in build_mover_plan (missing/short series -> None -> gate fails
+    # open on RSI, momentum gates still bind).
+    rsi_by_id = {}
+    for c in universe:
+        r = sparkline_rsi((c.get('sparkline_in_7d') or {}).get('price'))
+        if r is not None:
+            rsi_by_id[c.get('id')] = r
     mkts = universe[:50]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -1397,7 +1460,10 @@ def main():
                 m['plan_note'] = 'Falling mover — no buy plan (long-only). Watch for reversal.'
             return
         vol = vol_by_id.get(m.get('id')) or median_vol
-        m['plan'] = build_mover_plan(m.get('price') or 0, vol)
+        m['plan'] = build_mover_plan(m.get('price') or 0, vol,
+                                     chg_1h=m.get('chg_1h'),
+                                     chg_24h=m.get('chg_24h'),
+                                     rsi=rsi_by_id.get(m.get('id')))
         if m['plan'] is None and with_note:
             m['plan_note'] = 'Plan unavailable — price feed hiccup.'
     for m in movers:

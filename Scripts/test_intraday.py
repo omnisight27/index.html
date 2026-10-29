@@ -155,6 +155,74 @@ def test_mover_plan_subcent_rounding():
     assert plan['stop_loss'] > 0
 
 
+# --------------------------- runner / stretch target (Nic 2026-10-29:
+# HYPE printed its +1.6% target then ran to +6% — "a little quick on the sell")
+
+def test_stretch_target_appears_on_strong_momentum():
+    """HYPE 2026-10-29 shape: +1.84% last hour, +13.6% 24h, RSI cool — the
+    plan should carry a runner strictly above the base target."""
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=58)
+    assert plan['stretch_target'] > plan['take_profit'] > plan['entry'] > plan['stop_loss']
+    assert plan['stretch_return_pct'] == round(1.34 * 2.0, 2)
+    assert 'momentum supports a runner' in plan['stretch_note']
+
+
+def test_stretch_absent_on_weak_hour():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=0.4,
+                                     chg_24h=13.62, rsi=58)
+    assert 'stretch_target' not in plan
+
+
+def test_stretch_absent_when_overbought():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=2.5,
+                                     chg_24h=15.0, rsi=76)
+    assert 'stretch_target' not in plan
+
+
+def test_stretch_absent_on_small_day():
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=2.5,
+                                     chg_24h=6.0, rsi=58)
+    assert 'stretch_target' not in plan
+
+
+def test_stretch_missing_rsi_fails_open():
+    """No RSI (short sparkline) — the momentum gates still bind, so a
+    runner is allowed; nothing is gated on data we don't have."""
+    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+                                     chg_24h=13.62, rsi=None)
+    assert plan['stretch_target'] > plan['take_profit']
+
+
+def test_stretch_backward_compatible_without_momentum():
+    """Old two-arg call (all existing callers/tests) never gains a runner;
+    the base plan math is untouched."""
+    plan = intraday.build_mover_plan(90.82, 1.34)
+    assert 'stretch_target' not in plan
+    assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
+
+
+def _series_from_rets(start, rets):
+    p, out = start, [start]
+    for r in rets:
+        p = p * (1 + r / 100)
+        out.append(p)
+    return out
+
+
+def test_sparkline_rsi_direction():
+    up = _series_from_rets(100.0, [2.0] * 10 + [-1.0] * 4)
+    down = _series_from_rets(100.0, [-2.0] * 10 + [1.0] * 4)
+    assert intraday.sparkline_rsi(up) > 70
+    assert intraday.sparkline_rsi(down) < 30
+
+
+def test_sparkline_rsi_too_short_is_none():
+    assert intraday.sparkline_rsi([100.0] * 5) is None
+    assert intraday.sparkline_rsi([]) is None
+    assert intraday.sparkline_rsi(None) is None
+
+
 # --------------------------- (b) missing sparkline -> universe median fallback
 
 def test_missing_sparkline_falls_back_to_median():
