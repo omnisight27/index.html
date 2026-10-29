@@ -35,6 +35,11 @@ class CoinbaseError(RuntimeError):
 
 def load_ec_private_key(pem: str):
     """Parse a CDP private key PEM; must be an EC key. Raises ValueError."""
+    # Tolerate pastes copied from a code sample where newlines are escaped
+    # (literal backslash-n). A valid PEM never contains a backslash, so this
+    # replacement is unambiguous and a no-op for correctly pasted keys.
+    if "\\n" in pem:
+        pem = pem.replace("\\n", "\n")
     try:
         key = load_pem_private_key(pem.encode(), password=None)
     except Exception as e:

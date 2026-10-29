@@ -114,12 +114,15 @@
       var secretEl = document.getElementById('cb-key-secret');
       var keyName = nameEl.value.trim();
       var secret = secretEl.value.trim();
-      // Clear the form immediately — the key should not sit on screen or in the DOM.
-      nameEl.value = ''; secretEl.value = '';
       if (!keyName || !secret) { status.textContent = 'Paste both the key name and the private key.'; return; }
       status.textContent = 'Linking…';
       api('POST', '/link/coinbase', { key_name: keyName, private_key: secret })
-        .then(function () { render(); })
+        .then(function () {
+          // Clear the form only after a successful link — the key should not
+          // sit on screen or in the DOM longer than needed.
+          nameEl.value = ''; secretEl.value = '';
+          render();
+        })
         .catch(function (e) { status.textContent = 'Link failed: ' + e.message; });
     });
   }
