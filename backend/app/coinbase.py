@@ -154,7 +154,10 @@ class CoinbaseClient:
             price = self.price_usd(symbol)
             row["price_usd"] = price
             row["value_usd"] = round(row["units"] * price, 2) if price else None
-            # Drop dust: positions worth less than $1 are noise on a portfolio page.
+            # Drop dust: zero-unit positions, or positions worth less than $1.
+            # (Zero-unit rows with no price slip past the value check, so test units too.)
+            if row["units"] == 0:
+                continue
             if row["value_usd"] is not None and row["value_usd"] < 1.0:
                 continue
             row["units"] = round(row["units"], 10)
