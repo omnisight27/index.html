@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Land — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .land-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+  .land-price { font-size:24px; font-weight:800; color:var(--accent); }
+  .land-meta { font-size:13px; color:var(--text-light); margin:4px 0; }
+  .land-why { font-size:13px; margin:8px 0; }
+  .deal-tag { display:inline-block; font-size:11px; font-weight:700; background:var(--surface); border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:2px 8px; margin-right:6px; }
+</style>
+</head>
+<body>
+  <div id="ticker-tape" class="ticker-tape"></div>
+  <div id="picks-tape" class="ticker-tape picks-tape"></div>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="grants.html">Grants</a>
+      <a href="economy.html">Economy</a>
+      <a href="land.html" class="active">Land</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<div id="login-wall" class="card container" hidden style="margin-top:24px">
+  <h2>🔒 Land buys live behind the login</h2>
+  <p class="hint">Log in to see land across the country that could fit a family buy.</p>
+  <p><button id="wall-login" class="btn primary" type="button">Log in</button></p>
+</div>
+
+<main class="container" id="walled-content" hidden>
+  <h1>Land Buys</h1>
+  <p class="subtitle">Land across the country under $250K that could fit a family buy — great deals only: below comps, price cuts, seller financing, low $/acre. Research only — sellers are never contacted.</p>
+  <p class="hint">The standing lens: seller financing first (most actionable), then price signal. Raw land with no financing path only makes the cut when the price is exceptional. Down-payment reality: expect 25–50% down on raw land.</p>
+  <div class="land-grid" id="land-grid"><p class="hint">Loading listings…</p></div>
+  <p class="live-stamp" id="land-stamp"></p>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice. Listings are research snapshots, not offers — verify everything with the listing agent.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="login-wall.js"></script>
+<script src="land-data.js"></script>
+<script src="land.js"></script>
+<script src="ticker-tape.js"></script>
+</body>
+</html>

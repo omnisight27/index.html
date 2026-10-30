@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grants — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .tier-hot { border-left: 4px solid #e5484d; }
+  .tier-warm { border-left: 4px solid #f5a524; }
+  .tier-cool { border-left: 4px solid #3e9bff; }
+  .tier-cold { border-left: 4px solid #8a8f98; }
+  .tier-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700; margin-right:8px; }
+  .tier-HOT .tier-badge, .tier-badge.hot { background:#e5484d; color:#fff; }
+  .tier-WARM .tier-badge, .tier-badge.warm { background:#f5a524; color:#111; }
+  .tier-COOL .tier-badge, .tier-badge.cool { background:#3e9bff; color:#fff; }
+  .tier-COLD .tier-badge, .tier-badge.cold { background:#8a8f98; color:#fff; }
+  .lvl-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; background:var(--surface); border:1px solid var(--border); color:var(--text-light); margin-right:6px; }
+  .grant-meta { font-size:13px; color:var(--text-light); margin:6px 0; }
+  .grant-meta strong { color:var(--text); }
+  .days-left { font-weight:700; }
+  .days-urgent { color:#e5484d; }
+  .unlock-box { border:1px dashed var(--accent); border-radius:8px; padding:12px 16px; margin:16px 0; }
+  .search-row { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0; }
+  .search-row select, .search-row input { padding:9px 10px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
+</style>
+</head>
+<body>
+  <div id="ticker-tape" class="ticker-tape"></div>
+  <div id="picks-tape" class="ticker-tape picks-tape"></div>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="grants.html" class="active">Grants</a>
+      <a href="economy.html">Economy</a>
+      <a href="land.html">Land</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<div id="login-wall" class="card container" hidden style="margin-top:24px">
+  <h2>🔒 Grants lives behind the login</h2>
+  <p class="hint">Log in to open the NicNacs grants pipeline and the grant search tool.</p>
+  <p><button id="wall-login" class="btn primary" type="button">Log in</button></p>
+</div>
+
+<main class="container" id="walled-content" hidden>
+  <h1>Grants</h1>
+  <p class="subtitle">Money on the table — for NicNacs and for anyone. Grants sit alongside Contract Intel: pull from all angles.</p>
+
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" id="tab-nicnacs" role="tab" type="button">NicNacs Grants</button>
+    <button class="tab-btn" id="tab-search" role="tab" type="button">Grant Search</button>
+  </div>
+
+  <section id="pane-nicnacs">
+    <div class="unlock-box">
+      <strong>🔑 The one thing that unlocks everything:</strong>
+      the IRS 501(c)(3) determination letter. Nearly every foundation requires the actual letter — "application pending" doesn't count. Filed Oct 8, 2026. Checkpoint: <strong>Oct 30, 2026</strong>.
+    </div>
+    <p class="hint">Tiers run HOT → COLD. <strong>HOT</strong> = apply now (best fit, deadline approaching). <strong>WARM</strong> = strong fit, get it ready. <strong>COOL</strong> = watchlist. <strong>COLD</strong> = weak fit or not eligible yet. Sorted by deadline inside each tier.</p>
+    <div id="grants-tiers"><p class="hint">Loading the pipeline…</p></div>
+    <p class="live-stamp" id="grants-stamp"></p>
+  </section>
+
+  <section id="pane-search" hidden>
+    <div class="card">
+      <h2>🔎 Find grants for your business</h2>
+      <p class="hint">Tell us what you're building and where — we'll match it against the grant database. Nothing you type leaves this browser.</p>
+      <div class="search-row">
+        <select id="gs-cat" aria-label="Business type"></select>
+        <select id="gs-state" aria-label="State"></select>
+        <select id="gs-entity" aria-label="Entity type">
+          <option value="nonprofit">Nonprofit</option>
+          <option value="forprofit">For-profit</option>
+          <option value="either">Either / not sure yet</option>
+        </select>
+        <button class="btn primary" id="gs-go" type="button">Search grants</button>
+      </div>
+      <p class="hint" id="gs-status">Pick a business type to start.</p>
+      <div id="gs-results"></div>
+    </div>
+  </section>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice. Grant data is research, not a guarantee of eligibility — always confirm with the funder.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="login-wall.js"></script>
+<script src="grants-data.js"></script>
+<script src="grants.js"></script>
+<script src="ticker-tape.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economy — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .econ-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+  .econ-val { font-size:32px; font-weight:800; margin:4px 0; }
+  .econ-dir { font-size:14px; font-weight:700; }
+  .up { color:#e5484d; } .down { color:#46a758; } .flat { color:#8a8f98; }
+  .econ-toggle { background:none; border:none; color:var(--accent); cursor:pointer; font-size:14px; padding:6px 0; font-weight:600; }
+  .econ-toggle:hover { text-decoration:underline; }
+  .econ-more { margin-top:8px; border-top:1px solid var(--border); padding-top:8px; }
+  .econ-more h4 { margin:10px 0 4px; font-size:14px; color:var(--accent); }
+  .econ-more p { font-size:13px; color:var(--text-light); margin:4px 0; }
+  .econ-more ul { margin:4px 0; padding-left:18px; font-size:13px; }
+  .turning-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; }
+  .dot-calm { background:#46a758; } .dot-watch { background:#f5a524; } .dot-alert { background:#e5484d; }
+  .stamp { font-size:11px; color:var(--text-muted); }
+</style>
+</head>
+<body>
+  <div id="ticker-tape" class="ticker-tape"></div>
+  <div id="picks-tape" class="ticker-tape picks-tape"></div>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="grants.html">Grants</a>
+      <a href="economy.html" class="active">Economy</a>
+      <a href="land.html">Land</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<div id="login-wall" class="card container" hidden style="margin-top:24px">
+  <h2>🔒 The Economy page lives behind the login</h2>
+  <p class="hint">Log in to see the live indicators, the turning-triggers lens, and what each one means for you.</p>
+  <p><button id="wall-login" class="btn primary" type="button">Log in</button></p>
+</div>
+
+<main class="container" id="walled-content" hidden>
+  <h1>The Economy, in Plain English</h1>
+  <p class="subtitle">The numbers that move your money — what each one is, what it means for you, and <strong>why it's moving right now</strong>. Tap any card for the quick read; links go deeper.</p>
+
+  <section class="card">
+    <h2>🔭 Turning Triggers — Is the Economy Shifting?</h2>
+    <div id="turning-lens"><p class="hint">Reading the signals…</p></div>
+    <p class="hint" id="regime-text"></p>
+    <p class="stamp" id="regime-date"></p>
+  </section>
+
+  <h2>Live Indicators</h2>
+  <p class="hint" id="econ-status">Pulling the latest numbers…</p>
+  <div class="econ-grid" id="econ-grid"></div>
+  <p class="stamp" id="econ-stamp"></p>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice. Data: FRED (St. Louis Fed), Freddie Mac, BLS.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="login-wall.js"></script>
+<script src="economy-data.js"></script>
+<script src="economy.js"></script>
+<script src="ticker-tape.js"></script>
+</body>
+</html>
