@@ -1383,7 +1383,7 @@ def main():
                                                 run_ts)
         except Exception:
             oi_hist = prior_oi_history
-    mkts = universe[:50]
+    mkts = universe[:200]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
     mkt_by_sym = {}
