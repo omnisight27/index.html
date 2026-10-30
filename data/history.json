@@ -60995,7 +60995,7 @@
     },
     {
       "date": "2026-10-30T11:53:03.223266+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "KNTQ",
@@ -61063,7 +61063,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 52,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.518556,
+          "return_pct": -11.91,
+          "win": false,
+          "abs_error": 57.23
         },
         {
           "asset": "HASH",
@@ -61131,7 +61135,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 51,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.00743595,
+          "return_pct": 0.09,
+          "win": true,
+          "abs_error": 28.5
         },
         {
           "asset": "CAP",
@@ -61201,7 +61209,11 @@
           },
           "position_pct": 11.5,
           "regime": "RISK_OFF",
-          "conf_raw": 47
+          "conf_raw": 47,
+          "exit": 0.080026,
+          "return_pct": 0.85,
+          "win": true,
+          "abs_error": 11.96
         },
         {
           "asset": "HYPE",
@@ -61272,7 +61284,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 90.94,
+          "return_pct": -1.38,
+          "win": false,
+          "abs_error": 11.36
         },
         {
           "asset": "PEPE",
@@ -61343,7 +61359,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 5.18e-06,
+          "return_pct": -0.77,
+          "win": false,
+          "abs_error": 12.9
         },
         {
           "asset": "RUNE",
@@ -61412,7 +61432,11 @@
           },
           "position_pct": 11.5,
           "regime": "RISK_OFF",
-          "conf_raw": 47
+          "conf_raw": 47,
+          "exit": 0.64045,
+          "return_pct": -1.64,
+          "win": false,
+          "abs_error": 16.03
         },
         {
           "asset": "LLY",
@@ -61474,7 +61498,11 @@
           "regime": "RISK_OFF",
           "insider_recent": 19,
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 1421.48,
+          "return_pct": 3.48,
+          "win": true,
+          "abs_error": 9.78
         },
         {
           "asset": "MA",
@@ -61536,7 +61564,11 @@
           "regime": "RISK_OFF",
           "insider_recent": 17,
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 639.78,
+          "return_pct": 0.64,
+          "win": true,
+          "abs_error": 7.68
         },
         {
           "asset": "HD",
@@ -61598,7 +61630,11 @@
           "regime": "RISK_OFF",
           "insider_recent": 12,
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 329.77,
+          "return_pct": 0.24,
+          "win": true,
+          "abs_error": 6.95
         },
         {
           "asset": "TRX",
@@ -61665,7 +61701,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 50,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.334789,
+          "return_pct": -1.7,
+          "win": false,
+          "abs_error": 7.26
         }
       ],
       "shorts": [
@@ -61735,7 +61775,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 56,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.300679,
+          "return_pct": 0.1,
+          "win": true,
+          "abs_error": 16.6
         },
         {
           "asset": "APEPE",
@@ -61803,7 +61847,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 56,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 1.2e-06,
+          "return_pct": 3.23,
+          "win": true,
+          "abs_error": 18.41
         },
         {
           "asset": "QNT",
@@ -61873,7 +61921,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 55,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 192.46,
+          "return_pct": 0.07,
+          "win": true,
+          "abs_error": 3.93
         },
         {
           "asset": "SN51",
@@ -61941,7 +61993,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 55,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 30.06,
+          "return_pct": -0.74,
+          "win": false,
+          "abs_error": 9.46
         },
         {
           "asset": "ZEC",
@@ -62010,7 +62066,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 55,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 1234.74,
+          "return_pct": 0.99,
+          "win": true,
+          "abs_error": 3.01
         },
         {
           "asset": "LEO",
@@ -62077,7 +62137,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 52,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 9.4,
+          "return_pct": 0.21,
+          "win": true,
+          "abs_error": 3.79
         },
         {
           "asset": "\u5e01\u5b89\u4eba\u751f",
@@ -62144,7 +62208,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 52,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.53209,
+          "return_pct": 0.38,
+          "win": true,
+          "abs_error": 3.62
         },
         {
           "asset": "STABLE",
@@ -62215,7 +62283,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 55,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.026392,
+          "return_pct": 0.3,
+          "win": true,
+          "abs_error": 7.25
         },
         {
           "asset": "ANVL",
@@ -62282,7 +62354,11 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 52,
-          "calib_band": "50-59"
+          "calib_band": "50-59",
+          "exit": 0.00180174,
+          "return_pct": 0.28,
+          "win": true,
+          "abs_error": 3.72
         },
         {
           "asset": "AWE",
@@ -62351,6 +62427,770 @@
           "position_pct": 11.5,
           "regime": "RISK_OFF",
           "conf_raw": 55,
+          "calib_band": "50-59",
+          "exit": 0.06965,
+          "return_pct": -1.6,
+          "win": false,
+          "abs_error": 5.6
+        }
+      ],
+      "fear_greed": 30,
+      "regime": "RISK_OFF"
+    },
+    {
+      "date": "2026-10-30T17:29:05.633039+00:00",
+      "scored": false,
+      "longs": [
+        {
+          "asset": "HASH",
+          "price": 0.00743595,
+          "score": 0.8,
+          "confidence": 42,
+          "reason": "HASH +14.8% (24h), +16.0% (7d) @ $0.00743595. Ensemble score +0.8 (w\u00b7x + geo -0.00 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "hash-2",
+          "name": "Provenance Blockchain",
+          "info_url": "https://www.coingecko.com/en/coins/hash-2",
+          "tradable": [],
+          "tf_align": "5/5 timeframes agree",
+          "tf_vector": [
+            0.359,
+            14.825,
+            16.015,
+            9.63,
+            15.323
+          ],
+          "features": [
+            22.238,
+            -5.93,
+            10.0,
+            -0.4,
+            -1.05,
+            1.483,
+            2.507,
+            0.988,
+            0.999,
+            1.0,
+            3.0,
+            1.0,
+            1.853,
+            1.997,
+            3.0,
+            2.471,
+            1.5,
+            2.139,
+            1.965,
+            2.965,
+            -0.927,
+            -3.0
+          ],
+          "geo_edge": -0.005,
+          "thesis": {
+            "direction": "LONG",
+            "bull_case": [
+              "strong 24h momentum (+14.8%)",
+              "trend alignment across timeframes"
+            ],
+            "bear_case": [
+              "no strong bearish factors"
+            ],
+            "stop_loss": 0.00633357,
+            "take_profit": 0.00964071,
+            "risk_reward": 0.22,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 29.65,
+            "max_loss_pct": 14.83
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 51,
+          "calib_band": "50-59"
+        }
+      ],
+      "shorts": [
+        {
+          "asset": "APEPE",
+          "price": 1.2e-06,
+          "score": -4.4,
+          "confidence": 45,
+          "reason": "APEPE -10.0% (24h), +1.4% (7d) @ $0.0000012. Ensemble score -4.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "ape-and-pepe",
+          "name": "Ape and Pepe",
+          "info_url": "https://www.coingecko.com/en/coins/ape-and-pepe",
+          "tradable": [],
+          "tf_align": "3/5 timeframes agree",
+          "tf_vector": [
+            -0.31,
+            -9.991,
+            1.365,
+            3.181,
+            -8.367
+          ],
+          "features": [
+            -6.994,
+            3.997,
+            10.0,
+            -0.4,
+            -1.05,
+            0.999,
+            -2.037,
+            -0.666,
+            -0.998,
+            -1.0,
+            -3.0,
+            -1.0,
+            -1.249,
+            -1.996,
+            -2.547,
+            -1.665,
+            -0.499,
+            1.273,
+            0.998,
+            -1.998,
+            0.624,
+            -3.0
+          ],
+          "geo_edge": -0.02,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-10.0%)",
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 1.32e-06,
+            "take_profit": 9.6e-07,
+            "risk_reward": 0.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 19.98,
+            "max_loss_pct": 9.99
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 57,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "STONK",
+          "price": 0.131157,
+          "score": -4.2,
+          "confidence": 44,
+          "reason": "STONK -11.5% (24h), +7.8% (7d) @ $0.131157. Ensemble score -4.2 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "stonk-3",
+          "name": "STONK",
+          "info_url": "https://www.coingecko.com/en/coins/stonk-3",
+          "tradable": [
+            "cryptocom"
+          ],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            1.032,
+            -11.458,
+            7.801,
+            12.511,
+            -50.371
+          ],
+          "features": [
+            -8.021,
+            4.583,
+            10.0,
+            -0.4,
+            -1.05,
+            1.146,
+            -2.515,
+            -0.764,
+            -0.998,
+            -1.0,
+            -3.0,
+            -1.0,
+            -1.432,
+            -1.997,
+            -3.0,
+            -1.91,
+            -0.5,
+            1.572,
+            1.292,
+            -2.292,
+            0.716,
+            -3.0
+          ],
+          "geo_edge": -0.019,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-11.5%)",
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.146185,
+            "take_profit": 0.101101,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 22.92,
+            "max_loss_pct": 11.46
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 56,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "ANVL",
+          "price": 0.00180174,
+          "score": -3.5,
+          "confidence": 42,
+          "reason": "ANVL -2.1% (24h), +5.3% (7d) @ $0.00180174. Ensemble score -3.5 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "anvil",
+          "name": "Anvil",
+          "info_url": "https://www.coingecko.com/en/coins/anvil",
+          "tradable": [],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            0.226,
+            -2.05,
+            5.313,
+            28.25,
+            141.121
+          ],
+          "features": [
+            -1.435,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.205,
+            -0.562,
+            -0.137,
+            -0.99,
+            -1.0,
+            -0.936,
+            -1.0,
+            -0.256,
+            -1.981,
+            -0.702,
+            -0.342,
+            0.295,
+            0.351,
+            -0.59,
+            -0.41,
+            0.0,
+            -0.677
+          ],
+          "geo_edge": -0.025,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.00183868,
+            "take_profit": 0.00172785,
+            "risk_reward": 0.01,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.1,
+            "max_loss_pct": 2.05
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 52,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "SN51",
+          "price": 30.06,
+          "score": -3.6,
+          "confidence": 44,
+          "reason": "SN51 -5.5% (24h), +0.1% (7d) @ $30.06. Ensemble score -3.6 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "celium",
+          "name": "lium",
+          "info_url": "https://www.coingecko.com/en/coins/celium",
+          "tradable": [],
+          "tf_align": "3/5 timeframes agree",
+          "tf_vector": [
+            -0.081,
+            -5.489,
+            0.1,
+            -1.202,
+            2.697
+          ],
+          "features": [
+            -3.842,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.549,
+            -1.101,
+            -0.366,
+            -0.996,
+            -1.0,
+            -1.834,
+            -1.0,
+            -0.686,
+            -1.993,
+            -1.376,
+            -0.915,
+            -0.049,
+            0.688,
+            0.098,
+            -1.098,
+            0.0,
+            -1.811
+          ],
+          "geo_edge": -0.021,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-5.5%)",
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 31.71,
+            "take_profit": 26.76,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 10.98,
+            "max_loss_pct": 5.49
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "GENIUS",
+          "price": 0.300679,
+          "score": -3.6,
+          "confidence": 44,
+          "reason": "GENIUS -4.9% (24h), +0.0% (7d) @ $0.300679. Ensemble score -3.6 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "genius-3",
+          "name": "Genius",
+          "info_url": "https://www.coingecko.com/en/coins/genius-3",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            0.32,
+            -4.86,
+            0.018,
+            0.433,
+            -6.841
+          ],
+          "features": [
+            -3.402,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.486,
+            -0.973,
+            -0.324,
+            -0.996,
+            -1.0,
+            -1.621,
+            -1.0,
+            -0.608,
+            -1.992,
+            -1.216,
+            -0.81,
+            0.014,
+            0.608,
+            -0.028,
+            -0.972,
+            0.0,
+            -1.604
+          ],
+          "geo_edge": -0.022,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-4.9%)",
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.315293,
+            "take_profit": 0.271451,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 9.72,
+            "max_loss_pct": 4.86
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "FIGR_HELOC",
+          "price": 1.029,
+          "score": -3.5,
+          "confidence": 44,
+          "reason": "FIGR_HELOC -1.1% (24h), +0.2% (7d) @ $1.03. Ensemble score -3.5 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "figure-heloc",
+          "name": "Figure Heloc",
+          "info_url": "https://www.coingecko.com/en/coins/figure-heloc",
+          "tradable": [],
+          "tf_align": "4/5 timeframes agree",
+          "tf_vector": [
+            -0.025,
+            -1.113,
+            0.154,
+            -0.467,
+            -0.057
+          ],
+          "features": [
+            -0.779,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.111,
+            -0.227,
+            -0.074,
+            -0.982,
+            -1.0,
+            -0.378,
+            -1.0,
+            -0.139,
+            -1.964,
+            -0.284,
+            -0.186,
+            0.389,
+            0.142,
+            -0.777,
+            -0.223,
+            0.0,
+            -0.367
+          ],
+          "geo_edge": -0.024,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 1.0496,
+            "take_profit": 0.98784,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "LEO",
+          "price": 9.4,
+          "score": -3.5,
+          "confidence": 44,
+          "reason": "LEO -0.7% (24h), +4.1% (7d) @ $9.40. Ensemble score -3.5 (w\u00b7x + geo -0.03 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "leo-token",
+          "name": "LEO Token",
+          "info_url": "https://www.coingecko.com/en/coins/leo-token",
+          "tradable": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -0.004,
+            -0.657,
+            4.07,
+            4.143,
+            4.163
+          ],
+          "features": [
+            -0.46,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.066,
+            -0.248,
+            -0.044,
+            -0.97,
+            -1.0,
+            -0.413,
+            -1.0,
+            -0.082,
+            -1.94,
+            -0.31,
+            -0.11,
+            0.434,
+            0.155,
+            -0.869,
+            -0.131,
+            0.0,
+            -0.217
+          ],
+          "geo_edge": -0.025,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 9.588,
+            "take_profit": 9.024,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "BCH",
+          "price": 289.38,
+          "score": -3.5,
+          "confidence": 44,
+          "reason": "BCH -0.3% (24h), +1.4% (7d) @ $289.38. Ensemble score -3.5 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "bitcoin-cash",
+          "name": "Bitcoin Cash",
+          "info_url": "https://www.coingecko.com/en/coins/bitcoin-cash",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "3/5 timeframes agree",
+          "tf_vector": [
+            -0.57,
+            -0.323,
+            1.378,
+            4.69,
+            -5.413
+          ],
+          "features": [
+            -0.226,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.032,
+            -0.104,
+            -0.022,
+            -0.94,
+            -1.0,
+            -0.173,
+            -1.0,
+            -0.04,
+            -1.88,
+            -0.13,
+            -0.054,
+            0.468,
+            0.065,
+            -0.935,
+            -0.065,
+            0.0,
+            -0.106
+          ],
+          "geo_edge": -0.025,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 295.17,
+            "take_profit": 277.8,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "QNT",
+          "price": 192.46,
+          "score": -3.5,
+          "confidence": 44,
+          "reason": "QNT -1.1% (24h), +5.6% (7d) @ $192.46. Ensemble score -3.5 (w\u00b7x + geo -0.03 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "quant-network",
+          "name": "Quant",
+          "info_url": "https://www.coingecko.com/en/coins/quant-network",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "tf_align": "4/5 timeframes agree",
+          "tf_vector": [
+            -0.627,
+            -1.12,
+            5.601,
+            -4.523,
+            -35.576
+          ],
+          "features": [
+            -0.784,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.112,
+            -0.384,
+            -0.075,
+            -0.982,
+            -1.0,
+            -0.64,
+            -1.0,
+            -0.14,
+            -1.965,
+            -0.48,
+            -0.187,
+            0.388,
+            0.24,
+            -0.776,
+            -0.224,
+            0.0,
+            -0.369
+          ],
+          "geo_edge": -0.025,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 196.31,
+            "take_profit": 184.76,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
+          "calib_band": "50-59"
+        },
+        {
+          "asset": "OKB",
+          "price": 112.03,
+          "score": -3.5,
+          "confidence": 44,
+          "reason": "OKB -1.6% (24h), +0.2% (7d) @ $112.03. Ensemble score -3.5 (w\u00b7x + geo -0.02 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "okb",
+          "name": "OKB",
+          "info_url": "https://www.coingecko.com/en/coins/okb",
+          "tradable": [],
+          "tf_align": "3/5 timeframes agree",
+          "tf_vector": [
+            0.386,
+            -1.618,
+            0.235,
+            -4.503,
+            -7.512
+          ],
+          "features": [
+            -1.133,
+            0.0,
+            10.0,
+            -0.4,
+            -1.05,
+            0.162,
+            -0.33,
+            -0.108,
+            -0.988,
+            -1.0,
+            -0.551,
+            -1.0,
+            -0.202,
+            -1.975,
+            -0.413,
+            -0.27,
+            0.338,
+            0.206,
+            -0.676,
+            -0.324,
+            0.0,
+            -0.534
+          ],
+          "geo_edge": -0.024,
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "no strong bullish factors"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 114.27,
+            "take_profit": 107.55,
+            "risk_reward": 2.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-10-30",
+            "projected_exit": "2026-11-02",
+            "expected_return_pct": 4.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 10.9,
+          "regime": "RISK_OFF",
+          "conf_raw": 55,
           "calib_band": "50-59"
         }
       ],
@@ -62359,18 +63199,18 @@
     }
   ],
   "stats": {
-    "wins": 421,
-    "losses": 454,
-    "total": 875,
-    "win_rate": 48.1
+    "wins": 434,
+    "losses": 461,
+    "total": 895,
+    "win_rate": 48.5
   },
   "error": {
-    "sum_abs_err": 2707.52792867333,
-    "n": 317,
-    "within_5pct": 150,
+    "sum_abs_err": 2952.5370573566297,
+    "n": 337,
+    "within_5pct": 155,
     "metric": "return_pct_v1",
-    "mae": 8.54,
-    "within_5pct_rate": 47.3
+    "mae": 8.76,
+    "within_5pct_rate": 46.0
   },
   "calibration": [
     {
