@@ -10447,7 +10447,10 @@
           "exit": 226.57,
           "return_pct": -8750.39,
           "win": false,
-          "abs_error": 8747.89
+          "abs_error": 8747.89,
+          "excluded": true,
+          "excluded_reason": "Collision-fake grade: crypto CVX (Convex Finance) SHORT scored against Chevron (stock) price \u2014 entry $2.56, exit $226.57, -8750.39%%. Same symbol collision as the 9 fake CVX wins excluded 2026-10-25; the loss-side twin the earlier passes missed. Original values kept for audit.",
+          "excluded_at": "2026-10-30T10:10:24.851150+00:00"
         },
         {
           "asset": "ETHFI",
@@ -60917,8 +60920,8 @@
   ],
   "stats": {
     "wins": 413,
-    "losses": 444,
-    "total": 857,
+    "losses": 443,
+    "total": 856,
     "win_rate": 48.2
   },
   "error": {
@@ -61157,6 +61160,94 @@
             "win_rate": 58.2
           }
         ]
+      }
+    },
+    {
+      "date": "2026-10-30T10:10:24.852791+00:00",
+      "action": "removed 1 collision-fake grade from graded record",
+      "reason": "Symbol collision in remember(): crypto CVX (Convex Finance) SHORT was scored against Chevron (stock) prices, producing -8750.39%%. Loss-side twin of the 9 fake CVX wins excluded 2026-10-25 (same collision class Nic approved excluding on 2026-10-24 and 2026-10-28). The market-keyed pricing fix (commit 98669cf) prevents recurrence; excluded picks are skipped by scoring, calibration, weight training, geometry, and Kelly sizing.",
+      "picks_removed": 1,
+      "assets": [
+        "CVX"
+      ],
+      "runs": [
+        "2026-10-21T10:51:23.442078+00:00"
+      ],
+      "before": {
+        "stats": {
+          "wins": 413,
+          "losses": 444,
+          "total": 857,
+          "win_rate": 48.2
+        },
+        "calibration": [
+          {
+            "band": "50-59",
+            "n": 127,
+            "win_rate": 32.3
+          },
+          {
+            "band": "60-69",
+            "n": 80,
+            "win_rate": 42.5
+          },
+          {
+            "band": "70-79",
+            "n": 346,
+            "win_rate": 52.3
+          },
+          {
+            "band": "80+",
+            "n": 134,
+            "win_rate": 58.2
+          }
+        ],
+        "kelly_inputs": {
+          "n_wins": 408,
+          "n_losses": 449,
+          "avg_win": 4.28,
+          "avg_loss": 22.52,
+          "b": 0.19,
+          "kelly": 0.0
+        }
+      },
+      "after": {
+        "stats": {
+          "wins": 413,
+          "losses": 443,
+          "total": 856,
+          "win_rate": 48.2
+        },
+        "calibration": [
+          {
+            "band": "50-59",
+            "n": 127,
+            "win_rate": 32.3
+          },
+          {
+            "band": "60-69",
+            "n": 80,
+            "win_rate": 42.5
+          },
+          {
+            "band": "70-79",
+            "n": 346,
+            "win_rate": 52.3
+          },
+          {
+            "band": "80+",
+            "n": 134,
+            "win_rate": 58.2
+          }
+        ],
+        "kelly_inputs": {
+          "n_wins": 408,
+          "n_losses": 448,
+          "avg_win": 4.28,
+          "avg_loss": 3.04,
+          "b": 1.41,
+          "kelly": 0.115
+        }
       }
     }
   ]
