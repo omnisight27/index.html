@@ -221,8 +221,9 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
                      funding_score=None, funding_ann_pct=None,
                      oi_score=None, oi_chg_1h_pct=None):
     """LONG trade plan for an UP mover, using the same hourly-vol math as
-    build_intraday_thesis (stop = entry x (1 - vol x 0.8), target = entry x
-    (1 + vol x 1.2)). Volatility comes from the markets payload's sparkline
+    build_intraday_thesis (stop = entry x (1 - vol x 0.6), target = entry x
+    (1 + vol x 1.2) — 2:1 reward:risk; Nic 2026-10-30: 1.5:1 was too much
+    risk for the reward). Volatility comes from the markets payload's sparkline
     (sparkline_vol_map; the caller applies the universe-median fallback) —
     never a per-coin chart fetch: CoinGecko's free tier throttles those,
     and on 2026-10-20 every UP mover plan silently died that way. Returns
@@ -246,7 +247,7 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
     if not price or not vol:
         return None
     entry = price
-    stop = entry * (1 - vol / 100 * 0.8)
+    stop = entry * (1 - vol / 100 * 0.6)
     target = entry * (1 + vol / 100 * 1.2)
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
     # Adaptive precision (round_price, as in the swing engine) so sub-cent
@@ -306,7 +307,7 @@ def build_accum_plan(price, vol, range_high=None):
     resting limit buy needs BEFORE the move starts (Nic 2026-10-21: "I
     need to be before the jump up"). Same hourly-vol machinery as mover
     plans: target = trigger x (1 + vol x 1.2), stop = trigger x
-    (1 - vol x 0.8), exit +3h like mover plans.
+    (1 - vol x 0.6) — 2:1 reward:risk (Nic 2026-10-30), exit +3h like mover plans.
 
     Trigger: the recent range high (24h high) when it sits within 5%
     above spot — a genuine near-term breakout level — otherwise spot x
@@ -322,7 +323,7 @@ def build_accum_plan(price, vol, range_high=None):
     else:
         trigger = price * (1 + vol / 100 * 0.5)
     target = trigger * (1 + vol / 100 * 1.2)
-    stop = trigger * (1 - vol / 100 * 0.8)
+    stop = trigger * (1 - vol / 100 * 0.6)
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
     trigger_r, target_r, stop_r = _round_plan(trigger, target, stop)
     return {
@@ -712,7 +713,11 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
             chart = charts_by_sym.get(sym)
             if chart and opened:
                 opened_ms = opened.timestamp() * 1000
-                pts = [pr for ts, pr in chart if ts >= opened_ms]
+                # A trailed stop only guards prices AFTER the trail —
+                # pre-trail dips must not retro-trigger the new stop.
+                trail_ms = e.get('trail_ts_ms') or 0
+                pts = [pr for ts, pr in chart
+                       if ts >= max(opened_ms, trail_ms)]
             if pts:
                 # Walk in time order — first touch decides. Current price
                 # is the final observation.
@@ -766,9 +771,40 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
             elif age_days > 7:
                 drift_from = e.get('last_price') or entry
             if drift_from:
-                status = 'expired'
-                result = ((drift_from - entry) / entry * 100) if is_long \
-                    else ((entry - drift_from) / entry * 100)
+                # Nic 2026-10-30: ride the win — a green position at exit
+                # time is NOT force-sold. Trail the stop and extend the
+                # window instead of closing at market. Flat/red still exits.
+                px = cur or drift_from
+                green = (px > entry * 1.002) if is_long else (px < entry * 0.998)
+                if green:
+                    trails = e.get('trail_count') or 0
+                    if trails == 0:
+                        new_stop = entry  # breakeven on the first trail
+                    else:
+                        # Ratchet: lock half the open profit.
+                        new_stop = (entry + 0.5 * (px - entry)) if is_long \
+                            else (entry - 0.5 * (entry - px))
+                    e['stop_loss'] = new_stop
+                    if is_long:
+                        e['max_loss_pct'] = round((entry - new_stop) / entry * 100, 2)
+                    else:
+                        e['max_loss_pct'] = round((new_stop - entry) / entry * 100, 2)
+                    if e.get('stretch_target'):
+                        # Ride toward the stretch target now.
+                        e['take_profit'] = e['stretch_target']
+                        e['expected_return_pct'] = e.get(
+                            'stretch_return_pct', e['expected_return_pct'])
+                    e['exit_by'] = (now + timedelta(hours=24)).isoformat()
+                    e['trail_count'] = trails + 1
+                    e['trail_ts_ms'] = now.timestamp() * 1000
+                    e['obs_hi'] = e['obs_lo'] = None  # re-observe post-trail
+                    e['trail_note'] = (
+                        f"green at exit ({px}) — stop trailed to {new_stop}, "
+                        f"+24h window (trail #{trails + 1})")
+                else:
+                    status = 'expired'
+                    result = ((drift_from - entry) / entry * 100) if is_long \
+                        else ((entry - drift_from) / entry * 100)
         if status:
             e['status'] = status
             e['result_pct'] = round(result, 2)

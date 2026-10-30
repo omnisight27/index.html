@@ -1038,13 +1038,14 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
     # and it blows up the model-error MAE when the coin reverts (Q,
     # 2026-10-27: expected +545.86%, realized -66.83%, abs error 612.69
     # — the single biggest contributor to MAE rising 12.39 -> 18.68).
-    # 25% caps the expected return at 50% / max loss at 37.5%.
+    # 25% caps the expected return at 50% / max loss at 25%.
+    # (Nic 2026-10-30: 1.33:1 was too much risk for the reward — 2:1.)
     vol = min(max(abs(chg24), 2.0), 25.0)
     if direction == 'LONG':
-        stop = price * (1 - vol / 100 * 1.5)
+        stop = price * (1 - vol / 100 * 1.0)
         target = price * (1 + vol / 100 * 2.0)
     else:
-        stop = price * (1 + vol / 100 * 1.5)
+        stop = price * (1 + vol / 100 * 1.0)
         target = price * (1 - vol / 100 * 2.0)
     rr = abs(target - price) / max(abs(price - stop), 0.01)
     # Expected return % if target hits

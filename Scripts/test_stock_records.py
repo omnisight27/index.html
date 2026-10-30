@@ -41,7 +41,7 @@ def test_short_thesis_plan_is_not_inverted():
     assert t['take_profit'] < 233.21 < t['stop_loss'], (
         f"short plan must read cover < entry < stop, got "
         f"tp={t['take_profit']} entry=233.21 sl={t['stop_loss']}")
-    assert t['risk_reward'] == 1.33
+    assert t['risk_reward'] == 2.0
 
 
 def test_long_thesis_plan_direction_unchanged():

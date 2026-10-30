@@ -41,9 +41,9 @@ def test_thesis_caps_meme_spike_long():
                               'NEUTRAL', 51, -0.01, 'crypto')
     assert t['direction'] == 'LONG'
     assert t['expected_return_pct'] == 50.0, t
-    assert t['max_loss_pct'] == 37.5, t
+    assert t['max_loss_pct'] == 25.0, t
     assert t['take_profit'] == pytest.approx(0.205159 * 1.5, abs=1e-6), t
-    assert t['stop_loss'] == pytest.approx(0.205159 * 0.625, abs=1e-6), t
+    assert t['stop_loss'] == pytest.approx(0.205159 * 0.75, abs=1e-6), t
 
 
 def test_thesis_caps_meme_crash_short():
@@ -52,7 +52,7 @@ def test_thesis_caps_meme_crash_short():
     assert t['direction'] == 'SHORT'
     assert t['expected_return_pct'] == 50.0, t
     assert t['take_profit'] == pytest.approx(5.0), t
-    assert t['stop_loss'] == pytest.approx(13.75), t
+    assert t['stop_loss'] == pytest.approx(12.5), t
 
 
 def test_thesis_normal_move_unchanged():
@@ -61,8 +61,8 @@ def test_thesis_normal_move_unchanged():
                               'NEUTRAL', 51, 0.0, 'crypto')
     assert t['expected_return_pct'] == 14.2, t
     assert t['take_profit'] == pytest.approx(114.2), t
-    assert t['stop_loss'] == pytest.approx(89.35), t
-    assert t['max_loss_pct'] == 10.65, t
+    assert t['stop_loss'] == pytest.approx(92.9), t
+    assert t['max_loss_pct'] == 7.1, t
 
 
 # --- Intra-crypto symbol collision -----------------------------------------

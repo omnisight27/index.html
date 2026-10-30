@@ -143,8 +143,8 @@ def test_mover_plans_from_sparkline_no_network(monkeypatch):
                              'exit_by', 'horizon'}
         assert plan['entry'] == c['current_price']
         assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
-        # stop = vol x 0.8, target = vol x 1.2 (same ratios as the thesis)
-        assert plan['max_loss_pct'] == round(vol * 0.8, 2)
+        # stop = vol x 0.6, target = vol x 1.2 (2:1 reward:risk)
+        assert plan['max_loss_pct'] == round(vol * 0.6, 2)
         assert plan['expected_return_pct'] == round(vol * 1.2, 2)
 
 
@@ -315,7 +315,7 @@ def test_missing_sparkline_falls_back_to_median():
     vol = vol_by_id.get('no-spark') or median_vol
     plan = intraday.build_mover_plan(5.0, vol)
     assert plan is not None
-    assert plan['max_loss_pct'] == round(median_vol * 0.8, 2)
+    assert plan['max_loss_pct'] == round(median_vol * 0.6, 2)
     assert plan['expected_return_pct'] == round(median_vol * 1.2, 2)
 
 
@@ -405,9 +405,9 @@ def test_accum_plan_uses_range_high_within_5pct():
     assert plan['trigger_price'] == 5.30  # the breakout level itself
     assert plan['entry'] == plan['trigger_price']
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
-    # mover ratios off the trigger: 1.2x / 0.8x of 2% hourly vol
+    # mover ratios off the trigger: 1.2x / 0.6x of 2% hourly vol (2:1)
     assert plan['expected_return_pct'] == round(2.0 * 1.2, 2)
-    assert plan['max_loss_pct'] == round(2.0 * 0.8, 2)
+    assert plan['max_loss_pct'] == round(2.0 * 0.6, 2)
     assert plan['exit_by'].endswith('UTC')
 
 
@@ -999,3 +999,67 @@ def test_gate_stats_aggregation():
     # Pre-existing stats are untouched by the new block.
     st = intraday.proof_stats(recs)
     assert st['graded'] == 5 and st['wins'] == 2 and st['losses'] == 2
+
+
+# --- Ride the win (Nic 2026-10-30) ------------------------------------------
+
+def _open_plain(entry=100.0, tp=103.0, sl=98.0, exit_h=3.0, asset='RIDE'):
+    return {
+        'id': f'signal:{asset}:x', 'kind': 'signal', 'asset': asset,
+        'name': 'Ride Coin', 'direction': 'LONG', 'entry': entry,
+        'take_profit': tp, 'stop_loss': sl, 'status': 'open',
+        'expected_return_pct': 3.0, 'max_loss_pct': 2.0,
+        'ts_open': BASE.isoformat(),
+        'exit_by': (BASE + _dt.timedelta(hours=exit_h)).isoformat(),
+    }
+
+
+def test_green_at_exit_trails_instead_of_closing():
+    e = _open_plain()
+    rec = [e]
+    # Price green (+1.2%) past exit_by + grace — no touch of tp/sl.
+    charts = {'RIDE': chart_from(BASE, [(1, 100.5), (4, 101.0), (6, 101.2)])}
+    mkt = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'open'
+    assert e['stop_loss'] == 100.0  # breakeven trail
+    assert e['max_loss_pct'] == 0.0
+    assert e['trail_count'] == 1
+
+
+def test_red_at_exit_still_closes():
+    e = _open_plain()
+    rec = [e]
+    charts = {'RIDE': chart_from(BASE, [(1, 99.5), (4, 99.0), (6, 98.8)])}
+    mkt = {'RIDE': {'price': 98.8, 'high_24h': 100.0, 'low_24h': 98.5}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'expired'
+    assert e.get('trail_count') is None
+
+
+def test_trailed_stop_grades_breakeven():
+    e = _open_plain()
+    rec = [e]
+    charts = {'RIDE': chart_from(BASE, [(1, 100.5), (4, 101.0), (6, 101.2)])}
+    mkt = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'open' and e['trail_count'] == 1
+    # Falls back to the breakeven stop -> lost at 0, not at -2%.
+    charts2 = {'RIDE': chart_from(BASE, [(7, 100.8), (8, 100.0)])}
+    mkt2 = {'RIDE': {'price': 100.0, 'high_24h': 101.0, 'low_24h': 99.8}}
+    intraday.proof_grade(rec, mkt2, charts2, BASE + _dt.timedelta(hours=9))
+    assert e['status'] == 'lost'
+    assert e['result_pct'] == 0.0
+
+
+def test_trail_promotes_stretch_target():
+    e = _open_plain()
+    e['stretch_target'] = 106.0
+    e['stretch_return_pct'] = 6.0
+    rec = [e]
+    charts = {'RIDE': chart_from(BASE, [(1, 100.5), (4, 101.0), (6, 101.2)])}
+    mkt = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'open'
+    assert e['take_profit'] == 106.0
+    assert e['expected_return_pct'] == 6.0
