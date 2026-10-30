@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Freedom GPS by Long Solutions — Debt Payoff Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f7; --surface:#ffffff; --surface2:#eef2f2; --ink:#10202e; --muted:#5b6d7a; --line:#dce4e6;
+  --navy:#0f2a44; --navy2:#143656; --teal:#0e7c6b; --teal-dark:#0a5f52; --gold:#c9a227; --amber-bg:#fef3c7; --amber-ink:#92400e; --amber-line:#f59e0b;
+  --red-bg:#fef2f2; --red-ink:#991b1b; --green-bg:#ecfdf5; --green-ink:#065f46;
+  --radius:14px; --shadow:0 8px 30px rgba(15,42,68,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0c141c; --surface:#14222f; --surface2:#1a2c3d; --ink:#eef4f6; --muted:#9db0bd; --line:#263b4d; --navy:#0a1e33; --shadow:0 8px 30px rgba(0,0,0,.35); --amber-bg:#3a2e0e; --amber-ink:#fcd34d; --red-bg:#3a1717; --red-ink:#fca5a5; --green-bg:#0d2f26; --green-ink:#6ee7b7; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+a{color:var(--teal)}
+button,input,select{font:inherit}
+button{cursor:pointer;min-height:48px}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* Header / hero */
+.topbar{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:42px;height:42px;border-radius:10px;background:var(--teal);display:grid;place-items:center;flex:none}
+.mark svg{width:24px;height:24px}
+.brand-name{font-weight:800;letter-spacing:.02em;font-size:17px;line-height:1.1}
+.brand-sub{font-size:12px;opacity:.75;letter-spacing:.08em;text-transform:uppercase}
+.topbar-note{font-size:13px;opacity:.85}
+.hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 70%);color:#fff;padding:34px 20px 30px}
+.hero-inner{max-width:1120px;margin:0 auto}
+.hero h1{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(32px,6vw,52px);line-height:1.05;margin:0 0 12px;max-width:640px}
+.hero p{margin:0;max-width:620px;font-size:17px;color:#d7e3ec}
+.hero-points{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.hero-points span{border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600}
+
+/* Layout */
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 48px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:-6px 0 18px}
+@media(min-width:760px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.stat label{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.stat strong{display:block;font-size:26px;margin-top:4px;line-height:1.1}
+.stat small{color:var(--muted);font-size:13px}
+.grid{display:grid;gap:18px}
+@media(min-width:960px){.grid{grid-template-columns:1.55fr 1fr;align-items:start}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.card h2{margin:0 0 4px;font-size:21px}
+.card h3{margin:22px 0 8px;font-size:16px}
+.sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+.sticky{position:sticky;top:16px}
+
+/* Form */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font-size:13px;font-weight:700}
+.field input,.field select{min-height:48px;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}
+.field input:focus,.field select:focus{border-color:var(--teal)}
+.hint{font-size:12px;color:var(--muted);font-weight:400}
+.promo-box{grid-column:1/-1;border:1px dashed var(--line);border-radius:10px;padding:14px;background:var(--surface2)}
+.checkline{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;min-height:48px;cursor:pointer}
+.checkline input{width:22px;height:22px;accent-color:var(--teal)}
+.promo-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px}
+@media(max-width:560px){.promo-fields{grid-template-columns:1fr}}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:800;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--teal);color:#fff;width:100%}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.btn-quiet{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.btn-danger{background:transparent;color:#b91c1c;border:1px solid var(--line)}
+.form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.form-actions .btn-primary{flex:1}
+.err{display:none;background:var(--red-bg);color:var(--red-ink);border-radius:10px;padding:12px 14px;font-size:14px;font-weight:600;margin-top:12px}
+.err.show{display:block}
+
+/* Debt list */
+.debt{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--surface)}
+.debt-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.debt-name{font-weight:800;font-size:17px;margin:0}
+.debt-type{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.debt-bal{font-size:20px;font-weight:800;text-align:right;white-space:nowrap}
+.debt-meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font-size:14px;color:var(--muted)}
+.badge{display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;vertical-align:2px}
+.badge-promo{background:var(--amber-bg);color:var(--amber-ink);border:1px solid var(--amber-line)}
+.badge-mort{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.debt-actions{display:flex;gap:8px;margin-top:12px}
+.debt-actions button{flex:1;min-height:48px;border-radius:10px;font-weight:700}
+.empty{border:2px dashed var(--line);border-radius:12px;padding:28px 18px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+.list-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.list-actions button{flex:1;min-width:150px}
+
+/* Summary */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--surface2);border-radius:12px;padding:5px;margin:6px 0 14px}
+.seg button{border:0;background:transparent;border-radius:9px;font-weight:800;padding:10px 6px;min-height:48px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.extra-row{display:flex;gap:10px;align-items:end}
+.extra-row .field{flex:1}
+input[type=range]{width:100%;accent-color:var(--teal);min-height:40px}
+.verdict{border-radius:12px;padding:14px 16px;font-weight:600;font-size:15px;margin-top:16px}
+.verdict.ok{background:var(--green-bg);color:var(--green-ink)}
+.verdict.bad{background:var(--red-bg);color:var(--red-ink)}
+.verdict.idle{background:var(--surface2);color:var(--muted)}
+.order-list{list-style:none;margin:0;padding:0;counter-reset:ord}
+.order-list li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.order-list li:last-child{border-bottom:0}
+.ord-num{counter-increment:ord;flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:800;align-self:center}
+.ord-num::before{content:counter(ord)}
+.ord-body{flex:1;min-width:0}
+.ord-name{font-weight:700}
+.ord-why{font-size:13px;color:var(--muted)}
+.ord-date{font-size:13px;font-weight:700;text-align:right;white-space:nowrap}
+.cliff{border:1px solid var(--amber-line);background:var(--amber-bg);color:var(--amber-ink);border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:14px}
+.cliff strong{display:block;font-size:15px}
+.bar-row{margin-bottom:12px}
+.bar-row label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px}
+.bar-row label span{color:var(--muted);font-weight:600}
+.bar{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:99px;min-width:4px}
+.how{display:grid;gap:12px;margin-top:18px}
+@media(min-width:760px){.how{grid-template-columns:repeat(3,1fr)}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.step b{display:flex;align-items:center;gap:10px;font-size:16px;margin-bottom:6px}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:14px;flex:none}
+.step p{margin:0;color:var(--muted);font-size:14px}
+footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}
+footer .cta{background:var(--navy);color:#fff;border-radius:var(--radius);padding:22px;margin-bottom:18px}
+footer .cta h2{font-family:"DM Serif Display",serif;font-weight:400;margin:0 0 6px;font-size:24px;color:#fff}
+footer .cta p{margin:0;color:#cfdde8}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5" fill="#fff" stroke="none"/></svg></div>
+    <div><div class="brand-name">Freedom GPS</div><div class="brand-sub">by Long Solutions</div></div>
+  </div>
+  <div class="topbar-note">A clear route out of debt — at your pace, in your order.</div>
+</div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>Map your route out of debt.</h1>
+    <p>Add every card and loan you owe, choose how much extra you can put toward them each month, and Freedom GPS builds your payoff route — promo deadlines first, highest cost next, mortgage last on its own schedule.</p>
+    <div class="hero-points"><span>Promo-aware payoff order</span><span>Live debt-free date</span><span>Your numbers stay in this tab</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stats" aria-label="Your totals">
+    <div class="stat"><label>Total debt</label><strong id="stTotal">$0</strong><small id="stCount">No debts added yet</small></div>
+    <div class="stat"><label>Monthly route budget</label><strong id="stBudget">$0</strong><small>Minimums + extra payment</small></div>
+    <div class="stat"><label>Debt-free date</label><strong id="stDate">—</strong><small id="stMonths">Add a debt to see your route</small></div>
+    <div class="stat"><label>Interest on this route</label><strong id="stInterest">$0</strong><small id="stInterestNote">vs. minimums only, once calculated</small></div>
+  </section>
+
+  <div class="grid">
+    <div>
+      <section class="card" aria-labelledby="formHead">
+        <h2 id="formHead">Add a debt</h2>
+        <p class="sub">Cards, auto loans, personal loans, student loans, medical bills, and your mortgage — add them all. The route sorts itself.</p>
+        <form id="debtForm" novalidate>
+          <div class="fgrid">
+            <div class="field full"><label for="fName">Debt name</label><input id="fName" type="text" placeholder="e.g. Visa Card, Auto Loan, Mortgage" autocomplete="off"></div>
+            <div class="field"><label for="fType">Type</label>
+              <select id="fType">
+                <option value="credit">Credit card</option><option value="auto">Auto loan</option><option value="personal">Personal loan</option>
+                <option value="student">Student loan</option><option value="medical">Medical / other</option><option value="mortgage">Mortgage</option>
+              </select></div>
+            <div class="field"><label for="fBalance">Balance owed ($)</label><input id="fBalance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            <div class="field"><label for="fApr">Interest rate — APR (%)</label><input id="fApr" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 24.99"></div>
+            <div class="field"><label for="fMin">Minimum / monthly payment ($)</label><input id="fMin" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 125"><span class="hint">For a mortgage or car loan, use the regular monthly payment.</span></div>
+            <div class="promo-box">
+              <label class="checkline"><input type="checkbox" id="fHasPromo"> This debt has a promo rate (like 0% for a limited time)</label>
+              <div class="promo-fields" id="promoFields" hidden>
+                <div class="field"><label for="fPromoApr">Promo APR (%)</label><input id="fPromoApr" type="number" inputmode="decimal" min="0" step="0.01" value="0"></div>
+                <div class="field"><label for="fPromoEnd">Promo ends</label><input id="fPromoEnd" type="month"></div>
+                <div class="field"><label for="fGoTo">Rate after promo (%) <span class="hint">the “go-to” APR</span></label><input id="fGoTo" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 29.99"></div>
+              </div>
+            </div>
+          </div>
+          <div class="err" id="formErr" role="alert"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">+ Add this debt</button>
+            <button type="button" class="btn btn-quiet" id="cancelEdit" hidden>Cancel edit</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" style="margin-top:18px" aria-labelledby="listHead">
+        <h2 id="listHead">Your debts</h2>
+        <p class="sub">Tap Edit on any debt to fix a number — your route recalculates instantly.</p>
+        <div id="debtList"></div>
+        <div class="list-actions">
+          <button type="button" class="btn btn-ghost" id="loadExample">Try it with example debts</button>
+          <button type="button" class="btn btn-quiet" id="clearAll">Clear everything</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="card sticky" aria-labelledby="routeHead">
+      <h2 id="routeHead">Your payoff route</h2>
+      <p class="sub">How should extra money be aimed?</p>
+      <div class="seg" role="group" aria-label="Payoff strategy">
+        <button type="button" id="segAvalanche" aria-pressed="true">Avalanche<br><small style="font-weight:500">Lowest total cost</small></button>
+        <button type="button" id="segSnowball" aria-pressed="false">Snowball<br><small style="font-weight:500">Smallest balance first</small></button>
+      </div>
+      <p class="sub" id="strategyNote" style="margin-bottom:14px">Avalanche here is promo-aware: a 0% card whose promo ends within 12 months is ranked by the rate it jumps to, so its cliff gets beaten before expensive debt that can wait. Mortgages always ride last, on their own amortized schedule.</p>
+
+      <div class="extra-row">
+        <div class="field"><label for="extraInput">Extra payment per month ($)</label><input id="extraInput" type="number" inputmode="decimal" min="0" step="10" value="200"></div>
+      </div>
+      <input type="range" id="extraRange" min="0" max="2000" step="25" value="200" aria-label="Extra payment slider">
+
+      <div class="verdict idle" id="verdict">Add your first debt above and your route, payoff order, and debt-free date will appear here.</div>
+
+      <div id="cliffBox"></div>
+
+      <h3>Payoff order</h3>
+      <ol class="order-list" id="orderList"><li><span class="ord-body"><span class="ord-why">Nothing to order yet.</span></span></li></ol>
+
+      <h3>Payoff timeline</h3>
+      <div id="timeline"><p class="sub" style="margin:0">Each bar fills as that debt clears.</p></div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" id="downloadBtn">Download my plan</button>
+        <button type="button" class="btn btn-quiet" id="copyBtn" style="flex:1">Copy summary</button>
+      </div>
+      <p class="hint" id="copyNote" style="margin-top:8px" aria-live="polite"></p>
+    </aside>
+  </div>
+
+  <section class="how" aria-label="How it works">
+    <div class="step"><b><span class="step-num">1</span> List what you owe</b><p>Every balance, rate, and minimum payment — including any 0% promo and the date it ends.</p></div>
+    <div class="step"><b><span class="step-num">2</span> Set your extra payment</b><p>Even $50–$200 extra a month, aimed at one debt at a time, is what moves the debt-free date.</p></div>
+    <div class="step"><b><span class="step-num">3</span> Follow the route</b><p>Pay minimums on everything, throw the extra at the top of the list, and roll each freed payment into the next debt.</p></div>
+  </section>
+</main>
+
+<footer>
+  <div class="cta">
+    <h2>Want a second set of eyes on your route?</h2>
+    <p>Freedom GPS gives you the map. If you'd like help reading it — promo deadlines, payoff order, the whole picture — bring this plan with you and we'll walk it together.</p>
+  </div>
+  <p>Freedom GPS is an educational planning tool. Figures are estimates based on the numbers you enter, steady payments, and no new charges; they are not financial, tax, or legal advice. Your entries live only in this tab — nothing is sent anywhere or saved when you close it.</p>
+</footer>
+
+<script>
+(function(){
+"use strict";
+var debts=[], editingId=null, strategy="avalanche", uid=1;
+var $=function(id){return document.getElementById(id)};
+var money=function(n){return "$"+Math.round(n).toLocaleString("en-US")};
+var money2=function(n){return "$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})};
+var TYPE_LABEL={credit:"Credit card",auto:"Auto loan",personal:"Personal loan",student:"Student loan",medical:"Medical / other",mortgage:"Mortgage"};
+var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(d){return MONTHS[d.getMonth()]+" "+d.getFullYear()}
+function addMonths(base,n){var d=new Date(base.getFullYear(),base.getMonth()+n,1);return d}
+function monthsUntil(ym){ if(!ym) return null; var p=ym.split("-"); var now=new Date(); return (parseInt(p[0],10)-now.getFullYear())*12 + (parseInt(p[1],10)-1-now.getMonth()); }
+
+/* ---------- priority ---------- */
+function rankRate(d, monthOffset){
+  if(d.type==="mortgage") return -1;
+  if(strategy==="snowball") return 100000 - d.balance; // handled separately below
+  if(d.hasPromo){
+    var left = monthsUntil(d.promoEnd);
+    if(left===null) left=999;
+    left = left - monthOffset;
+    if(left < 0) return d.goToApr || d.apr;         // promo expired
+    if(left <= 12) return (d.goToApr || d.apr) + 100; // cliff near: rank by go-to rate, boosted
+    return d.promoApr;                               // promo far off: cheap for now
+  }
+  return d.apr;
+}
+function prioritySort(list, monthOffset){
+  var arr=list.slice();
+  arr.sort(function(a,b){
+    var am=a.type==="mortgage", bm=b.type==="mortgage";
+    if(am!==bm) return am?1:-1;
+    if(strategy==="snowball") return a.balance-b.balance;
+    return rankRate(b,monthOffset)-rankRate(a,monthOffset);
+  });
+  return arr;
+}
+function whyText(d){
+  if(d.type==="mortgage") return "Mortgage — amortized on its own schedule, paid last";
+  if(strategy==="snowball") return "Snowball order — smallest balance first for momentum";
+  if(d.hasPromo){
+    var left=monthsUntil(d.promoEnd);
+    if(left!==null && left<0) return "Promo expired — now at "+(d.goToApr||d.apr)+"% go-to rate";
+    if(left!==null && left<=12) return "Promo ends in "+left+" mo — ranked by its "+(d.goToApr||d.apr)+"% go-to rate so the cliff is beaten first";
+    if(left!==null) return "On "+d.promoApr+"% promo for "+left+" more months — minimums only for now";
+  }
+  return d.apr+"% APR — avalanche order, highest cost first";
+}
+function effectiveApr(d, monthOffset){
+  if(d.hasPromo){
+    var left=monthsUntil(d.promoEnd); if(left===null) left=999; left-=monthOffset;
+    if(left>=0) return d.promoApr;
+    return d.goToApr||d.apr;
+  }
+  return d.apr;
+}
+
+/* ---------- simulation ---------- */
+function simulate(extra){
+  if(!debts.length) return null;
+  var state=debts.map(function(d){return {src:d,balance:d.balance,interest:0,payoff:-1}});
+  var totalInterest=0, month=0, MAX=1200, cleared=false;
+  var totalMin=debts.reduce(function(s,d){return s+d.minPayment},0);
+  for(month=0; month<MAX; month++){
+    var open=state.filter(function(s){return s.balance>0.005});
+    if(!open.length){cleared=true;break;}
+    // accrue interest
+    open.forEach(function(s){ var i=s.balance*(effectiveApr(s.src,month)/100)/12; s.balance+=i; s.interest+=i; totalInterest+=i; });
+    var pool=extra;
+    // minimums first, in priority order so a shortfall hits lowest priority last-paid
+    var ordered=prioritySort(open.map(function(s){return s.src}),month).map(function(src){return state.find(function(s){return s.src===src})});
+    ordered.forEach(function(s){ var pay=Math.min(s.src.minPayment, s.balance); s.balance-=pay; });
+    // extra pool to top priority
+    ordered=prioritySort(state.filter(function(s){return s.balance>0.005}).map(function(s){return s.src}),month).map(function(src){return state.find(function(s){return s.src===src})});
+    for(var k=0;k<ordered.length && pool>0.005;k++){ var s2=ordered[k]; var p2=Math.min(pool,s2.balance); s2.balance-=p2; pool-=p2; }
+    state.forEach(function(s){ if(s.balance<=0.005 && s.payoff<0) s.payoff=month+1; });
+  }
+  if(!cleared){ var left=state.some(function(s){return s.balance>0.005}); if(!left) cleared=true; }
+  var perDebt={};
+  state.forEach(function(s){ perDebt[s.src.id]={payoff:s.payoff, interest:s.interest}; });
+  var lastPayoff=Math.max.apply(null, state.map(function(s){return s.payoff}));
+  // non-mortgage last payoff for headline nuance
+  var nonMort=state.filter(function(s){return s.src.type!=="mortgage"});
+  var nonMortLast=nonMort.length?Math.max.apply(null, nonMort.map(function(s){return s.payoff})):-1;
+  return {cleared:cleared, months:cleared?lastPayoff:MAX, totalInterest:totalInterest, perDebt:perDebt, totalMin:totalMin, nonMortLast:nonMortLast, hasMortgage: state.some(function(s){return s.src.type==="mortgage"})};
+}
+function simulateMinimumsOnlyInterest(){
+  // rough comparison: same sim with extra=0 interest total is not meaningful if it never clears; return null then
+  var savedExtra=parseFloat($("extraInput").value)||0;
+  return null; // handled in render with a dedicated run below
+}
+function runSim(extraVal){ return simulate(extraVal); }
+
+/* ---------- render ---------- */
+function render(){
+  var extra=parseFloat($("extraInput").value)||0;
+  if(extra<0) extra=0;
+  // list
+  var list=$("debtList");
+  if(!debts.length){
+    list.innerHTML='<div class="empty"><strong>No debts yet — your map starts blank.</strong>Add your first debt in the form above, or tap “Try it with example debts” below to see how the route works.</div>';
+  } else {
+    list.innerHTML="";
+    prioritySort(debts,0).forEach(function(d){
+      var div=document.createElement("div"); div.className="debt";
+      var promoHtml="";
+      if(d.hasPromo){
+        var left=monthsUntil(d.promoEnd);
+        promoHtml=' <span class="badge badge-promo">'+d.promoApr+'% promo'+(left!==null?(" · ends "+(left<0?"already ended":left+" mo")):"")+(d.goToApr?' · then '+d.goToApr+'%':'')+'</span>';
+      }
+      if(d.type==="mortgage") promoHtml+=' <span class="badge badge-mort">Amortized · paid last</span>';
+      div.innerHTML='<div class="debt-top"><div><p class="debt-name"></p><span class="debt-type">'+TYPE_LABEL[d.type]+'</span>'+promoHtml+'</div><div class="debt-bal">'+money2(d.balance)+'</div></div>'+
+        '<div class="debt-meta"><span>'+d.apr+'% APR</span><span>'+money2(d.minPayment)+' / mo minimum</span></div>'+
+        '<div class="debt-actions"><button type="button" class="btn-ghost edit-btn">Edit account</button><button type="button" class="btn-danger del-btn">Remove</button></div>';
+      div.querySelector(".debt-name").textContent=d.name;
+      div.querySelector(".edit-btn").addEventListener("click",function(){startEdit(d.id)});
+      div.querySelector(".del-btn").addEventListener("click",function(){ debts=debts.filter(function(x){return x.id!==d.id}); if(editingId===d.id) cancelEdit(); render(); });
+      list.appendChild(div);
+    });
+  }
+  // stats + summary
+  var total=debts.reduce(function(s,d){return s+d.balance},0);
+  var totalMin=debts.reduce(function(s,d){return s+d.minPayment},0);
+  $("stTotal").textContent=money(total);
+  $("stCount").textContent=debts.length? debts.length+(debts.length===1?" debt":" debts")+" on your route" : "No debts added yet";
+  $("stBudget").textContent=money(totalMin+extra);
+  var sim=runSim(extra);
+  var orderEl=$("orderList"), tl=$("timeline"), cliffBox=$("cliffBox"), verdict=$("verdict");
+  cliffBox.innerHTML="";
+  if(!sim){
+    $("stDate").textContent="—"; $("stMonths").textContent="Add a debt to see your route";
+    $("stInterest").textContent="$0"; $("stInterestNote").textContent="vs. minimums only, once calculated";
+    verdict.className="verdict idle"; verdict.textContent="Add your first debt above and your route, payoff order, and debt-free date will appear here.";
+    orderEl.innerHTML='<li><span class="ord-body"><span class="ord-why">Nothing to order yet.</span></span></li>';
+    tl.innerHTML='<p class="sub" style="margin:0">Each bar fills as that debt clears.</p>';
+    return;
+  }
+  if(sim.cleared){
+    var now=new Date();
+    var freeDate=addMonths(now, sim.months);
+    // If a mortgage exists and outlasts everything, headline the non-mortgage date too
+    if(sim.hasMortgage && sim.nonMortLast>0 && sim.nonMortLast<sim.months){
+      $("stDate").textContent=fmtDate(addMonths(now, sim.nonMortLast));
+      $("stMonths").textContent="Cards & loans clear in "+sim.nonMortLast+" months · mortgage finishes "+fmtDate(freeDate)+" on its own schedule";
+    } else {
+      $("stDate").textContent=fmtDate(freeDate);
+      $("stMonths").textContent=sim.months+" months from now if you hold this route";
+    }
+    verdict.className="verdict ok";
+    verdict.textContent="This route clears you. Hold the "+money(totalMin+extra)+"/month budget, aim the extra at the top of the list, and roll each freed minimum into the next debt.";
+  } else {
+    $("stDate").textContent="Won't clear";
+    $("stMonths").textContent="At this budget, interest outruns the payments";
+    verdict.className="verdict bad";
+    verdict.textContent="Straight talk: at "+money(totalMin+extra)+"/month this plan doesn't clear — the balances grow or stall. Raise the extra payment, or check that each minimum covers more than a month of interest.";
+  }
+  $("stInterest").textContent=money(sim.totalInterest);
+  // minimums-only comparison
+  var simMin=runSim(0);
+  if(simMin && simMin.cleared && sim.cleared && extra>0){
+    $("stInterestNote").textContent="Minimums only would cost "+money(simMin.totalInterest)+" and take "+simMin.months+" months — this route saves about "+money(simMin.totalInterest-sim.totalInterest);
+  } else if(simMin && !simMin.cleared){
+    $("stInterestNote").textContent="Minimums alone never clear these debts — the extra payment is what makes the route work";
+  } else { $("stInterestNote").textContent="Estimated interest if you hold this route steady"; }
+
+  // cliffs
+  debts.forEach(function(d){
+    if(!d.hasPromo) return;
+    var left=monthsUntil(d.promoEnd); if(left===null) return;
+    var el=document.createElement("div"); el.className="cliff";
+    if(left<0){ el.innerHTML="<strong>"+escapeHtml(d.name)+" — promo already ended</strong>It's now charging the "+(d.goToApr||d.apr)+"% go-to rate. It ranks by that rate in your route."; }
+    else{
+      var need=d.balance/Math.max(left,1);
+      var plannedNote = sim.cleared ? "" : "";
+      el.innerHTML="<strong>"+escapeHtml(d.name)+" — "+left+" month"+(left===1?"":"s")+" of promo left</strong>To clear its "+money(d.balance)+" before the rate jumps to "+(d.goToApr||d.apr)+"% takes about "+money(need)+"/month aimed at it. Your route "+(left<=12?"already ranks it by that go-to rate so the extra payment hits it early.":"will move it up automatically as the deadline gets inside 12 months.");
+    }
+    cliffBox.appendChild(el);
+  });
+
+  // order
+  orderEl.innerHTML="";
+  prioritySort(debts,0).forEach(function(d){
+    var li=document.createElement("li");
+    var pd=sim.perDebt[d.id];
+    var dateTxt = sim.cleared && pd && pd.payoff>0 ? fmtDate(addMonths(new Date(), pd.payoff)) : (pd&&pd.payoff>0?fmtDate(addMonths(new Date(), pd.payoff)):"—");
+    li.innerHTML='<span class="ord-num" aria-hidden="true"></span><span class="ord-body"><span class="ord-name"></span><br><span class="ord-why">'+whyText(d)+'</span></span><span class="ord-date">'+(sim.cleared?("Clear "+dateTxt):"")+'<br><span style="color:var(--muted);font-weight:600">'+money(d.balance)+'</span></span>';
+    li.querySelector(".ord-name").textContent=d.name;
+    orderEl.appendChild(li);
+  });
+  // timeline
+  tl.innerHTML="";
+  var maxM=Math.max.apply(null, debts.map(function(d){var pd=sim.perDebt[d.id]; return pd?pd.payoff:0}).concat([1]));
+  prioritySort(debts,0).forEach(function(d){
+    var pd=sim.perDebt[d.id];
+    var row=document.createElement("div"); row.className="bar-row";
+    var pct= pd&&pd.payoff>0 ? Math.max(4, Math.round(pd.payoff/maxM*100)) : 100;
+    row.innerHTML='<label><span class="tl-name" style="color:var(--ink)"></span><span>'+(pd&&pd.payoff>0?("Month "+pd.payoff+" · "+money(pd.interest)+" interest"):"Doesn't clear")+'</span></label><div class="bar"><i style="width:'+pct+'%"></i></div>';
+    row.querySelector(".tl-name").textContent=d.name;
+    tl.appendChild(row);
+  });
+}
+function escapeHtml(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+/* ---------- form ---------- */
+$("fHasPromo").addEventListener("change",function(){ $("promoFields").hidden=!this.checked; });
+function formError(msg){ var e=$("formErr"); if(msg){e.textContent=msg;e.classList.add("show")} else {e.classList.remove("show")} }
+$("debtForm").addEventListener("submit",function(ev){
+  ev.preventDefault(); formError("");
+  var name=$("fName").value.trim();
+  var balance=parseFloat($("fBalance").value), apr=parseFloat($("fApr").value), min=parseFloat($("fMin").value);
+  if(!name) return formError("Give this debt a name — the card, the car, the loan.");
+  if(!(balance>0)) return formError("Enter the balance owed — it has to be more than $0.");
+  if(!(apr>=0)) return formError("Enter the APR. If it's truly 0%, enter 0.");
+  if(!(min>0)) return formError("Enter the minimum or regular monthly payment.");
+  var hasPromo=$("fHasPromo").checked;
+  var d={ id: editingId||(uid++), name:name, type:$("fType").value, balance:balance, apr:apr, minPayment:min,
+    hasPromo:hasPromo, promoApr: hasPromo?(parseFloat($("fPromoApr").value)||0):0,
+    promoEnd: hasPromo?$("fPromoEnd").value:"", goToApr: hasPromo?(parseFloat($("fGoTo").value)||apr):apr };
+  if(hasPromo && !d.promoEnd) return formError("Pick the month the promo ends — that's what lets the route beat the cliff.");
+  if(editingId){ debts=debts.map(function(x){return x.id===editingId?d:x}); }
+  else debts.push(d);
+  cancelEdit(); this.reset(); $("promoFields").hidden=true; render();
+  $("listHead").scrollIntoView({behavior:"smooth",block:"start"});
+});
+function startEdit(id){
+  var d=debts.find(function(x){return x.id===id}); if(!d) return;
+  editingId=id;
+  $("fName").value=d.name; $("fType").value=d.type; $("fBalance").value=d.balance; $("fApr").value=d.apr; $("fMin").value=d.minPayment;
+  $("fHasPromo").checked=d.hasPromo; $("promoFields").hidden=!d.hasPromo;
+  $("fPromoApr").value=d.promoApr; $("fPromoEnd").value=d.promoEnd||""; $("fGoTo").value=d.goToApr;
+  $("submitBtn").textContent="Save changes"; $("cancelEdit").hidden=false; $("formHead").textContent="Edit debt";
+  $("formHead").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function cancelEdit(){ editingId=null; $("submitBtn").textContent="+ Add this debt"; $("cancelEdit").hidden=true; $("formHead").textContent="Add a debt"; formError(""); }
+$("cancelEdit").addEventListener("click",function(){ $("debtForm").reset(); $("promoFields").hidden=true; cancelEdit(); });
+
+/* ---------- controls ---------- */
+$("extraInput").addEventListener("input",function(){ var v=parseFloat(this.value)||0; $("extraRange").value=Math.min(v,2000); render(); });
+$("extraRange").addEventListener("input",function(){ $("extraInput").value=this.value; render(); });
+function setStrategy(s){ strategy=s; $("segAvalanche").setAttribute("aria-pressed", s==="avalanche"); $("segSnowball").setAttribute("aria-pressed", s==="snowball");
+  $("strategyNote").textContent = s==="avalanche"
+    ? "Avalanche here is promo-aware: a 0% card whose promo ends within 12 months is ranked by the rate it jumps to, so its cliff gets beaten before expensive debt that can wait. Mortgages always ride last, on their own amortized schedule."
+    : "Snowball aims every extra dollar at the smallest balance first — quicker wins, sometimes more interest overall. Mortgages still ride last, on their own amortized schedule.";
+  render(); }
+$("segAvalanche").addEventListener("click",function(){setStrategy("avalanche")});
+$("segSnowball").addEventListener("click",function(){setStrategy("snowball")});
+$("loadExample").addEventListener("click",function(){
+  var now=new Date(); var end=new Date(now.getFullYear(), now.getMonth()+7, 1);
+  var ym=end.getFullYear()+"-"+String(end.getMonth()+1).padStart(2,"0");
+  debts=[
+    {id:uid++,name:"Example Store Card",type:"credit",balance:2400,apr:29.99,minPayment:65,hasPromo:true,promoApr:0,promoEnd:ym,goToApr:29.99},
+    {id:uid++,name:"Example Visa Card",type:"credit",balance:4800,apr:24.99,minPayment:120,hasPromo:false,promoApr:0,promoEnd:"",goToApr:24.99},
+    {id:uid++,name:"Example Personal Loan",type:"personal",balance:6000,apr:11.5,minPayment:180,hasPromo:false,promoApr:0,promoEnd:"",goToApr:11.5},
+    {id:uid++,name:"Example Auto Loan",type:"auto",balance:14500,apr:7.9,minPayment:310,hasPromo:false,promoApr:0,promoEnd:"",goToApr:7.9}
+  ];
+  cancelEdit(); render();
+});
+$("clearAll").addEventListener("click",function(){ debts=[]; cancelEdit(); $("debtForm").reset(); $("promoFields").hidden=true; render(); });
+
+function planText(){
+  var extra=parseFloat($("extraInput").value)||0; var sim=runSim(extra);
+  var lines=["Freedom GPS by Long Solutions — Payoff Plan","Strategy: "+(strategy==="avalanche"?"Avalanche (promo-aware)":"Snowball"),"Extra payment: "+money(extra)+"/month",""];
+  if(!debts.length){ lines.push("No debts entered."); return lines.join("\n"); }
+  var total=debts.reduce(function(s,d){return s+d.balance},0);
+  lines.push("Total debt: "+money(total));
+  if(sim&&sim.cleared){ lines.push("Debt-free: "+fmtDate(addMonths(new Date(),sim.months))+" ("+sim.months+" months)"); lines.push("Estimated interest: "+money(sim.totalInterest)); }
+  else lines.push("This budget does not clear the debts — increase the extra payment.");
+  lines.push("","Payoff order:");
+  prioritySort(debts,0).forEach(function(d,i){ var pd=sim?sim.perDebt[d.id]:null; lines.push((i+1)+". "+d.name+" — "+money(d.balance)+" at "+d.apr+"% APR, "+money(d.minPayment)+"/mo"+(pd&&pd.payoff>0?", clears "+fmtDate(addMonths(new Date(),pd.payoff)):"")); });
+  return lines.join("\n");
+}
+$("downloadBtn").addEventListener("click",function(){
+  var blob=new Blob([planText()],{type:"text/plain"}); var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download="freedom-gps-plan.txt"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},2000);
+});
+$("copyBtn").addEventListener("click",function(){
+  var t=planText();
+  function done(){ $("copyNote").textContent="Summary copied — paste it anywhere."; }
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done,function(){ $("copyNote").textContent="Copy didn't work here — use Download instead."; }); }
+  else $("copyNote").textContent="Copy isn't available here — use Download instead.";
+});
+
+render();
+})();
+</script>
+</body>
+</html>
