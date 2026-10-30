@@ -36,6 +36,9 @@ button{cursor:pointer;min-height:48px}
 .brand-name{font-weight:800;letter-spacing:.02em;font-size:17px;line-height:1.1}
 .brand-sub{font-size:12px;opacity:.75;letter-spacing:.08em;text-transform:uppercase}
 .topbar-note{font-size:13px;opacity:.85}
+.back-link{color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:10px 16px;border:1px solid rgba(255,255,255,.4);border-radius:10px;min-height:44px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.back-link:hover{background:rgba(255,255,255,.12)}
+.back-link:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 70%);color:#fff;padding:34px 20px 30px}
 .hero-inner{max-width:1120px;margin:0 auto}
 .hero h1{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(32px,6vw,52px);line-height:1.05;margin:0 0 12px;max-width:640px}
@@ -144,6 +147,7 @@ footer .cta p{margin:0;color:#cfdde8}
 <body>
 
 <div class="topbar">
+  <a class="back-link" href="https://omnisight27.github.io/index.html/" aria-label="Back to OmniSight">&#8592; OmniSight</a>
   <div class="brand">
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5" fill="#fff" stroke="none"/></svg></div>
     <div><div class="brand-name">Freedom GPS</div><div class="brand-sub">by Long Solutions</div></div>
