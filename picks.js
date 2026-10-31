@@ -137,6 +137,15 @@
     });
   }
 
+  // Auction-market balance line (engine's balance_score, display only).
+  // Shows on intraday signal and mover cards when the engine shipped one.
+  function balanceLine(s) {
+    if (s.balance_score == null) return '';
+    var t = '<p><strong>Balance:</strong> ' + Number(s.balance_score).toFixed(2);
+    if (s.coiled) t += ' <span class="live-stamp">🌀 coiled — breakout watch</span>';
+    return t + '</p>';
+  }
+
   function intradayCard(s, withBadge) {
     var t = s.thesis || {};
     var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
@@ -149,6 +158,7 @@
       ' &nbsp; <strong>Out by:</strong> ' + fmtClockET(t.exit_by) + '</p>' +
       '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
       '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
+      balanceLine(s) +
       '<p><a class="details-toggle" href="' + detailLink(s, 'intraday') + '">📄 Full detail page →</a></p>' +
       '</div>';
   }
@@ -223,6 +233,7 @@
       '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
       '<p><strong>' + (m.chg_24h >= 0 ? '+' : '') + m.chg_24h + '% 24h</strong> · ' +
       (m.chg_1h >= 0 ? '+' : '') + m.chg_1h + '% 1h · $' + Number(m.price).toLocaleString() + watchNote + '</p>' +
+      balanceLine(m) +
       planLine +
       detail + '</div>';
   }

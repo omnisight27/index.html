@@ -87,6 +87,88 @@ def score_intraday(f):
         score *= 0.6
     return score
 
+# ------------------------------------------- AUCTION MARKET BALANCE SCORE
+# Auction Market Theory (Nic 2026-10-31 — "anticipate the spike before it
+# happens"): markets alternate between BALANCE (both sides agree on price —
+# rotational, choppy) and IMBALANCE (one side wins — directional, trending).
+# The edge is the transition. A "coiled" setup = narrow recent range +
+# steady volume + low directional efficiency = the readable pre-breakout
+# state.
+#
+# DISPLAY ONLY. balance_score never feeds a buy gate, alert threshold, or
+# verdict — changing what triggers a buy is Nic's decision, never the
+# engine's. Missing/insufficient data fails open: returns (None, {}) and the
+# asset ships balance_score: null, coiled: false.
+BALANCE_WEIGHTS = {'compression': 0.45, 'efficiency': 0.30, 'volume': 0.25}
+BALANCE_WEIGHTS_NOVOL = {'compression': 0.60, 'efficiency': 0.40}
+COILED_THRESHOLD = 0.70
+BALANCE_MIN_POINTS = 12  # need at least 12 hourly closes for a real read
+
+def _clamp01(x):
+    try:
+        return max(0.0, min(1.0, float(x)))
+    except (TypeError, ValueError):
+        return 0.0
+
+def balance_score(closes, volumes=None, closes_7d=None):
+    """Auction-market balance score in [0,1].
+
+    1.0 = tightly coiled balance (compressed range, steady volume, choppy
+    rotation) — breakout watch. 0.0 = already in imbalance (trending /
+    expanded range). Components:
+      compression (0.45): 24h range / 7d range; a low ratio = coiled.
+      efficiency  (0.30): |net 24h move| / path length of hourly moves;
+                          low = rotational chop, high = directional.
+      volume      (0.25): mean volume of the last 6h / mean 24h volume;
+                          ~1 = steady (accumulation), collapsed = dead
+                          market, not coiled.
+    Without hourly volumes the weights renormalize to 0.60 / 0.40
+    (documented in BALANCE_WEIGHTS_NOVOL).
+    Dead-market veto: when hourly volume has collapsed (recent-6h mean <=
+    30% of the 24h mean) the market is quiet, not coiled — the score is
+    capped at 0.50 regardless of compression, so dead markets can never
+    read as coiled.
+    Returns (score, parts) or (None, {}) when data is insufficient —
+    fail open, never a misleading number.
+    """
+    closes = [x for x in (closes or []) if x is not None]
+    c7 = [x for x in (closes_7d or []) if x is not None]
+    if len(closes) < BALANCE_MIN_POINTS or len(c7) < 48:
+        return None, {}
+    try:
+        rng24 = max(closes) - min(closes)
+        rng7 = max(c7) - min(c7)
+        if rng7 <= 0:
+            return None, {}
+        comp = _clamp01(1.0 - (rng24 / rng7) / 0.5)
+        diffs = [abs(closes[i] - closes[i - 1]) for i in range(1, len(closes))]
+        path = sum(diffs)
+        net = abs(closes[-1] - closes[0])
+        eff = _clamp01(1.0 - (net / path if path > 0 else 0.0))
+        parts = {'compression': round(comp, 3), 'efficiency': round(eff, 3),
+                 'volume': None}
+        vols = [x for x in (volumes or []) if x is not None]
+        vol_raw = None
+        if len(vols) >= BALANCE_MIN_POINTS:
+            base = sum(vols) / len(vols)
+            recent = sum(vols[-6:]) / 6
+            vratio = recent / base if base > 0 else 0.0
+            vol_raw = _clamp01((vratio - 0.3) / 0.7)
+            parts['volume'] = round(vol_raw, 3)
+            w = BALANCE_WEIGHTS
+            score = (w['compression'] * comp + w['efficiency'] * eff
+                     + w['volume'] * vol_raw)
+        else:
+            w = BALANCE_WEIGHTS_NOVOL
+            score = w['compression'] * comp + w['efficiency'] * eff
+        score = _clamp01(score)
+        if vol_raw == 0.0:
+            # Dead-market veto: volume collapsed — quiet, not coiled.
+            score = min(score, 0.5)
+        return round(score, 3), parts
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None, {}
+
 def round_price(p):
     """Adaptive price precision — mirrors nexintel.py's round_price():
     sub-cent coins keep enough decimals that entry/target/stop stay
@@ -1459,6 +1541,16 @@ def main():
         if not f:
             continue
         charts_by_sym[sym] = chart['prices']
+        # Auction-market balance: coiled-range read from the same 24h
+        # hourly chart (prices + volumes ride free in one response) and
+        # the 7d sparkline already in the markets payload. Display only —
+        # never touches the score above.
+        _closes = [p[1] for p in chart['prices'] if p and p[1] is not None]
+        _vols = [v[1] for v in (chart.get('total_volumes') or [])
+                 if v and v[1] is not None]
+        _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
+                   if p is not None]
+        bs, bs_parts = balance_score(_closes, volumes=_vols, closes_7d=_spark7)
         score = score_intraday(f)
         conf = min(95, max(40, 50 + abs(score) * 3))
         # Only signals with meaningful score
@@ -1472,6 +1564,9 @@ def main():
             'info_url': f'https://www.coingecko.com/en/coins/{cid}',
             'tradable': tradable_on(sym),
             'timestamp': datetime.now(timezone.utc).isoformat(),
+            # Auction-market balance (display only — never a buy input)
+            'balance_score': bs, 'balance_parts': bs_parts,
+            'coiled': bool(bs is not None and bs >= COILED_THRESHOLD),
         })
 
     signals.sort(key=lambda s: -abs(s['score']))
@@ -1489,7 +1584,7 @@ def main():
     #   it (24h <= 0 for an up-turn, >= 0 for a down-turn) — the turn is
     #   starting before the daily numbers confirm it.
     def mover_fields(c, direction):
-        return {
+        out = {
             'id': c['id'],
             'asset': (c['symbol'] or '').upper(),
             'name': c.get('name') or (c['symbol'] or '').upper(),
@@ -1503,6 +1598,16 @@ def main():
             'tradable': tradable_on((c['symbol'] or '').upper()),
             'info_url': f"https://www.coingecko.com/en/coins/{c['id']}",
         }
+        # Auction-market balance from the 7d sparkline (no hourly volumes on
+        # the markets payload — 2-component read, weights renormalize).
+        # Display only — never a buy input.
+        _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
+                   if p is not None]
+        _bs, _bs_parts = balance_score(_spark7[-24:], closes_7d=_spark7)
+        out['balance_score'] = _bs
+        out['balance_parts'] = _bs_parts
+        out['coiled'] = bool(_bs is not None and _bs >= COILED_THRESHOLD)
+        return out
     # `scanned` is defined above (before the feeds) so the funding/OI
     # calls see it; it anchors the ratio quartile and the scan entries.
     ratios = sorted((c.get('total_volume') or 0) / c['market_cap']
