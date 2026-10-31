@@ -52,6 +52,7 @@
       if (menu) menu.classList.add('open');
       if (toggle) toggle.classList.add('active');
       panel.style.display = '';
+      try { panel.scrollIntoView({ block: 'nearest' }); } catch (e) {}
       var inp = panel.querySelector('input'); if (inp) inp.focus();
     },
     ready: ready
