@@ -1400,6 +1400,13 @@ def main():
         r = sparkline_rsi((c.get('sparkline_in_7d') or {}).get('price'))
         if r is not None:
             rsi_by_id[c.get('id')] = r
+    # Exchange-tradable, $100M+ universe used by the mover/watch scans below.
+    # Defined here (before the feeds) so Feed #2/#3 can map against it —
+    # it was previously defined after them, and Python scoping turned the
+    # funding call into a silent no-op every run (fail-open swallowed it).
+    scanned = [c for c in universe
+               if (c.get('market_cap') or 0) >= 100_000_000
+               and (c['symbol'] or '').upper() not in BLOCKED]
     # Feed #2: Binance funding rates — crowded-long detection. One bulk
     # public call; any failure yields {} and the engine runs unchanged.
     fund_map = {}
@@ -1407,7 +1414,10 @@ def main():
         try:
             fund_map = funding_feed.funding_by_asset(
                 {(c['symbol'] or '').upper() for c in scanned}, fetch_json)
-        except Exception:
+        except Exception as e:
+            # Fail open, but SAY so — a silent swallow hid a dead feed
+            # for days (scoping bug, fixed 2026-10-31).
+            print(f'  [warn] funding feed failed: {e}')
             fund_map = {}
     # Feed #3: open-interest flow — what traders did in the last hour.
     # OI rides free inside the Feed #2 call; history persists in the feed.
@@ -1493,9 +1503,8 @@ def main():
             'tradable': tradable_on((c['symbol'] or '').upper()),
             'info_url': f"https://www.coingecko.com/en/coins/{c['id']}",
         }
-    scanned = [c for c in universe
-               if (c.get('market_cap') or 0) >= 100_000_000
-               and (c['symbol'] or '').upper() not in BLOCKED]
+    # `scanned` is defined above (before the feeds) so the funding/OI
+    # calls see it; it anchors the ratio quartile and the scan entries.
     ratios = sorted((c.get('total_volume') or 0) / c['market_cap']
                     for c in scanned if c.get('market_cap'))
     vol_q3 = ratios[int(len(ratios) * 0.75)] if ratios else float('inf')
