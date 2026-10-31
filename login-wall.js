@@ -27,7 +27,10 @@
         show('login-wall', true);
         show('walled-content', false);
         var btn = document.getElementById('wall-login');
-        if (btn && window.OmniAuth && typeof window.OmniAuth.openLogin === 'function') {
+        // Only wire BUTTON elements. Pages may use a plain anchor to
+        // login.html instead — anchors navigate on their own and need no JS.
+        if (btn && btn.tagName === 'BUTTON' &&
+            window.OmniAuth && typeof window.OmniAuth.openLogin === 'function') {
           // Stop the tap here: document-level outside-click closers (nav menu,
           // auth panel) would otherwise treat this same tap as "clicked outside"
           // and instantly hide what openLogin just opened.
