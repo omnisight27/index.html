@@ -76,6 +76,11 @@
     holdings.forEach(function (h, i) { list.appendChild(holdingRow(h, i)); });
     if (!holdings.length) {
       list.innerHTML = '<p class="hint">No holdings yet — add your first asset below and your book gets valued live, checked against today\'s conditions.</p>';
+    } else if (holdings.some(function (h) { return h.source === 'coinbase'; })) {
+      var note = document.createElement('p');
+      note.className = 'hint';
+      note.textContent = 'Avg cost syncs from your Coinbase trade history.';
+      list.appendChild(note);
     }
   }
 
@@ -513,10 +518,14 @@
           h.units = String(p.units);
           if (p.staked) h.staked = true;
           h.source = 'coinbase';
+          // Sync wins: fills-derived cost basis is the user's actual trade
+          // history; a stale hand-typed number is never better.
+          if (p.avg_cost_usd != null && p.avg_cost_usd !== '') h.avg_cost = String(p.avg_cost_usd);
           if (sym === 'USD' && p.price_usd) h.manual_price = String(p.price_usd);
         } else {
           holdings.push({
-            symbol: sym, units: String(p.units), avg_cost: '',
+            symbol: sym, units: String(p.units),
+            avg_cost: (p.avg_cost_usd != null && p.avg_cost_usd !== '') ? String(p.avg_cost_usd) : '',
             manual_price: (sym === 'USD' && p.price_usd) ? String(p.price_usd) : '',
             staked: !!p.staked, source: 'coinbase'
           });
