@@ -28,7 +28,13 @@
         show('walled-content', false);
         var btn = document.getElementById('wall-login');
         if (btn && window.OmniAuth && typeof window.OmniAuth.openLogin === 'function') {
-          btn.addEventListener('click', function () { window.OmniAuth.openLogin(); });
+          // Stop the tap here: document-level outside-click closers (nav menu,
+          // auth panel) would otherwise treat this same tap as "clicked outside"
+          // and instantly hide what openLogin just opened.
+          btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            window.OmniAuth.openLogin();
+          });
         }
       }
     }
