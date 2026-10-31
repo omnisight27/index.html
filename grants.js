@@ -34,8 +34,9 @@
       var cls = dl <= 21 ? 'days-left days-urgent' : 'days-left';
       dlHtml = ' <span class="' + cls + '">(' + (dl < 0 ? Math.abs(dl) + ' days past' : dl + ' days left') + ')</span>';
     }
-    var link = g.url
-      ? '<p><a href="' + esc(g.url) + '" target="_blank" rel="noopener">Apply / program page →</a></p>'
+    var url = (g.url && g.url !== 'unverified') ? g.url : '';
+    var link = url
+      ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener">Apply / program page →</a></p>'
       : '';
     return '<div class="card tier-' + tierCls + '">' +
       '<h3><span class="tier-badge ' + tierCls + '">' + badgeTxt + '</span>' + esc(g.name) + '</h3>' +
@@ -124,7 +125,7 @@
         '<p class="grant-meta">' + esc(g.funder) +
         (g.nonprofit_eligible && g.forprofit_eligible ? ' · nonprofits & for-profits' :
          g.nonprofit_eligible ? ' · nonprofits' : ' · for-profits') + '</p>' +
-        (g.url ? '<p><a href="' + esc(g.url) + '" target="_blank" rel="noopener">Program page →</a></p>' : '') +
+        ((g.url && g.url !== 'unverified') ? '<p><a href="' + esc(g.url) + '" target="_blank" rel="noopener">Program page →</a></p>' : '') +
         '</div>';
     }).join('');
   }

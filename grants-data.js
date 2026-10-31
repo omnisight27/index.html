@@ -125,7 +125,7 @@ window.NICNACS_GRANTS = [
     "status": "NicNacs can apply directly, but the next round is unannounced \u2014 register on SAM.gov now so a spring filing isn't blocked.",
     "funds": "Enterprise grants (business incubators, training, revolving loan funds) and opportunity grants (technical assistance, feasibility work) delivered by nonprofits serving rural businesses.",
     "eligibility": "Nonprofits apply directly as grantees \u2014 NicNacs qualifies as applicant type; needs SAM.gov + grants.gov registration. Fit: workforce training or a reuse-enterprise project.",
-    "url": "unverified",
+    "url": "https://www.rd.usda.gov/programs-services/business-programs/rural-business-development-grants",
     "notes": "NicNacs can apply directly, but the next round is unannounced \u2014 register on SAM.gov now so a spring filing isn't blocked."
   },
   {
@@ -682,7 +682,7 @@ window.GRANT_DB = [
     "forprofit_eligible": false,
     "deadline": "Annual \u2014 FY2026 closed Jun 30, 2026; next NOFO unannounced",
     "amount": "Varies (FY2026 ~$27.7M nationally)",
-    "url": "unverified",
+    "url": "https://www.rd.usda.gov/programs-services/business-programs/rural-business-development-grants",
     "blurb": "Grants to nonprofits, public bodies, and tribes that deliver business help (incubators, training, feasibility work) to rural small businesses \u2014 businesses can't apply directly."
   },
   {
