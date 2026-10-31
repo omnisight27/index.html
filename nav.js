@@ -7,7 +7,7 @@
     if (!toggle || !menu) return;
     // Pages added after the static menus were written: inject their links
     // into every page's menu (skipped where a page already links them).
-    [['govgistics.html', 'Contract Intel'], ['grants.html', 'Grants'], ['economy.html', 'Economy'], ['land.html', 'Land'], ['https://omnisight27.github.io/freedom-gps/', 'Freedom GPS'], ['hub.html', 'Command Hub']].forEach(function (pair) {
+    [['govgistics.html', 'Contract Intel'], ['grants.html', 'Grants'], ['economy.html', 'Economy'], ['land.html', 'Land'], ['learn.html', 'Learn'], ['https://omnisight27.github.io/freedom-gps/', 'Freedom GPS'], ['hub.html', 'Command Hub']].forEach(function (pair) {
       if (menu.querySelector('a[href="' + pair[0] + '"]')) return;
       var a = document.createElement('a');
       a.href = pair[0];

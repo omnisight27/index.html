@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .learn-num { display:inline-block; font-size:12px; font-weight:800; background:var(--surface); border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:2px 10px; margin-bottom:8px; }
+  .learn-card { cursor:pointer; }
+  .learn-card h3 { margin:4px 0 6px; }
+  .learn-card video { display:none; width:100%; max-width:340px; border-radius:12px; margin-top:10px; background:#000; }
+  .learn-card.open video { display:block; }
+  .learn-hint { margin-top:6px; }
+</style>
+</head>
+<body>
+  <div id="ticker-tape" class="ticker-tape"></div>
+  <div id="picks-tape" class="ticker-tape picks-tape"></div>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="grants.html">Grants</a>
+      <a href="economy.html">Economy</a>
+      <a href="land.html">Land</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<main class="container">
+  <h1>Learn the Language</h1>
+  <p class="subtitle">31-second clips that teach the trading basics behind every NexIntel alert. Tap a card to play.</p>
+  <div class="grid" id="learn-grid">
+    <div class="card learn-card" data-clip="1">
+      <span class="learn-num">CLIP 1 · 0:31</span>
+      <h3>What Is a Long</h3>
+      <p>Buy first, profit when the price rises — the buy-low, sell-high side of every market.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-1-what-is-long.mp4"></video>
+    </div>
+    <div class="card learn-card" data-clip="2">
+      <span class="learn-num">CLIP 2 · 0:31</span>
+      <h3>What Is a Short</h3>
+      <p>Sell first with borrowed coins, profit when the price falls — the mirror image of a long.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-2-what-is-short.mp4"></video>
+    </div>
+    <div class="card learn-card" data-clip="3">
+      <span class="learn-num">CLIP 3 · 0:31</span>
+      <h3>Your BTC Long, the Example</h3>
+      <p>Your $301 Bitcoin buy at $81,518, walked through with real numbers.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-3-btc-long-example.mp4"></video>
+    </div>
+    <div class="card learn-card" data-clip="4">
+      <span class="learn-num">CLIP 4 · 0:31</span>
+      <h3>A Short, With Real Numbers</h3>
+      <p>The same $301 as a short: borrow, sell at $81,518, buy back cheaper after a 10% drop.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-4-short-numbers.mp4"></video>
+    </div>
+    <div class="card learn-card" data-clip="5">
+      <span class="learn-num">CLIP 5 · 0:31</span>
+      <h3>Why Shorts Can Blow Up</h3>
+      <p>No ceiling on losses, margin calls at the worst moment — why Nic trades long-only.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-5-short-danger.mp4"></video>
+    </div>
+    <div class="card learn-card" data-clip="6">
+      <span class="learn-num">CLIP 6 · 0:31</span>
+      <h3>Where the Alerts Fit In</h3>
+      <p>Every NexIntel alert is a planned long setup: entry, target, stop — you execute.</p>
+      <video controls playsinline preload="none" src="learn/videos/clip-6-alerts-fit.mp4"></video>
+    </div>
+  </div>
+  <p class="hint learn-hint">Educational only, not financial advice. Watch in order the first time — each clip builds on the last.</p>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=3"></script>
+<script src="ticker-tape.js"></script>
+<script>
+(function () {
+  document.querySelectorAll('.learn-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      var v = card.querySelector('video');
+      var opening = !card.classList.contains('open');
+      // pause any other playing clip first
+      document.querySelectorAll('.learn-card.open').forEach(function (other) {
+        if (other !== card) {
+          other.classList.remove('open');
+          var ov = other.querySelector('video');
+          ov.pause();
+        }
+      });
+      card.classList.toggle('open', opening);
+      if (opening) { v.play(); } else { v.pause(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>
