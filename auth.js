@@ -44,7 +44,15 @@
     },
     openLogin: function () {
       var panel = document.getElementById('auth-panel');
-      if (panel) { panel.style.display = ''; var inp = panel.querySelector('input'); if (inp) inp.focus(); }
+      if (!panel) return;
+      // The panel lives inside the nav menu, which is a collapsed hamburger
+      // on mobile — open the menu first so the panel is actually visible.
+      var menu = document.querySelector('.nav-menu');
+      var toggle = document.querySelector('.nav-toggle');
+      if (menu) menu.classList.add('open');
+      if (toggle) toggle.classList.add('active');
+      panel.style.display = '';
+      var inp = panel.querySelector('input'); if (inp) inp.focus();
     },
     ready: ready
   };
