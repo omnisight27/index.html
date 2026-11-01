@@ -60,6 +60,15 @@ from nexintel import (  # noqa: E402  (same trainer/scoring code the live engine
     learn_weights, HEURISTIC_W, N_FEATURES, FEATURE_NAMES,
     _excluded_pick, _pad, clamp, CONF_BANDS,
 )
+from econ_features import ECON_FEATURE_NAMES, N_ECON  # noqa: E402  (milestone-2 candidates)
+
+# Candidate (econ) variables ride AFTER the live 22 dims. They are recorded
+# per pick by the daily engine as `econ_features` (ordered like
+# ECON_FEATURE_NAMES); older picks predate them and pad to 0.0 — the same
+# fail-open convention as _pad. The live engine never sees these dims:
+# its scoring slices the first N_FEATURES, so the baseline below reproduces
+# live behavior exactly (candidate weights start at 0.0).
+N_ALL = N_FEATURES + N_ECON
 
 LEDGER_PATH = REPO_ROOT / "data" / "history.json"
 PROPOSED_PATH = REPO_ROOT / "data" / "proposed_weights.json"
@@ -98,6 +107,19 @@ def load_history(path=LEDGER_PATH):
         return None
 
 
+def _econ_pad(ef):
+    """Pad/truncate a pick's econ_features to N_ECON. None/missing -> 0.0
+    (fail open, same convention as the live _pad)."""
+    out = []
+    for i in range(N_ECON):
+        try:
+            v = ef[i] if ef else None
+        except (TypeError, IndexError):
+            v = None
+        out.append(0.0 if v is None else float(v))
+    return out
+
+
 def graded_rows_from_runs(runs):
     """Flatten scored runs into graded rows, honoring the exclusion list."""
     rows = []
@@ -113,7 +135,7 @@ def graded_rows_from_runs(runs):
                 continue
             rows.append({
                 "ts": ts,
-                "features": _pad(f),
+                "features": _pad(f) + _econ_pad(p.get("econ_features")),
                 "win": bool(win),
                 "return_pct": float(rp),
                 "cls": p.get("class") or "crypto",
@@ -280,7 +302,32 @@ def propose_weights(rows, weights, grad, err_fn=soft_band_error):
     return best
 
 
-def significance_ranking(rows, weights):
+def _univariate_weight(rows, i):
+    """Best single-variable least-squares weight for feature i on rows:
+    w = cov(f_i, return_pct) / var(f_i). 0.0 when the column has no variation
+    (fail open — e.g. a candidate with no recorded data yet). return_pct is
+    direction-adjusted (a winning short counts positive), so a positive
+    weight means "higher feature value -> better outcome"."""
+    n = len(rows)
+    if n < 2:
+        return 0.0
+    xs = [r["features"][i] for r in rows]
+    ys = [r["return_pct"] for r in rows]
+    mx = sum(xs) / n
+    my = sum(ys) / n
+    var = sum((x - mx) ** 2 for x in xs)
+    if var < 1e-12:
+        return 0.0
+    cov = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    return cov / var
+
+
+def _column_has_data(rows, i):
+    """Any nonzero observation of feature i (guards 'awaiting data')."""
+    return any(r["features"][i] != 0.0 for r in rows)
+
+
+def significance_ranking(rows, weights, train_rows=None):
     """Ablate each variable (zero its weight); rank by predictability delta.
 
     Nic's definition: "Significance is predictability based on variables used
@@ -291,22 +338,49 @@ def significance_ranking(rows, weights):
       delta ~ 0  -> dead weight
       delta < 0  -> removing it HELPS: it is pushing confidence the wrong way
     Directional-accuracy delta is reported alongside for the second angle.
+
+    Candidate variables (dims >= N_FEATURES, the milestone-2 econ pack) start
+    at weight 0.0, so plain ablation would always read zero. Instead each
+    candidate is screened at its univariate-optimal weight (fit on the TRAIN
+    slice, never the holdout): delta = base_err - err(with candidate). The
+    sign convention and verdict thresholds are identical to the live vars.
+    A candidate with no recorded observations yet is labeled "awaiting data"
+    — never "dead weight".
     """
     base_err = calibration_error(hard_band_stats(rows, weights))
     base_acc = directional_accuracy(rows, weights)
     names = _display_names()
     ranking = []
     for i, name in enumerate(names):
-        ab = list(weights)
-        ab[i] = 0.0
-        e = calibration_error(hard_band_stats(rows, ab))
-        a = directional_accuracy(rows, ab)
+        note = ""
+        if i < N_FEATURES:
+            # Live variable: ablate (zero its weight) — the original logic.
+            w_test = list(weights)
+            w_test[i] = 0.0
+            disp_w = 0.0
+        else:
+            # Candidate: screen at its univariate-optimal train weight.
+            if train_rows is None or not _column_has_data(train_rows + rows, i):
+                ranking.append({
+                    "feature": name, "index": i, "weight": 0.0,
+                    "delta_calib_pp": 0.0, "delta_accuracy_pp": 0.0,
+                    "note": "awaiting data",
+                })
+                continue
+            wu = _univariate_weight(train_rows, i)
+            w_test = list(weights)
+            w_test[i] = wu
+            disp_w = wu
+            note = "candidate"
+        e = calibration_error(hard_band_stats(rows, w_test))
+        a = directional_accuracy(rows, w_test)
         ranking.append({
             "feature": name,
             "index": i,
-            "weight": weights[i],
+            "weight": disp_w,
             "delta_calib_pp": e - base_err,
             "delta_accuracy_pp": 100.0 * (a - base_acc),
+            "note": note,
         })
     ranking.sort(key=lambda d: d["delta_calib_pp"], reverse=True)
     return ranking, base_err, base_acc
@@ -317,7 +391,7 @@ def significance_ranking(rows, weights):
 def _display_names():
     """Feature names, disambiguated with (#index) where the engine reuses
     a name (e.g. base 'rsi' vs model-library 'rsi')."""
-    names = list(FEATURE_NAMES[:N_FEATURES])
+    names = list(FEATURE_NAMES[:N_FEATURES]) + list(ECON_FEATURE_NAMES)
     while len(names) < N_FEATURES:
         names.append(f"f{len(names)}")
     counts = {}
@@ -422,20 +496,30 @@ def build_report(ctx):
     A("## Significance ranking (per-variable ablation on the holdout)")
     A("")
     A('Nic\'s definition: "Significance is predictability based on variables '
-      'used for an outcome." Each variable\'s weight was set to zero and the '
-      'holdout re-graded: the delta is how much outcome predictability '
-      'changed. Positive = removing it hurts (earns its place); near zero = '
-      'dead weight; negative = removing it helps (pushing confidence the '
-      'wrong way -- candidate for review, not automatic removal). '
-      'Thresholds (+/-0.5pp) are a labeling heuristic; small deltas are '
-      "within holdout noise.")
+      'used for an outcome." Live variables: each weight was set to zero and '
+      'the holdout re-graded — the delta is how much outcome predictability '
+      'changed. Candidate variables (milestone-2 econ pack, marked '
+      '"candidate"): screened at their univariate-optimal weight fit on the '
+      'TRAIN slice — the delta is how much the holdout error drops when the '
+      'candidate joins the live baseline. Positive = removing it HURTS '
+      '(earns its place); near zero = dead weight; negative = removing it '
+      'HELPS (pushing confidence the wrong way — candidate for review, not '
+      'automatic removal). "awaiting data" = no recorded observations yet, '
+      'not a verdict. Thresholds (+/-0.5pp) are a labeling heuristic; small '
+      'deltas are within holdout noise.')
     A("")
     A("| rank | variable | weight | d(calib err) pp | d(accuracy) pp | verdict |")
     A("|------|----------|--------|-----------------|----------------|---------|")
     for r, row in enumerate(ctx["ranking"], 1):
         d = row["delta_calib_pp"]
-        verdict = ("earns its place" if d > 0.5 else
-                   "dead weight" if d >= -0.5 else "review: removal helps")
+        note = row.get("note") or ""
+        if note == "awaiting data":
+            verdict = "awaiting data"
+        else:
+            base_verdict = ("earns its place" if d > 0.5 else
+                            "dead weight" if d >= -0.5 else "review: removal helps")
+            verdict = (f"candidate: {base_verdict}" if note == "candidate"
+                       else base_verdict)
         A(f"| {r} | {row['feature']} | {row['weight']:.4f} | {d:+.3f} | "
           f"{row['delta_accuracy_pp']:+.2f} | {verdict} |")
     A("")
@@ -454,6 +538,10 @@ def build_report(ctx):
       "therefore effectively single-band.")
     A("- One conservative step (max +/-50% per weight, line-searched). "
       "Nothing is applied to the live engine.")
+    A("- Candidate (econ) variables start at weight 0.0, so the shadow "
+      "gradient step cannot move them (multiplicative update); they are "
+      "screened by the univariate ranking above, and promotion to the live "
+      "vector needs Nic's explicit approval.")
     A("")
     return "\n".join(L) + "\n"
 
@@ -517,6 +605,10 @@ def run_tuning(ledger_path=LEDGER_PATH):
 
     w0, info = learn_weights({"picks": train_runs})
     w0 = list(w0)  # copy -- never mutate the module-level HEURISTIC_W
+    # Candidate (econ) dims start at 0.0: they contribute nothing to the
+    # baseline score, so base_err/base_acc below reproduce the LIVE engine
+    # exactly. Candidates are screened separately in the ranking.
+    w0 = w0 + [0.0] * N_ECON
     baseline_source = (f"trained on {info.get('samples')} train picks"
                        if info.get("trained") else
                        f"heuristic (warming up: {info.get('samples')} samples)")
@@ -529,7 +621,7 @@ def run_tuning(ledger_path=LEDGER_PATH):
     new_stats = hard_band_stats(hold_rows, w1)
     base_err, new_err = calibration_error(base_stats), calibration_error(new_stats)
     base_acc, new_acc = directional_accuracy(hold_rows, w0), directional_accuracy(hold_rows, w1)
-    ranking, _rank_err, _rank_acc = significance_ranking(hold_rows, w1)
+    ranking, _rank_err, _rank_acc = significance_ranking(hold_rows, w1, train_rows)
 
     def ts_of(rows):
         ts = [r["ts"] for r in rows if r["ts"]]

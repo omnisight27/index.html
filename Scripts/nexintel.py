@@ -665,6 +665,27 @@ def ingest():
     else:
         print('  [info] FRED_API_KEY absent — rates/macro feed skipped (add key in GitHub Secrets)')
 
+    # --- Milestone 2 econ pack: funding map (Kraken, keyless — same feed the
+    # intraday engine already uses) + cross-run memory from intraday.json.
+    # Display + grading only; never touches scoring below.
+    d['fund_map'] = {}
+    try:
+        _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from funding import funding_by_asset as _fba
+        _syms = {(info.get('symbol') or cid).upper()
+                 for cid, info in (d.get('crypto') or {}).items()}
+        d['fund_map'] = _fba(_syms, fetch_json) or {}
+    except Exception as e:
+        print(f'  [info] econ funding feed failed (fail-open): {e}')
+    d['econ_aux'] = {'funding_history': {}, 'macro_snapshot': None}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as _f:
+            _ij = json.load(_f) or {}
+            d['econ_aux'] = {'funding_history': _ij.get('funding_history') or {},
+                             'macro_snapshot': _ij.get('macro_snapshot')}
+    except Exception:
+        pass
+
     finnhub_key = os.environ.get('FINNHUB_API_KEY')
     d['stocks'] = {}
     if finnhub_key:
@@ -1139,6 +1160,64 @@ def think(data, history):
         if sym in listings.get('coinbase', set()): out.append('coinbase')
         if sym in listings.get('cryptocom', set()): out.append('cryptocom')
         return out
+    # --- Milestone 2 econ pack: per-pick candidate variables for the
+    # significance ranking. DISPLAY + GRADING ONLY — extract_features() and
+    # the score line below are untouched; nothing here feeds live scoring.
+    try:
+        import econ_features as econ_feed
+        _ECON_N = econ_feed.N_ECON
+    except (ImportError, AttributeError):
+        econ_feed = None
+        _ECON_N = 13  # len(ECON_FEATURE_NAMES); ranking pads to this
+    _econ_aux = data.get('econ_aux') or {}
+    _econ_fund_hist = _econ_aux.get('funding_history') or {}
+    _econ_macro_snap = _econ_aux.get('macro_snapshot')
+    _econ_fund_map = data.get('fund_map') or {}
+    _econ_now = datetime.now(timezone.utc).timestamp()
+    btc_chg24 = None
+    for _cid, _info in crypto.items():
+        if (_info.get('symbol') or _cid).upper() in ('BTC', 'XBT'):
+            btc_chg24 = _info.get('usd_24h_change') or 0
+            break
+
+    def _stock_econ_vals(price, dp):
+        """Stocks: round-number stop distance/squeeze only (Finnhub gives day
+        change only — no windows, no funding). Vol proxy from the day move,
+        same coarse convention as the daily crypto path. Rest null."""
+        out = [None] * _ECON_N
+        if econ_feed is not None:
+            try:
+                vol = max(abs(float(dp or 0)) / 10.0, 0.3)
+                d, sq = econ_feed.stop_distance(price, None, vol)
+                out[0] = round(d, 3) if d is not None else None
+                out[1] = sq
+            except Exception:
+                pass
+        return out
+
+    def _econ_vals_for(sym, price, chg24, chg7d, info):
+        """Ordered econ candidate values (ECON_FEATURE_NAMES order) for one
+        pick, coarse mode. Returns [None]*N on any failure — the ranking
+        treats missing as 0.0 and labels never-observed vars 'awaiting data'."""
+        if econ_feed is None:
+            return [None] * _ECON_N
+        try:
+            _frow = _econ_fund_map.get((sym or '').upper()) or {}
+            vals, _ = econ_feed.compute_econ({
+                'mode': 'coarse', 'asset': (sym or '').upper(), 'price': price,
+                'windows': {'r1h': info.get('usd_1h_change') or 0,
+                            'r24h': chg24, 'r7d': chg7d,
+                            'r14d': info.get('usd_14d_change') or 0,
+                            'r30d': info.get('usd_30d_change') or 0},
+                'funding_score': _frow.get('score'),
+                'fund_hist': _econ_fund_hist, 'now_ts': _econ_now,
+                'macro_snap': _econ_macro_snap,
+                'btc_chg24': btc_chg24, 'fg_now': fg_now,
+            })
+            return [round(v, 3) if v is not None else None for v in vals]
+        except Exception:
+            return [None] * _ECON_N
+
     for cid, info in crypto.items():
         chg24 = info.get('usd_24h_change') or 0
         chg7d = (info.get('usd_7d_change') or 0)
@@ -1190,6 +1269,7 @@ def think(data, history):
                 'tf_align': tf_align,
                 'tf_vector': [round(w, 3) for w in tf_windows],
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
+                'econ_features': _econ_vals_for(sym, price, chg24, chg7d, info),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
         (longs if score > 0 else shorts).append(pick)
@@ -1296,6 +1376,9 @@ def think(data, history):
                 'cik': TICKER_CIK.get(sym),
                 'tf_align': None,  # Finnhub gives day change only — no multi-window data
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
+                # Milestone 2: stocks carry round-number stop distance only;
+                # the rest need crypto market data (recorded null, fail-open).
+                'econ_features': _stock_econ_vals(c, dp),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
         # Insider activity (Form 4 count, 90d) — activity signal, not direction

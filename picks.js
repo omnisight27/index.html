@@ -146,6 +146,14 @@
     return t + '</p>';
   }
 
+  // Milestone 2 econ pack (engine's econ tags, display only).
+  // Shows on intraday signal and mover cards when the engine shipped one.
+  function econLine(s) {
+    var e = s.econ;
+    if (!e || !e.tags || !e.tags.length) return '';
+    return '<p><strong>Econ:</strong> ' + e.tags.join(' · ') + '</p>';
+  }
+
   function intradayCard(s, withBadge) {
     var t = s.thesis || {};
     var cls = s.direction === 'LONG' ? 'alert-buy' : 'alert-sell';
@@ -159,6 +167,7 @@
       '<p><strong>Stop:</strong> $' + t.stop_loss + ' &nbsp; <strong>Target:</strong> $' + t.take_profit + '</p>' +
       '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
       balanceLine(s) +
+      econLine(s) +
       '<p><a class="details-toggle" href="' + detailLink(s, 'intraday') + '">📄 Full detail page →</a></p>' +
       '</div>';
   }
@@ -234,6 +243,7 @@
       '<p><strong>' + (m.chg_24h >= 0 ? '+' : '') + m.chg_24h + '% 24h</strong> · ' +
       (m.chg_1h >= 0 ? '+' : '') + m.chg_1h + '% 1h · $' + Number(m.price).toLocaleString() + watchNote + '</p>' +
       balanceLine(m) +
+      econLine(m) +
       planLine +
       detail + '</div>';
   }

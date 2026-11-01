@@ -18,7 +18,7 @@ import self_tune as st
 
 
 def _row(feats, win, ret=None, cls="crypto", ts="2026-10-20T00:00:00+00:00"):
-    return {"ts": ts, "features": list(feats) + [0.0] * (st.N_FEATURES - len(feats)),
+    return {"ts": ts, "features": list(feats) + [0.0] * (st.N_ALL - len(feats)),
             "win": win, "return_pct": (1.0 if win else -1.0) if ret is None else ret,
             "cls": cls}
 
@@ -148,9 +148,9 @@ def test_paper_grade_band_counts_sum():
 def test_significance_ranking_orders_predictive_first():
     # f0 perfectly separates confidence from outcome; f1 is dead (weight 0).
     rows = [_row([20.0, 0.5], True) for _ in range(10)]
-    w = [0.5, 0.0] + [0.0] * (st.N_FEATURES - 2)
+    w = [0.5, 0.0] + [0.0] * (st.N_ALL - 2)
     ranking, base_err, base_acc = st.significance_ranking(rows, w)
-    assert len(ranking) == st.N_FEATURES
+    assert len(ranking) == st.N_ALL
     # sorted by delta_calib_pp descending
     deltas = [r["delta_calib_pp"] for r in ranking]
     assert deltas == sorted(deltas, reverse=True)
@@ -164,11 +164,51 @@ def test_significance_ranking_orders_predictive_first():
 
 def test_ablation_delta_fields_present():
     rows = [_row([2.0], True) for _ in range(6)] + [_row([2.0], False) for _ in range(6)]
-    ranking, _, _ = st.significance_ranking(rows, [0.3] * st.N_FEATURES)
+    ranking, _, _ = st.significance_ranking(rows, [0.3] * st.N_ALL)
     for r in ranking:
         assert set(r) == {"feature", "index", "weight",
-                          "delta_calib_pp", "delta_accuracy_pp"}
+                          "delta_calib_pp", "delta_accuracy_pp", "note"}
         assert math.isfinite(r["delta_calib_pp"])
+
+
+def test_candidate_screening_predictive_gets_positive_delta():
+    # Candidate dim 22 (= first econ var) perfectly predicts return direction.
+    rows = [_row([0.0] * st.N_FEATURES + [3.0], True, ret=5.0) for _ in range(8)]
+    rows += [_row([0.0] * st.N_FEATURES + [-3.0], False, ret=-5.0) for _ in range(8)]
+    w = [0.0] * st.N_ALL
+    ranking, _, _ = st.significance_ranking(rows, w, train_rows=rows)
+    by_name = {r["feature"]: r for r in ranking}
+    cand = by_name[st.ECON_FEATURE_NAMES[0]]
+    assert cand["note"] == "candidate"
+    assert cand["delta_calib_pp"] > 0  # adding it helps -> earns candidacy
+    assert cand["weight"] != 0.0  # univariate weight was fit
+
+
+def test_candidate_no_data_labeled_awaiting():
+    rows = [_row([1.0], True) for _ in range(6)] + [_row([1.0], False) for _ in range(6)]
+    ranking, _, _ = st.significance_ranking(rows, [0.0] * st.N_ALL, train_rows=rows)
+    cands = [r for r in ranking if r["note"] == "awaiting data"]
+    assert len(cands) == st.N_ECON
+    assert all(r["delta_calib_pp"] == 0.0 for r in cands)
+
+
+def test_univariate_weight_zero_variance():
+    rows = [_row([1.0], True) for _ in range(4)]
+    assert st._univariate_weight(rows, 0) == 0.0
+    assert st._univariate_weight(rows[:1], 0) == 0.0
+
+
+def test_graded_rows_extend_with_econ_features():
+    run = {"scored": True, "date": "2026-10-31T00:00:00+00:00",
+           "longs": [{"features": [1.0] * st.N_FEATURES, "win": True,
+                      "return_pct": 2.0, "class": "crypto",
+                      "econ_features": [0.5] + [None] * (st.N_ECON - 1)}],
+           "shorts": []}
+    rows = st.graded_rows_from_runs([run])
+    assert len(rows) == 1
+    assert len(rows[0]["features"]) == st.N_ALL
+    assert rows[0]["features"][st.N_FEATURES] == pytest.approx(0.5)
+    assert rows[0]["features"][-1] == 0.0  # None padded to 0.0
 
 
 # ---------------------------------------------------------- fail-open
@@ -211,8 +251,9 @@ def test_raw_confidence_bounds():
 
 def test_display_names_disambiguate_duplicates():
     names = st._display_names()
-    assert len(names) == st.N_FEATURES
-    assert len(set(names)) == st.N_FEATURES  # no two rows share a label
+    assert len(names) == st.N_ALL
+    assert len(set(names)) == st.N_ALL  # no two rows share a label
     assert names[8] == "rsi (#8)" and names[13] == "rsi (#13)"
     assert names[7] == "zscore (#7)" and names[19] == "zscore (#19)"
     assert names[6] == "acceleration"  # unique names stay bare
+    assert names[st.N_FEATURES] == st.ECON_FEATURE_NAMES[0]  # candidates appended

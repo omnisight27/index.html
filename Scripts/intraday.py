@@ -17,6 +17,10 @@ try:
     import oi_flow  # Feed #3: open-interest flow (fail-open)
 except ImportError:
     oi_flow = None
+try:
+    import econ_features as econ_feed  # Milestone 2: econ candidate pack (display only)
+except ImportError:
+    econ_feed = None
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'data')
 # Resolve relative to repo root
@@ -1415,6 +1419,17 @@ def main():
             prior_oi_history = (json.load(f) or {}).get('oi_history') or {}
     except Exception:
         pass
+    # Milestone 2 cross-run memory: funding-score history (for fund_mom) and
+    # the day-cached macro snapshot (for real_yield / fed_stance).
+    prior_fund_history = {}
+    prior_macro_snap = None
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_fund_history = _prior.get('funding_history') or {}
+            prior_macro_snap = _prior.get('macro_snapshot')
+    except Exception:
+        pass
     # Same persistence trick for the 📒 Proof Book ledger (see proof block).
     prior_proof = []
     prior_cumulative = {}
@@ -1511,6 +1526,39 @@ def main():
                                                 run_ts)
         except Exception:
             oi_hist = prior_oi_history
+    # Milestone 2: funding-score history (for the fund_mom predecessor).
+    # Same persistence trick: {ASSET: [[ts, score], ...]}, last 30.
+    fund_hist = {a: list(pts) for a, pts in prior_fund_history.items()}
+    for _a, _row in (fund_map or {}).items():
+        try:
+            _s = float((_row or {}).get('score'))
+        except (TypeError, ValueError):
+            continue
+        _pts = fund_hist.get(_a, [])
+        _pts.append([run_ts, round(_s, 3)])
+        fund_hist[_a] = _pts[-30:]
+    # Milestone 2: macro snapshot (FRED keyless CSVs, day-cached, fail-open).
+    # The official FRED API needs a key Nic doesn't have; the keyless chart
+    # CSV is the same endpoint the Economy page fetches in-browser.
+    macro_snap = prior_macro_snap
+    try:
+        _today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        if (econ_feed is not None and
+                (not isinstance(macro_snap, dict) or macro_snap.get('asof') != _today)):
+            _fresh = econ_feed.refresh_macro_snapshot(macro_snap)
+            if _fresh is not None and _fresh is not macro_snap:
+                macro_snap = _fresh
+                print(f"  [econ] macro snapshot refreshed (asof {_fresh.get('asof')})")
+    except Exception as e:
+        print(f'  [warn] macro refresh failed: {e}')
+    # BTC 24h trend for the liquidity-regime proxy (first BTC/XBT in universe).
+    btc_chg24 = None
+    for _c in universe:
+        if (_c.get('symbol') or '').upper() in ('BTC', 'XBT'):
+            btc_chg24 = (_c.get('price_change_percentage_24h_in_currency')
+                         if _c.get('price_change_percentage_24h_in_currency') is not None
+                         else _c.get('price_change_percentage_24h'))
+            break
     mkts = universe[:200]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
@@ -1551,6 +1599,30 @@ def main():
         _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
                    if p is not None]
         bs, bs_parts = balance_score(_closes, volumes=_vols, closes_7d=_spark7)
+        # Milestone 2 econ pack (display only — never a buy input). Coil
+        # delta = compression now vs prior 24h, from the 7d sparkline.
+        econ_display = None
+        if econ_feed is not None:
+            try:
+                _coil = None
+                if _spark7 and len(_spark7) >= 48:
+                    _b_now, _ = balance_score(_spark7[-24:], closes_7d=_spark7)
+                    _b_prev, _ = balance_score(_spark7[-48:-24], closes_7d=_spark7)
+                    if _b_now is not None and _b_prev is not None:
+                        _coil = round(_b_now - _b_prev, 3)
+                _frow = (fund_map or {}).get(sym) or {}
+                _, econ_display = econ_feed.compute_econ({
+                    'mode': 'full', 'asset': sym, 'price': _closes[-1],
+                    'closes': _closes, 'volumes': _vols,
+                    'funding_score': _frow.get('score'),
+                    'fund_hist': fund_hist, 'oi_hist': oi_hist,
+                    'chg_1h': f.get('chg_1h'), 'now_ts': run_ts,
+                    'coil_delta': _coil, 'macro_snap': macro_snap,
+                    'btc_chg24': btc_chg24, 'fg_now': None,
+                })
+            except Exception as e:
+                print(f'  [warn] econ pack failed for {sym}: {e}')
+                econ_display = None
         score = score_intraday(f)
         conf = min(95, max(40, 50 + abs(score) * 3))
         # Only signals with meaningful score
@@ -1567,6 +1639,8 @@ def main():
             # Auction-market balance (display only — never a buy input)
             'balance_score': bs, 'balance_parts': bs_parts,
             'coiled': bool(bs is not None and bs >= COILED_THRESHOLD),
+            # Milestone 2 econ pack (display only — never a buy input)
+            'econ': econ_display,
         })
 
     signals.sort(key=lambda s: -abs(s['score']))
@@ -1607,6 +1681,30 @@ def main():
         out['balance_score'] = _bs
         out['balance_parts'] = _bs_parts
         out['coiled'] = bool(_bs is not None and _bs >= COILED_THRESHOLD)
+        # Milestone 2 econ pack, TPO mode (closes only, no hourly volumes —
+        # time-at-price zones instead of volume-weighted). Display only.
+        out['econ'] = None
+        if econ_feed is not None:
+            try:
+                _coil_m = None
+                if _spark7 and len(_spark7) >= 48:
+                    _bn, _ = balance_score(_spark7[-24:], closes_7d=_spark7)
+                    _bp, _ = balance_score(_spark7[-48:-24], closes_7d=_spark7)
+                    if _bn is not None and _bp is not None:
+                        _coil_m = round(_bn - _bp, 3)
+                _frow_m = (fund_map or {}).get(out['asset']) or {}
+                _, _econ_m = econ_feed.compute_econ({
+                    'mode': 'tpo', 'asset': out['asset'], 'price': out['price'],
+                    'closes': _spark7,
+                    'funding_score': _frow_m.get('score'),
+                    'fund_hist': fund_hist, 'oi_hist': oi_hist,
+                    'chg_1h': out.get('chg_1h'), 'now_ts': run_ts,
+                    'coil_delta': _coil_m, 'macro_snap': macro_snap,
+                    'btc_chg24': btc_chg24, 'fg_now': None,
+                })
+                out['econ'] = _econ_m
+            except Exception:
+                out['econ'] = None
         return out
     # `scanned` is defined above (before the feeds) so the funding/OI
     # calls see it; it anchors the ratio quartile and the scan entries.
@@ -1843,6 +1941,8 @@ def main():
         'accum': accum,
         'accum_history': new_history,
         'oi_history': oi_hist,
+        'funding_history': fund_hist,
+        'macro_snapshot': macro_snap,
         'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative},
         'coins_scanned': len(mkts),
     }
