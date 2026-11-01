@@ -1327,6 +1327,7 @@ def proof_flagged_cells(cells):
         flags.append({'type': row['type'], 'direction': row['direction'],
                       'band': row['band'], 'regime': row['regime'],
                       'graded': row['graded'], 'win_rate': wr,
+                      'paper_pnl_total': row.get('paper_pnl_total', 0.0),
                       'candidate': cand, 'recommendation_only': True})
     return flags
 

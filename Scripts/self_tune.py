@@ -551,10 +551,15 @@ def write_outputs(ctx):
     date = ctx["date"]
     try:
         REPORT_DIR.mkdir(parents=True, exist_ok=True)
-        (REPORT_DIR / f"self-tune-{date}.md").write_text(build_report(ctx))
-        print(f"[self-tune] report -> {REPORT_DIR / f'self-tune-{date}.md'}")
+        rp = REPORT_DIR / f"self-tune-{date}.md"
+        rp.write_text(build_report(ctx))
+        # Verify the write: a silently-missing report once left the
+        # weights updated with no matching human-readable record.
+        if not rp.exists() or rp.stat().st_size == 0:
+            raise OSError(f"report missing or empty after write: {rp}")
+        print(f"[self-tune] report -> {rp}")
     except Exception as e:
-        warn(f"could not write report: {e}")
+        warn(f"could not write report: {type(e).__name__}: {e}")
 
     names = _display_names()
     payload = {
