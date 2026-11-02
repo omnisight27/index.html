@@ -610,6 +610,22 @@ def test_flagged_cells_need_n20_and_extreme_rate():
     assert all(f['recommendation_only'] for f in flags)
 
 
+def test_proof_cell_excluded_exact_match_only():
+    # Nic 2026-11-01: mover·LONG·caution is excluded from alerts.
+    assert intraday.proof_cell_excluded('mover', 'LONG', 'na', 'risk_off') is True
+    # Everything else flows: the mixed mover cell was deliberately NOT
+    # excluded, nor were signals, setups, or other regimes/bands.
+    assert intraday.proof_cell_excluded('mover', 'LONG', 'na', 'neutral') is False
+    assert intraday.proof_cell_excluded('mover', 'LONG', 'na', 'risk_on') is False
+    assert intraday.proof_cell_excluded('mover', 'LONG', 'na', 'unknown') is False
+    assert intraday.proof_cell_excluded('signal', 'LONG', '70s', 'risk_off') is False
+    assert intraday.proof_cell_excluded('setup', 'LONG', 'na', 'risk_off') is False
+    assert intraday.proof_cell_excluded('mover', 'SHORT', 'na', 'risk_off') is False
+    # Fail-open: unparseable/uncertain tags never exclude.
+    assert intraday.proof_cell_excluded('mover', 'LONG', 'na', None) is False
+    assert intraday.proof_cell_excluded(None, None, None, None) is False
+
+
 def test_backfill_regimes_from_swing_runs():
     runs = [(BASE - _dt.timedelta(days=2), 'RISK_OFF'),
             (BASE - _dt.timedelta(hours=1), 'RISK_ON')]

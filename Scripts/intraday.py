@@ -1331,6 +1331,35 @@ def proof_flagged_cells(cells):
                       'candidate': cand, 'recommendation_only': True})
     return flags
 
+# Proof Book ALERT exclusions — scenario cells Nic has reviewed and
+# decided must never trigger a WhatsApp alert. Declared HERE, next to
+# the flag machinery that recommends them; honored ONLY at
+# alert-eligibility time (scripts/intraday-sms.py reads this list).
+# Nothing else consults it: scoring, gates, verdicts, the Picks page,
+# the daily email, and the Proof Book recording itself are untouched —
+# an excluded cell stays in the book and keeps grading, so a recovery
+# would show up in the next review.
+# Cell key format: (kind, direction, band, regime) — identical to
+# proof_cell_key(). Movers are always recorded direction='LONG',
+# band='na' (see the proof_cands loop), so the mover cell covers
+# every mover recorded while that regime is in force.
+PROOF_ALERT_EXCLUDED_CELLS = [
+    # Nic 2026-11-01: mover·LONG·caution — 17.6% over 48 graded,
+    # -$1,026 paper P&L. The mover·LONG·mixed cell (35.0%, +$44.73)
+    # was deliberately NOT excluded.
+    ('mover', 'LONG', 'na', 'risk_off'),
+]
+
+def proof_cell_excluded(kind, direction, band, regime):
+    """True when the scenario cell (kind, direction, band, regime) is
+    on Nic's alert-exclusion list. Exact match only — an uncertain or
+    unrecorded tag never excludes (fail-open: alerts flow)."""
+    try:
+        key = (str(kind), str(direction), str(band), str(regime))
+    except Exception:
+        return False
+    return key in PROOF_ALERT_EXCLUDED_CELLS
+
 def proof_roll_cumulative(cumulative, dropped):
     """Fold closed entries that are about to roll off the capped
     ledger into the persistent per-cell counters (stored in the proof
