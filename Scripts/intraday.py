@@ -201,6 +201,10 @@ def build_intraday_thesis(sym, f, score):
     direction = 'LONG' if score > 0 else 'SHORT'
     vol = f['vol']
     price = f['price']
+    if not clears_fee_floor(vol):
+        # Same fee gate as build_mover_plan: a sub-fee target is a
+        # guaranteed net loser even when the direction call is right.
+        return None
     if direction == 'LONG':
         stop = price * (1 - vol / 100 * 0.8)
         target = price * (1 + vol / 100 * 1.2)
@@ -292,6 +296,25 @@ def sparkline_vol_map(universe):
     median = vols[len(vols) // 2] if vols else None
     return vol_by_id, median
 
+# --- Fee-aware plan floor (Nic 2026-11-01: a +1.02% gross winner netted
+# -$1.90 after $6.96 round-trip fees on ~$500 — 1.4% cost drag).
+# No plan is emitted whose gross target can't clear twice the round-trip
+# cost (his 2:1 doctrine, applied to the certain cost). Measured from his
+# fills: 0.9% taker entry + 0.5% maker exit on Coinbase Advanced (US intro
+# tier, post-Sept-2026 schedule). If he commits to maker-only entries,
+# drop FEE_ROUNDTRIP_PCT to 1.0.
+FEE_ROUNDTRIP_PCT = 1.4
+FEE_TARGET_MULT = 2.0
+FEE_TARGET_FLOOR_PCT = FEE_ROUNDTRIP_PCT * FEE_TARGET_MULT  # 2.8
+
+def clears_fee_floor(vol):
+    """True when the plan's gross target (vol x 1.2) clears the fee floor.
+
+    vol is hourly RMS %; both plan builders target vol x 1.2. A plan that
+    can't gross twice its round-trip cost is a guaranteed net loser even
+    when the direction call is right — so it is never emitted."""
+    return vol is not None and vol * 1.2 >= FEE_TARGET_FLOOR_PCT
+
 # --- Runner / stretch target (Nic 2026-10-29: HYPE printed its +1.6% target
 # then ran to +6% — "a little quick on the sell"). When hourly momentum is
 # strong and the coin is NOT overbought, the plan carries a second, farther
@@ -331,6 +354,10 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
     (runner allowed; momentum gates still bind)."""
     from datetime import timedelta
     if not price or not vol:
+        return None
+    if not clears_fee_floor(vol):
+        # Target (vol x 1.2) can't clear twice the round-trip fee — emitting
+        # it would be a guaranteed net loser. Caller shows the fee note.
         return None
     entry = price
     stop = entry * (1 - vol / 100 * 0.6)
@@ -1659,6 +1686,8 @@ def main():
         if abs(score) < 3:
             continue
         thesis = build_intraday_thesis(sym, f, score)
+        if thesis is None:
+            continue  # fee floor: target can't clear round-trip costs
         signals.append({
             'asset': sym, 'score': round(score, 2), 'confidence': round(conf),
             'direction': thesis['direction'], 'thesis': thesis,
@@ -1826,7 +1855,11 @@ def main():
         if oflow:
             m['oi_flow'] = oflow
         if m['plan'] is None and with_note:
-            m['plan_note'] = 'Plan unavailable — price feed hiccup.'
+            if vol and not clears_fee_floor(vol):
+                m['plan_note'] = ('Target below fee floor — '
+                                  'no plan at this fee tier.')
+            else:
+                m['plan_note'] = 'Plan unavailable — price feed hiccup.'
     for m in movers:
         attach_plan(m)
     for w in watch[:3]:

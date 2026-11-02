@@ -58,8 +58,9 @@ def coin(cid, sym, price, chg_1h, chg_24h, spark=None, mcap=500_000_000):
     return c
 
 
-# A calm ~1%/h RMS series and a wild ~4%/h RMS series.
-CALM_RETS = [1.0, -1.0] * 24
+# A moderate ~2.5%/h RMS series (clears the 2.8% fee-target floor) and a
+# wild ~4%/h RMS series.
+CALM_RETS = [2.5, -2.5] * 24
 WILD_RETS = [4.0, -4.0] * 24
 
 
@@ -149,7 +150,7 @@ def test_mover_plans_from_sparkline_no_network(monkeypatch):
 
 
 def test_mover_plan_subcent_rounding():
-    plan = intraday.build_mover_plan(0.00000456, 2.0)
+    plan = intraday.build_mover_plan(0.00000456, 3.0)
     assert plan is not None
     assert plan['entry'] == 0.00000456  # 8-decimal rounding, not $0.00
     assert plan['stop_loss'] > 0
@@ -161,27 +162,27 @@ def test_mover_plan_subcent_rounding():
 def test_stretch_target_appears_on_strong_momentum():
     """HYPE 2026-10-29 shape: +1.84% last hour, +13.6% 24h, RSI cool — the
     plan should carry a runner strictly above the base target."""
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58)
     assert plan['stretch_target'] > plan['take_profit'] > plan['entry'] > plan['stop_loss']
-    assert plan['stretch_return_pct'] == round(1.34 * 2.0, 2)
+    assert plan['stretch_return_pct'] == round(3.0 * 2.0, 2)
     assert 'momentum supports a runner' in plan['stretch_note']
 
 
 def test_stretch_absent_on_weak_hour():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=0.4,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=0.4,
                                      chg_24h=13.62, rsi=58)
     assert 'stretch_target' not in plan
 
 
 def test_stretch_absent_when_overbought():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=2.5,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=2.5,
                                      chg_24h=15.0, rsi=76)
     assert 'stretch_target' not in plan
 
 
 def test_stretch_absent_on_small_day():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=2.5,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=2.5,
                                      chg_24h=6.0, rsi=58)
     assert 'stretch_target' not in plan
 
@@ -189,7 +190,7 @@ def test_stretch_absent_on_small_day():
 def test_stretch_missing_rsi_fails_open():
     """No RSI (short sparkline) — the momentum gates still bind, so a
     runner is allowed; nothing is gated on data we don't have."""
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=None)
     assert plan['stretch_target'] > plan['take_profit']
 
@@ -197,7 +198,7 @@ def test_stretch_missing_rsi_fails_open():
 def test_stretch_backward_compatible_without_momentum():
     """Old two-arg call (all existing callers/tests) never gains a runner;
     the base plan math is untouched."""
-    plan = intraday.build_mover_plan(90.82, 1.34)
+    plan = intraday.build_mover_plan(90.82, 3.0)
     assert 'stretch_target' not in plan
     assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
 
@@ -228,7 +229,7 @@ def test_sparkline_rsi_too_short_is_none():
 def test_runner_suppressed_on_adverse_oi_flow():
     """Momentum + calm funding want a runner, but OI is piling in against
     the move — withheld, with the reason named."""
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=-0.8, oi_chg_1h_pct=22.0)
@@ -240,7 +241,7 @@ def test_runner_suppressed_on_adverse_oi_flow():
 
 
 def test_runner_suppressed_names_both_blocks():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=-0.8,
                                      funding_ann_pct=85.0,
@@ -251,7 +252,7 @@ def test_runner_suppressed_names_both_blocks():
 
 
 def test_runner_healthy_oi_flow_allowed():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=0.76, oi_chg_1h_pct=15.0)
@@ -260,7 +261,7 @@ def test_runner_healthy_oi_flow_allowed():
 
 
 def test_runner_missing_oi_fails_open():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=None, oi_chg_1h_pct=None)
@@ -272,7 +273,7 @@ def test_runner_missing_oi_fails_open():
 def test_runner_suppressed_on_crowded_longs():
     """Strong momentum wants a runner, but funding says the longs are
     crowded — the runner is withheld and the plan says why."""
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=-0.8,
                                      funding_ann_pct=85.0)
@@ -285,7 +286,7 @@ def test_runner_suppressed_on_crowded_longs():
 
 
 def test_runner_allowed_on_neutral_funding():
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      funding_ann_pct=12.0)
@@ -295,7 +296,7 @@ def test_runner_allowed_on_neutral_funding():
 
 def test_runner_missing_funding_fails_open():
     """Feed #2 down: momentum gates still bind, runner allowed."""
-    plan = intraday.build_mover_plan(90.82, 1.34, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=None,
                                      funding_ann_pct=None)
@@ -372,14 +373,14 @@ def test_main_no_sparklines_anywhere_keeps_honest_null(monkeypatch, tmp_path):
 # $0.0023 — target == entry — after 4-decimal rounding.)
 
 def test_mover_plan_subcent_strict_order():
-    plan = intraday.build_mover_plan(0.0024, 1.5)
+    plan = intraday.build_mover_plan(0.0024, 3.0)
     assert plan is not None
     assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
     assert plan['take_profit'] != plan['entry']
 
 
 def test_thesis_subcent_strict_order():
-    f = {'vol': 2.0, 'price': 0.0062, 'chg_1h': 1.5,
+    f = {'vol': 3.0, 'price': 0.0062, 'chg_1h': 1.5,
          'rsi': 50.0, 'pos_in_range': 0.5}
     th = intraday.build_intraday_thesis('ATH', f, 5.0)
     assert th['direction'] == 'LONG'
@@ -387,6 +388,39 @@ def test_thesis_subcent_strict_order():
     th = intraday.build_intraday_thesis('ATH', f, -5.0)
     assert th['direction'] == 'SHORT'
     assert th['take_profit'] < th['entry'] < th['stop_loss']
+
+
+# ----------------- fee floor (2026-11-01: +1.02% gross winner netted -$1.90
+# after $6.96 round-trip fees — no plan may target less than 2x costs)
+
+def test_fee_floor_gates_low_vol_thesis():
+    f = {'vol': 0.5, 'price': 100.0, 'chg_1h': 1.5,
+         'rsi': 50.0, 'pos_in_range': 0.5}
+    # 0.5 x 1.2 = 0.6% target < 2.8% floor -> no plan
+    assert intraday.build_intraday_thesis('LOW', f, 5.0) is None
+
+
+def test_fee_floor_gates_low_vol_mover():
+    # 1.5 x 1.2 = 1.8% target < 2.8% floor -> no plan
+    assert intraday.build_mover_plan(100.0, 1.5) is None
+
+
+def test_fee_floor_boundary_passes():
+    # 2.4 x 1.2 = 2.88% >= 2.8% floor -> plan emitted
+    plan = intraday.build_mover_plan(100.0, 2.4)
+    assert plan is not None
+    assert plan['take_profit'] > plan['entry'] > plan['stop_loss']
+    f = {'vol': 2.4, 'price': 100.0, 'chg_1h': 1.5,
+         'rsi': 50.0, 'pos_in_range': 0.5}
+    th = intraday.build_intraday_thesis('OK', f, 5.0)
+    assert th is not None
+
+
+def test_clears_fee_floor_math():
+    assert intraday.FEE_TARGET_FLOOR_PCT == 2.8
+    assert intraday.clears_fee_floor(0.3) is False
+    assert intraday.clears_fee_floor(2.34) is True   # 2.34 x 1.2 = 2.808
+    assert intraday.clears_fee_floor(None) is False
 
 
 def test_round_price_mirrors_swing_engine():
