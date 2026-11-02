@@ -1072,7 +1072,10 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
     else:
         stop = price * (1 + vol / 100 * 1.0)
         target = price * (1 - vol / 100 * 2.0)
-    rr = abs(target - price) / max(abs(price - stop), 0.01)
+    rr_denom = abs(price - stop)
+    # No absolute floor: max(..., 0.01) crushed the ratio for sub-cent
+    # coins (2026-11-02: BEAM printed R:R 0.06 on a true 2:1 plan).
+    rr = abs(target - price) / rr_denom if rr_denom > 0 else 0
     # Expected return % if target hits
     exp_return_pct = abs(target - price) / price * 100 if price else 0
     # Max loss % if stopped out
