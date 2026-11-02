@@ -188,8 +188,29 @@ def test_candidate_no_data_labeled_awaiting():
     rows = [_row([1.0], True) for _ in range(6)] + [_row([1.0], False) for _ in range(6)]
     ranking, _, _ = st.significance_ranking(rows, [0.0] * st.N_ALL, train_rows=rows)
     cands = [r for r in ranking if r["note"] == "awaiting data"]
-    assert len(cands) == st.N_ECON
+    assert len(cands) == st.N_ECON + st.N_INSIDER
     assert all(r["delta_calib_pp"] == 0.0 for r in cands)
+
+
+def test_insider_candidate_screened_like_econ():
+    # Insider dims ride after the econ dims; a predictive insider_score
+    # screens positive at its univariate weight, same machinery.
+    idx = st.N_FEATURES + st.N_ECON  # first insider dim
+    rows = [_row([0.0] * idx + [1.0], True, ret=5.0) for _ in range(8)]
+    rows += [_row([0.0] * idx + [-1.0], False, ret=-5.0) for _ in range(8)]
+    w = [0.0] * st.N_ALL
+    ranking, _, _ = st.significance_ranking(rows, w, train_rows=rows)
+    by_name = {r["feature"]: r for r in ranking}
+    cand = by_name[st.INSIDER_FEATURE_NAMES[0]]
+    assert cand["note"] == "candidate"
+    assert cand["delta_calib_pp"] > 0
+    assert cand["weight"] != 0.0
+
+
+def test_insider_pad_fail_open():
+    assert st._insider_pad(None) == [0.0] * st.N_INSIDER
+    assert st._insider_pad([1.0]) == [1.0] + [0.0] * (st.N_INSIDER - 1)
+    assert st._insider_pad([1.0, 0.0, -0.5, 9.9]) == [1.0, 0.0, -0.5]
 
 
 def test_univariate_weight_zero_variance():

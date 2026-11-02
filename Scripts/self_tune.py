@@ -61,14 +61,16 @@ from nexintel import (  # noqa: E402  (same trainer/scoring code the live engine
     _excluded_pick, _pad, clamp, CONF_BANDS,
 )
 from econ_features import ECON_FEATURE_NAMES, N_ECON  # noqa: E402  (milestone-2 candidates)
+from insider import INSIDER_FEATURE_NAMES, N_INSIDER  # noqa: E402  (insider-flow candidates)
 
-# Candidate (econ) variables ride AFTER the live 22 dims. They are recorded
-# per pick by the daily engine as `econ_features` (ordered like
-# ECON_FEATURE_NAMES); older picks predate them and pad to 0.0 — the same
-# fail-open convention as _pad. The live engine never sees these dims:
-# its scoring slices the first N_FEATURES, so the baseline below reproduces
-# live behavior exactly (candidate weights start at 0.0).
-N_ALL = N_FEATURES + N_ECON
+# Candidate (econ + insider) variables ride AFTER the live 22 dims. They are
+# recorded per pick by the daily engine as `econ_features` (ordered like
+# ECON_FEATURE_NAMES) and `insider_features` (INSIDER_FEATURE_NAMES order);
+# older picks predate them and pad to 0.0 — the same fail-open convention
+# as _pad. The live engine never sees these dims: its scoring slices the
+# first N_FEATURES, so the baseline below reproduces live behavior exactly
+# (candidate weights start at 0.0).
+N_ALL = N_FEATURES + N_ECON + N_INSIDER
 
 LEDGER_PATH = REPO_ROOT / "data" / "history.json"
 PROPOSED_PATH = REPO_ROOT / "data" / "proposed_weights.json"
@@ -120,6 +122,20 @@ def _econ_pad(ef):
     return out
 
 
+def _insider_pad(inf):
+    """Pad/truncate a pick's insider_features to N_INSIDER. None/missing ->
+    0.0 (fail open). Stock picks recorded before the insider feed carry no
+    insider_features and pad to zero — labeled 'awaiting data' in ranking."""
+    out = []
+    for i in range(N_INSIDER):
+        try:
+            v = inf[i] if inf else None
+        except (TypeError, IndexError):
+            v = None
+        out.append(0.0 if v is None else float(v))
+    return out
+
+
 def graded_rows_from_runs(runs):
     """Flatten scored runs into graded rows, honoring the exclusion list."""
     rows = []
@@ -135,7 +151,8 @@ def graded_rows_from_runs(runs):
                 continue
             rows.append({
                 "ts": ts,
-                "features": _pad(f) + _econ_pad(p.get("econ_features")),
+                "features": (_pad(f) + _econ_pad(p.get("econ_features"))
+                             + _insider_pad(p.get("insider_features"))),
                 "win": bool(win),
                 "return_pct": float(rp),
                 "cls": p.get("class") or "crypto",
@@ -339,7 +356,8 @@ def significance_ranking(rows, weights, train_rows=None):
       delta < 0  -> removing it HELPS: it is pushing confidence the wrong way
     Directional-accuracy delta is reported alongside for the second angle.
 
-    Candidate variables (dims >= N_FEATURES, the milestone-2 econ pack) start
+    Candidate variables (dims >= N_FEATURES — the milestone-2 econ pack and
+    the insider-flow pack) start
     at weight 0.0, so plain ablation would always read zero. Instead each
     candidate is screened at its univariate-optimal weight (fit on the TRAIN
     slice, never the holdout): delta = base_err - err(with candidate). The
@@ -391,7 +409,8 @@ def significance_ranking(rows, weights, train_rows=None):
 def _display_names():
     """Feature names, disambiguated with (#index) where the engine reuses
     a name (e.g. base 'rsi' vs model-library 'rsi')."""
-    names = list(FEATURE_NAMES[:N_FEATURES]) + list(ECON_FEATURE_NAMES)
+    names = (list(FEATURE_NAMES[:N_FEATURES]) + list(ECON_FEATURE_NAMES)
+             + list(INSIDER_FEATURE_NAMES))
     while len(names) < N_FEATURES:
         names.append(f"f{len(names)}")
     counts = {}
@@ -498,7 +517,7 @@ def build_report(ctx):
     A('Nic\'s definition: "Significance is predictability based on variables '
       'used for an outcome." Live variables: each weight was set to zero and '
       'the holdout re-graded — the delta is how much outcome predictability '
-      'changed. Candidate variables (milestone-2 econ pack, marked '
+      'changed. Candidate variables (econ + insider packs, marked '
       '"candidate"): screened at their univariate-optimal weight fit on the '
       'TRAIN slice — the delta is how much the holdout error drops when the '
       'candidate joins the live baseline. Positive = removing it HURTS '
@@ -538,7 +557,7 @@ def build_report(ctx):
       "therefore effectively single-band.")
     A("- One conservative step (max +/-50% per weight, line-searched). "
       "Nothing is applied to the live engine.")
-    A("- Candidate (econ) variables start at weight 0.0, so the shadow "
+    A("- Candidate (econ + insider) variables start at weight 0.0, so the shadow "
       "gradient step cannot move them (multiplicative update); they are "
       "screened by the univariate ranking above, and promotion to the live "
       "vector needs Nic's explicit approval.")
@@ -610,10 +629,10 @@ def run_tuning(ledger_path=LEDGER_PATH):
 
     w0, info = learn_weights({"picks": train_runs})
     w0 = list(w0)  # copy -- never mutate the module-level HEURISTIC_W
-    # Candidate (econ) dims start at 0.0: they contribute nothing to the
-    # baseline score, so base_err/base_acc below reproduce the LIVE engine
-    # exactly. Candidates are screened separately in the ranking.
-    w0 = w0 + [0.0] * N_ECON
+    # Candidate (econ + insider) dims start at 0.0: they contribute nothing
+    # to the baseline score, so base_err/base_acc below reproduce the LIVE
+    # engine exactly. Candidates are screened separately in the ranking.
+    w0 = w0 + [0.0] * (N_ECON + N_INSIDER)
     baseline_source = (f"trained on {info.get('samples')} train picks"
                        if info.get("trained") else
                        f"heuristic (warming up: {info.get('samples')} samples)")

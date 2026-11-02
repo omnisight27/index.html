@@ -1326,34 +1326,16 @@ def think(data, history):
         'DIS': 'Walt Disney Co.', 'INTC': 'Intel Corp.', 'COIN': 'Coinbase Global Inc.', 'MSTR': 'MicroStrategy Inc.',
         'PLTR': 'Palantir Technologies Inc.',
     }
-    # --- SEC insider activity: count Form 4 filings in the last 90 days ---
-    # v1 counts filings only — buy vs sell needs per-form parsing, so the note
-    # never claims a direction. Per-run cache; SEC downtime must never break us.
-    # NOTE: SEC 403s user-agents without a name + email-style contact.
-    _sec_cache = {}
-    def insider_activity(cik):
-        if cik in _sec_cache:
-            return _sec_cache[cik]
-        result = None
-        try:
-            sub = fetch_json(f'https://data.sec.gov/submissions/CIK{cik:010d}.json',
-                             headers={'User-Agent': 'OmniSight Research contact@omnisight.local',
-                                      'Accept': 'application/json'})
-            recent = (sub or {}).get('filings', {}).get('recent', {})
-            forms = recent.get('form', [])
-            dates = recent.get('filingDate', [])
-            cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).strftime('%Y-%m-%d')
-            count = 0
-            for form, fdate in zip(forms, dates):
-                if fdate < cutoff:
-                    break  # filings are newest-first — nothing older counts
-                if form == '4':
-                    count += 1
-            result = count
-        except Exception as e:
-            print(f'  SEC insider lookup failed for CIK {cik}: {e}')
-        _sec_cache[cik] = result
-        return result
+    # --- Insider flow feed (SEC EDGAR Form 4 buy/sell, Nic 2026-11-01) ---
+    # Real per-form parsing (open-market P purchases vs S sales, 90d),
+    # replacing the v1 filing-count. DISPLAY + GRADING ONLY — the score
+    # never touches live scoring, gates, alerts, or verdicts; the
+    # significance ranking grades insider_features as candidates.
+    try:
+        from insider import get_insider as _get_insider, N_INSIDER as _N_INSIDER
+    except (ImportError, AttributeError):
+        _get_insider = None
+        _N_INSIDER = 3  # len(INSIDER_FEATURE_NAMES); ranking pads to this
 
     for sym, q in data.get('stocks', {}).items():
         dp = q.get('dp') or 0  # day percent change
@@ -1381,15 +1363,17 @@ def think(data, history):
                 'econ_features': _stock_econ_vals(c, dp),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
-        # Insider activity (Form 4 count, 90d) — activity signal, not direction
+        # Insider flow (Form 4 buy/sell, 90d) — display + grading candidates.
+        # Direction-aware note; the score never feeds live scoring.
         cik = TICKER_CIK.get(sym)
-        if cik:
-            n_insider = insider_activity(cik)
-            if n_insider is not None:
-                pick['insider_recent'] = n_insider
-                if n_insider >= 3:
-                    pick['reason'] += (f' Insider activity: {n_insider} Form 4 filings '
-                                       f'in 90d — see SEC deep dive.')
+        if cik and _get_insider is not None:
+            ins = _get_insider(sym, cik)
+            if ins:
+                pick['insider'] = ins
+                pick['insider_features'] = list(ins.get('features') or [0.0] * _N_INSIDER)
+                pick['insider_recent'] = ins.get('n_filings', 0)  # back-compat
+                for tag in ins.get('tags', []):
+                    pick['reason'] += ' ' + tag
         (longs if score > 0 else shorts).append(pick)
 
     # --- Contracts watch (Contract Intel): flag mega-awards with tickers ---

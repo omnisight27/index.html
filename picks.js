@@ -105,6 +105,7 @@
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
       '<p class="live-stamp">' + plainReason(p.reason) + '</p>' +
+      insiderLine(p) +
       '<p><a class="details-toggle" href="' + detailLink(p, 'swing', side) + '">📄 Full detail page →</a></p>' +
       modelDetails(p) + '</div>';
   }
@@ -152,6 +153,14 @@
     var e = s.econ;
     if (!e || !e.tags || !e.tags.length) return '';
     return '<p><strong>Econ:</strong> ' + e.tags.join(' · ') + '</p>';
+  }
+
+  // Insider flow feed (engine's Form 4 buy/sell tags, display only).
+  // Shows on equity pick cards when the engine shipped one.
+  function insiderLine(p) {
+    var ins = p.insider;
+    if (!ins || !ins.tags || !ins.tags.length) return '';
+    return '<p><strong>Insiders:</strong> ' + ins.tags.join(' · ') + '</p>';
   }
 
   function intradayCard(s, withBadge) {

@@ -27,8 +27,19 @@ import json
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nexintel
+import insider
+
+
+@pytest.fixture(autouse=True)
+def _no_live_insider(monkeypatch):
+    """think() fixtures carry stock tickers; the insider feed is network-
+    bound, so stub it — these tests assert market/scoring behavior, not
+    the feed (covered in test_insider.py)."""
+    monkeypatch.setattr(insider, 'get_insider', lambda ticker, cik: None)
 
 
 # ------------------------------------------------------------- thesis plans
