@@ -11,12 +11,16 @@ API keys (FRED, Finnhub, EIA) are read from environment variables = GitHub Secre
 If a key is absent, that feed is skipped gracefully — the engine degrades, never dies.
 """
 
-import json, os, math, time, urllib.request, urllib.parse, urllib.error
+import json, os, math, time, sys, tempfile, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
 os.makedirs(SNAP_DIR, exist_ok=True)
+# --check (dry run): all file I/O is redirected to a throwaway temp dir, so a
+# local smoke test can never overwrite data/latest.json, data/history.json,
+# the proof ledger, or the snapshots the scheduled loop publishes.
+CHECK_MODE = '--check' in sys.argv[1:]
 
 # Stock + ETF universe scored every run (Finnhub quotes). NRR + SCHD added
 # 2026-10-25 at Nic's request: NRR is the Bitwise NEAR ETF (trading since
@@ -1956,6 +1960,14 @@ def publish(data, signals, history, data_pulled_at=None):
     print(f'PUBLISH: data/latest.json written ({len(signals["longs"])}L/{len(signals["shorts"])}S)')
 
 def main():
+    global DATA_DIR, SNAP_DIR
+    if CHECK_MODE:
+        # Redirect every data write to a throwaway dir — reads fall back to
+        # their graceful empty defaults (load_history catches the miss, etc.).
+        DATA_DIR = tempfile.mkdtemp(prefix='nexintel-check-')
+        SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
+        os.makedirs(SNAP_DIR, exist_ok=True)
+        print(f'=== CHECK MODE: no writes to the repo data dir (using {DATA_DIR}) ===')
     print('=== NexIntel loop starting ===')
     data = ingest()
     # Market-data pull complete — stamp it so the frontend can show
