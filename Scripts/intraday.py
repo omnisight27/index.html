@@ -431,9 +431,16 @@ def build_accum_plan(price, vol, range_high=None):
     (1 + 0.5 x hourly vol), one half-vol step above spot as the
     confirmation level. Returns None when no volatility is available
     from anywhere, so the caller ships plan: null and the alert falls
-    back to a WATCH card instead of invented numbers."""
+    back to a WATCH card instead of invented numbers. Also returns None
+    when the gross target (vol x 1.2) can't clear the fee floor — same
+    gate as thesis/mover plans (Nic 2026-11-01: a sub-fee target is a
+    guaranteed net loser even when the direction call is right)."""
     from datetime import timedelta
     if not price or not vol:
+        return None
+    if not clears_fee_floor(vol):
+        # Target (vol x 1.2) can't clear twice the round-trip fee —
+        # emitting it would be a guaranteed net loser. Caller shows WATCH.
         return None
     if range_high and price < range_high <= price * 1.05:
         trigger = range_high
@@ -1905,8 +1912,10 @@ def main():
             'watch_reason': reason,
         })
         # Trigger plan from the same sparkline vol map as mover plans
-        # (median fallback included); plan stays None only when no
-        # volatility exists anywhere — the alert then shows WATCH.
+        # (median fallback included); plan stays None when no
+        # volatility exists anywhere or when the gross target can't
+        # clear the fee floor (build_accum_plan gates both) — the
+        # alert then shows WATCH.
         a['plan'] = build_accum_plan(a['price'],
                                      vol_by_id.get(c.get('id')) or median_vol,
                                      c.get('high_24h'))

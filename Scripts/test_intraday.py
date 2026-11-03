@@ -405,6 +405,18 @@ def test_fee_floor_gates_low_vol_mover():
     assert intraday.build_mover_plan(100.0, 1.5) is None
 
 
+def test_fee_floor_gates_low_vol_accum():
+    # Setting-up plans are still buy cards — a sub-fee target is a
+    # guaranteed net loser, so no plan is emitted (2026-11-03: the
+    # 2026-11-01 gate missed the accum path; 7 sub-floor cards printed).
+    # 2.0 x 1.2 = 2.4% target < 2.8% floor -> no plan
+    assert intraday.build_accum_plan(5.17, 2.0, range_high=5.30) is None
+    # boundary: 2.4 x 1.2 = 2.88% >= 2.8% floor -> plan emitted
+    plan = intraday.build_accum_plan(5.17, 2.4, range_high=5.30)
+    assert plan is not None
+    assert plan['expected_return_pct'] >= 2.8
+
+
 def test_fee_floor_boundary_passes():
     # 2.4 x 1.2 = 2.88% >= 2.8% floor -> plan emitted
     plan = intraday.build_mover_plan(100.0, 2.4)
@@ -434,33 +446,33 @@ def test_round_price_mirrors_swing_engine():
 # ----------------------- accumulation (setting-up) trigger plans
 
 def test_accum_plan_uses_range_high_within_5pct():
-    plan = intraday.build_accum_plan(5.17, 2.0, range_high=5.30)
+    plan = intraday.build_accum_plan(5.17, 2.5, range_high=5.30)
     assert plan is not None
     assert plan['trigger_price'] == 5.30  # the breakout level itself
     assert plan['entry'] == plan['trigger_price']
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
-    # mover ratios off the trigger: 1.2x / 0.6x of 2% hourly vol (2:1)
-    assert plan['expected_return_pct'] == round(2.0 * 1.2, 2)
-    assert plan['max_loss_pct'] == round(2.0 * 0.6, 2)
+    # mover ratios off the trigger: 1.2x / 0.6x of 2.5% hourly vol (2:1)
+    assert plan['expected_return_pct'] == round(2.5 * 1.2, 2)
+    assert plan['max_loss_pct'] == round(2.5 * 0.6, 2)
     assert plan['exit_by'].endswith('UTC')
 
 
 def test_accum_plan_vol_step_when_range_high_far_or_missing():
     # Range high 30% above spot is not a near-term level -> vol step.
-    plan = intraday.build_accum_plan(5.17, 2.0, range_high=6.72)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
-    plan = intraday.build_accum_plan(5.17, 2.0, range_high=None)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
+    plan = intraday.build_accum_plan(5.17, 2.5, range_high=6.72)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
+    plan = intraday.build_accum_plan(5.17, 2.5, range_high=None)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
     # Price already at/above the range high -> vol step too.
-    plan = intraday.build_accum_plan(5.17, 2.0, range_high=5.10)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.01)
+    plan = intraday.build_accum_plan(5.17, 2.5, range_high=5.10)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
 
 
 def test_accum_plan_none_without_vol_and_subcent_order():
     assert intraday.build_accum_plan(5.17, None) is None
     assert intraday.build_accum_plan(5.17, 0) is None
-    assert intraday.build_accum_plan(0, 2.0) is None
-    plan = intraday.build_accum_plan(0.0041, 2.0, range_high=0.0043)
+    assert intraday.build_accum_plan(0, 2.5) is None
+    plan = intraday.build_accum_plan(0.0041, 2.5, range_high=0.0043)
     assert plan['trigger_price'] == 0.0043
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
 
