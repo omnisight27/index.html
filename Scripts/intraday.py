@@ -6,7 +6,7 @@ Runs separately from the swing engine (nexintel.py).
 Strategy: hourly momentum + mean-reversion on top 50 coins by market cap.
 Horizon: 1-4 hours. Tighter stops than swing (0.8x hourly vol).
 """
-import json, os, math, urllib.request, subprocess
+import json, os, math, sys, tempfile, urllib.request, subprocess
 from datetime import datetime, timezone
 
 try:
@@ -26,6 +26,10 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 # Resolve relative to repo root
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(REPO_ROOT, 'data')
+# --check (dry run): all file I/O is redirected to a throwaway temp dir, so a
+# local smoke test can never overwrite the data/intraday.json the scheduled
+# loop publishes (same guard the swing engine got in the 2026-11-02 review).
+CHECK_MODE = '--check' in sys.argv[1:]
 
 def fetch_json(url, timeout=30):
     req = urllib.request.Request(url, headers={'User-Agent': 'NexIntel-Intraday/1.0'})
@@ -1459,6 +1463,12 @@ def _proof_trim(record, cap=100):
     return trimmed, dropped
 
 def main():
+    global DATA_DIR
+    if CHECK_MODE:
+        # Redirect every data write to a throwaway dir — reads of
+        # data/intraday.json fall back to their graceful empty defaults.
+        DATA_DIR = tempfile.mkdtemp(prefix='intraday-check-')
+        print(f'=== CHECK MODE: no writes to the repo data dir (using {DATA_DIR}) ===')
     print('INTRADAY: hourly signals...')
     # Cross-run memory for the accumulation detector: the engine itself is
     # stateless, but data/intraday.json is committed every run, so the
