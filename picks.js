@@ -242,7 +242,8 @@
       planLine = '<p><strong>Buy</strong> ~$' + fmtPlanPrice(m.plan.entry) +
         ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(m.plan.take_profit) +
         ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(m.plan.stop_loss) +
-        ' · <strong>Out by</strong> ' + fmtClockET(m.plan.exit_by) + '</p>';
+        ' · <strong>Out by</strong> ' + fmtClockET(m.plan.exit_by) + '</p>' +
+        runnerLine(m.plan);
     } else if (m.plan_note) {
       planLine = '<p class="live-stamp">' + m.plan_note + '</p>';
     }
@@ -323,12 +324,31 @@
     return null;
   }
 
+  // Runner target (engine's stretch_target, display only — the base
+  // take_profit stays the graded target; the runner is bonus). Nic's words:
+  // "Runner $X — sell half at $Y, ride the rest". Also shows the muted
+  // withheld line when positioning crowded the tape out of a runner.
+  function runnerLine(plan) {
+    if (!plan) return '';
+    if (plan.stretch_target !== undefined) {
+      var t = '<p>🏃 <strong>Runner</strong> $' + fmtPlanPrice(plan.stretch_target);
+      if (plan.take_profit !== undefined) t += ' — sell half at $' + fmtPlanPrice(plan.take_profit) + ', ride the rest';
+      if (plan.stretch_note) t += ' <span class="live-stamp">' + plan.stretch_note + '</span>';
+      return t + '</p>';
+    }
+    if (plan.stretch_suppressed && plan.stretch_note) {
+      return '<p class="live-stamp">Runner withheld — ' + plan.stretch_note + '</p>';
+    }
+    return '';
+  }
+
   function planLine(plan) {
     if (!plan || plan.take_profit === undefined || plan.stop_loss === undefined) return '';
     return '<p><strong>Buy</strong> ~$' + fmtPlanPrice(plan.entry) +
       ' · 🎯 <strong>Sell target</strong> $' + fmtPlanPrice(plan.take_profit) +
       ' · 🛑 <strong>Stop</strong> $' + fmtPlanPrice(plan.stop_loss) +
-      (plan.exit_by ? ' · <strong>Out by</strong> ' + fmtClockET(plan.exit_by) : '') + '</p>';
+      (plan.exit_by ? ' · <strong>Out by</strong> ' + fmtClockET(plan.exit_by) : '') + '</p>' +
+      runnerLine(plan);
   }
 
   function verdictCard(v) {
