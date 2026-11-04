@@ -58,10 +58,10 @@ def coin(cid, sym, price, chg_1h, chg_24h, spark=None, mcap=500_000_000):
     return c
 
 
-# A moderate ~2.5%/h RMS series (clears the 2.8% fee-target floor) and a
-# wild ~4%/h RMS series.
-CALM_RETS = [2.5, -2.5] * 24
-WILD_RETS = [4.0, -4.0] * 24
+# A moderate ~4%/h RMS series (clears the 2.8% NET floor — Gate v3.0)
+# and a wild ~6%/h RMS series.
+CALM_RETS = [4.0, -4.0] * 24
+WILD_RETS = [6.0, -6.0] * 24
 
 
 def fixture_universe(with_sparklines=True):
@@ -150,7 +150,7 @@ def test_mover_plans_from_sparkline_no_network(monkeypatch):
 
 
 def test_mover_plan_subcent_rounding():
-    plan = intraday.build_mover_plan(0.00000456, 3.0)
+    plan = intraday.build_mover_plan(0.00000456, 5.0)
     assert plan is not None
     assert plan['entry'] == 0.00000456  # 8-decimal rounding, not $0.00
     assert plan['stop_loss'] > 0
@@ -162,27 +162,27 @@ def test_mover_plan_subcent_rounding():
 def test_stretch_target_appears_on_strong_momentum():
     """HYPE 2026-10-29 shape: +1.84% last hour, +13.6% 24h, RSI cool — the
     plan should carry a runner strictly above the base target."""
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58)
     assert plan['stretch_target'] > plan['take_profit'] > plan['entry'] > plan['stop_loss']
-    assert plan['stretch_return_pct'] == round(3.0 * 2.0, 2)
+    assert plan['stretch_return_pct'] == round(5.0 * 2.0, 2)
     assert 'momentum supports a runner' in plan['stretch_note']
 
 
 def test_stretch_absent_on_weak_hour():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=0.4,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=0.4,
                                      chg_24h=13.62, rsi=58)
     assert 'stretch_target' not in plan
 
 
 def test_stretch_absent_when_overbought():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=2.5,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=2.5,
                                      chg_24h=15.0, rsi=76)
     assert 'stretch_target' not in plan
 
 
 def test_stretch_absent_on_small_day():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=2.5,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=2.5,
                                      chg_24h=6.0, rsi=58)
     assert 'stretch_target' not in plan
 
@@ -190,7 +190,7 @@ def test_stretch_absent_on_small_day():
 def test_stretch_missing_rsi_fails_open():
     """No RSI (short sparkline) — the momentum gates still bind, so a
     runner is allowed; nothing is gated on data we don't have."""
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=None)
     assert plan['stretch_target'] > plan['take_profit']
 
@@ -198,7 +198,7 @@ def test_stretch_missing_rsi_fails_open():
 def test_stretch_backward_compatible_without_momentum():
     """Old two-arg call (all existing callers/tests) never gains a runner;
     the base plan math is untouched."""
-    plan = intraday.build_mover_plan(90.82, 3.0)
+    plan = intraday.build_mover_plan(90.82, 5.0)
     assert 'stretch_target' not in plan
     assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
 
@@ -229,7 +229,7 @@ def test_sparkline_rsi_too_short_is_none():
 def test_runner_suppressed_on_adverse_oi_flow():
     """Momentum + calm funding want a runner, but OI is piling in against
     the move — withheld, with the reason named."""
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=-0.8, oi_chg_1h_pct=22.0)
@@ -241,7 +241,7 @@ def test_runner_suppressed_on_adverse_oi_flow():
 
 
 def test_runner_suppressed_names_both_blocks():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=-0.8,
                                      funding_ann_pct=85.0,
@@ -252,7 +252,7 @@ def test_runner_suppressed_names_both_blocks():
 
 
 def test_runner_healthy_oi_flow_allowed():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=0.76, oi_chg_1h_pct=15.0)
@@ -261,7 +261,7 @@ def test_runner_healthy_oi_flow_allowed():
 
 
 def test_runner_missing_oi_fails_open():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      oi_score=None, oi_chg_1h_pct=None)
@@ -273,7 +273,7 @@ def test_runner_missing_oi_fails_open():
 def test_runner_suppressed_on_crowded_longs():
     """Strong momentum wants a runner, but funding says the longs are
     crowded — the runner is withheld and the plan says why."""
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=-0.8,
                                      funding_ann_pct=85.0)
@@ -286,7 +286,7 @@ def test_runner_suppressed_on_crowded_longs():
 
 
 def test_runner_allowed_on_neutral_funding():
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=0.0,
                                      funding_ann_pct=12.0)
@@ -296,7 +296,7 @@ def test_runner_allowed_on_neutral_funding():
 
 def test_runner_missing_funding_fails_open():
     """Feed #2 down: momentum gates still bind, runner allowed."""
-    plan = intraday.build_mover_plan(90.82, 3.0, chg_1h=1.84,
+    plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58,
                                      funding_score=None,
                                      funding_ann_pct=None)
@@ -373,14 +373,14 @@ def test_main_no_sparklines_anywhere_keeps_honest_null(monkeypatch, tmp_path):
 # $0.0023 — target == entry — after 4-decimal rounding.)
 
 def test_mover_plan_subcent_strict_order():
-    plan = intraday.build_mover_plan(0.0024, 3.0)
+    plan = intraday.build_mover_plan(0.0024, 5.0)
     assert plan is not None
     assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
     assert plan['take_profit'] != plan['entry']
 
 
 def test_thesis_subcent_strict_order():
-    f = {'vol': 3.0, 'price': 0.0062, 'chg_1h': 1.5,
+    f = {'vol': 5.0, 'price': 0.0062, 'chg_1h': 1.5,
          'rsi': 50.0, 'pos_in_range': 0.5}
     th = intraday.build_intraday_thesis('ATH', f, 5.0)
     assert th['direction'] == 'LONG'
@@ -411,18 +411,18 @@ def test_fee_floor_gates_low_vol_accum():
     # 2026-11-01 gate missed the accum path; 7 sub-floor cards printed).
     # 2.0 x 1.2 = 2.4% target < 2.8% floor -> no plan
     assert intraday.build_accum_plan(5.17, 2.0, range_high=5.30) is None
-    # boundary: 2.4 x 1.2 = 2.88% >= 2.8% floor -> plan emitted
-    plan = intraday.build_accum_plan(5.17, 2.4, range_high=5.30)
+    # boundary: 4.0 x 1.2 = 4.8% gross -> 3.14% net >= 2.8% -> plan emitted
+    plan = intraday.build_accum_plan(5.17, 4.0, range_high=5.30)
     assert plan is not None
     assert plan['expected_return_pct'] >= 2.8
 
 
 def test_fee_floor_boundary_passes():
-    # 2.4 x 1.2 = 2.88% >= 2.8% floor -> plan emitted
-    plan = intraday.build_mover_plan(100.0, 2.4)
+    # 4.0 x 1.2 = 4.8% gross -> 3.14% net >= 2.8% -> plan emitted
+    plan = intraday.build_mover_plan(100.0, 4.0)
     assert plan is not None
     assert plan['take_profit'] > plan['entry'] > plan['stop_loss']
-    f = {'vol': 2.4, 'price': 100.0, 'chg_1h': 1.5,
+    f = {'vol': 4.0, 'price': 100.0, 'chg_1h': 1.5,
          'rsi': 50.0, 'pos_in_range': 0.5}
     th = intraday.build_intraday_thesis('OK', f, 5.0)
     assert th is not None
@@ -446,33 +446,33 @@ def test_round_price_mirrors_swing_engine():
 # ----------------------- accumulation (setting-up) trigger plans
 
 def test_accum_plan_uses_range_high_within_5pct():
-    plan = intraday.build_accum_plan(5.17, 2.5, range_high=5.30)
+    plan = intraday.build_accum_plan(5.17, 5.0, range_high=5.30)
     assert plan is not None
     assert plan['trigger_price'] == 5.30  # the breakout level itself
     assert plan['entry'] == plan['trigger_price']
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
-    # mover ratios off the trigger: 1.2x / 0.6x of 2.5% hourly vol (2:1)
-    assert plan['expected_return_pct'] == round(2.5 * 1.2, 2)
-    assert plan['max_loss_pct'] == round(2.5 * 0.6, 2)
+    # mover ratios off the trigger: 1.2x / 0.6x of 5.0% hourly vol (2:1)
+    assert plan['expected_return_pct'] == round(5.0 * 1.2, 2)
+    assert plan['max_loss_pct'] == round(5.0 * 0.6, 2)
     assert plan['exit_by'].endswith('UTC')
 
 
 def test_accum_plan_vol_step_when_range_high_far_or_missing():
     # Range high 30% above spot is not a near-term level -> vol step.
-    plan = intraday.build_accum_plan(5.17, 2.5, range_high=6.72)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
-    plan = intraday.build_accum_plan(5.17, 2.5, range_high=None)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
+    plan = intraday.build_accum_plan(5.17, 5.0, range_high=6.72)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.025)
+    plan = intraday.build_accum_plan(5.17, 5.0, range_high=None)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.025)
     # Price already at/above the range high -> vol step too.
-    plan = intraday.build_accum_plan(5.17, 2.5, range_high=5.10)
-    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.0125)
+    plan = intraday.build_accum_plan(5.17, 5.0, range_high=5.10)
+    assert plan['trigger_price'] == intraday.round_price(5.17 * 1.025)
 
 
 def test_accum_plan_none_without_vol_and_subcent_order():
     assert intraday.build_accum_plan(5.17, None) is None
     assert intraday.build_accum_plan(5.17, 0) is None
     assert intraday.build_accum_plan(0, 2.5) is None
-    plan = intraday.build_accum_plan(0.0041, 2.5, range_high=0.0043)
+    plan = intraday.build_accum_plan(0.0041, 5.0, range_high=0.0043)
     assert plan['trigger_price'] == 0.0043
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
 
@@ -1125,3 +1125,83 @@ def test_trail_promotes_stretch_target():
     assert e['status'] == 'open'
     assert e['take_profit'] == 106.0
     assert e['expected_return_pct'] == 6.0
+
+
+# ----------------- Trade Signal Gate v3.0: binding net-return gate
+# (Nic 2026-11-04). The gross 2.8% floor stays as a cheap pre-check; the
+# net gate (2.8% AFTER fees+slippage) is binding — so the effective vol
+# bar moves from ~2.34 to ~3.73.
+
+def test_net_gate_rejects_gross_passing_mover():
+    # vol 3.0 -> 3.6% gross target clears the gross floor, but only
+    # ~1.96% net at the measured cost tier -> no plan.
+    assert intraday.build_mover_plan(100.0, 3.0) is None
+
+
+def test_net_gate_rejects_gross_passing_thesis():
+    f = {'vol': 3.0, 'price': 100.0, 'chg_1h': 1.5,
+         'rsi': 50.0, 'pos_in_range': 0.5}
+    assert intraday.build_intraday_thesis('MID', f, 5.0) is None
+    # SHORT mirrors: -3.6% gross cover, sub-floor net.
+    assert intraday.build_intraday_thesis('MID', f, -5.0) is None
+
+
+def test_net_gate_rejects_gross_passing_accum():
+    assert intraday.build_accum_plan(5.17, 3.0, range_high=5.30) is None
+
+
+def test_net_gate_passing_plan_carries_labels():
+    plan = intraday.build_mover_plan(100.0, 5.0)
+    assert plan is not None
+    # Immediate entry (trigger == spot): no breakout order needed.
+    assert plan['order_type'] == 'IMMEDIATE'
+    assert 'limit or market' in plan['order_note']
+    assert plan['net_return_pct'] >= 2.8
+
+
+def test_accum_plan_labels_stop_buy():
+    # The accum trigger always sits above spot -> breakout entry ->
+    # the card must label stop-buy, never an ordinary limit buy.
+    plan = intraday.build_accum_plan(5.17, 5.0, range_high=5.30)
+    assert plan is not None
+    assert plan['order_type'] == 'STOP_BUY'
+    assert 'never an ordinary limit buy' in plan['order_note']
+    assert plan['net_return_pct'] >= 2.8
+
+
+def test_thesis_short_passes_with_high_vol():
+    f = {'vol': 6.0, 'price': 100.0, 'chg_1h': -1.5,
+         'rsi': 50.0, 'pos_in_range': 0.5}
+    th = intraday.build_intraday_thesis('SH', f, -5.0)
+    assert th is not None
+    assert th['direction'] == 'SHORT'
+    assert th['take_profit'] < th['entry'] < th['stop_loss']
+    assert th['net_return_pct'] >= 2.8
+
+
+def test_main_carries_breaker_state_end_to_end(monkeypatch, tmp_path):
+    """Gate v3.0 integration: seed prior gate_events with 3 systemic
+    failures inside the window -> the published payload stamps
+    publishing_disabled; seed them old -> auto-restored."""
+    import datetime as _dt
+    now = _dt.datetime.now(_dt.timezone.utc)
+    recent = [{'t': (now - _dt.timedelta(minutes=m)).isoformat(),
+               'reason': 'STALE_QUOTE', 'systemic': True}
+              for m in (50, 30, 5)]
+    with open(os.path.join(str(tmp_path), 'intraday.json'), 'w') as f:
+        json.dump({'gate_events': recent, 'proof': {'record': []}}, f)
+    out, _ = run_main(monkeypatch, tmp_path, fixture_universe())
+    assert out['gate_circuit']['publishing_disabled'] is True
+    assert out['gate_circuit']['systemic_60min'] == 3
+    # Prior events are carried forward (bounded), not dropped.
+    assert len(out['gate_events']) >= 3
+
+    old = [{'t': (now - _dt.timedelta(minutes=m)).isoformat(),
+            'reason': 'STALE_QUOTE', 'systemic': True}
+           for m in (61, 70, 120)]
+    with open(os.path.join(str(tmp_path), 'intraday.json'), 'w') as f:
+        json.dump({'gate_events': old, 'proof': {'record': []}}, f)
+    out, _ = run_main(monkeypatch, tmp_path, fixture_universe())
+    assert out['gate_circuit']['publishing_disabled'] is False
+    # 25h-old events are pruned from the carried list.
+    assert len(out['gate_events']) < len(old) + 10

@@ -22,6 +22,50 @@ try:
 except ImportError:
     econ_feed = None
 
+# Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
+# breaker. First-party modules in this directory — hard import on purpose:
+# if they are ever absent something is deeply wrong, and failing loudly
+# beats silently running the weaker gross-only gate while v3.0 is believed
+# live.
+from gate_math import evaluate_net_gate, tick_for_price
+import gate_circuit
+
+# --- Trade Signal Gate v3.0: rejection events ---------------------------
+# Events accumulate in-memory during a run; main() merges them with the
+# prior run's events carried in intraday.json['gate_events'] (the
+# committed file — ephemeral runners would lose a separate state file)
+# and stamps the computed breaker state in out['gate_circuit'].
+_GATE_EVENTS = []
+
+
+def _record_gate_rejection(reason):
+    """Append one gate-rejection event for this run. Only systemic
+    reasons (missing cost data, stale feeds) can trip the breaker;
+    per-plan profitability rejections are the gate working as designed
+    and are diagnostic-only (see gate_circuit). In-memory, never raises,
+    never touches the filesystem (safe inside unit tests)."""
+    global _GATE_EVENTS
+    try:
+        _GATE_EVENTS = gate_circuit.record_event(
+            _GATE_EVENTS, reason,
+            systemic=(reason in gate_circuit.SYSTEMIC_REASONS))
+    except Exception:
+        pass  # bookkeeping must never kill the engine
+
+
+def _apply_net_gate(entry, target, stop, direction, current_price):
+    """Binding net-return gate for a raw (unrounded) plan. Returns
+    (gate, order_type, order_note); on rejection the failure is recorded
+    for the circuit breaker and (None, None, None) is returned.
+    clears_fee_floor stays the cheap pre-check; this is the binding one."""
+    gate = evaluate_net_gate(entry, target, stop, direction=direction,
+                             current_price=current_price,
+                             price_tick=tick_for_price(entry))
+    if not gate['passed']:
+        _record_gate_rejection(gate['reason'])
+        return None, None, None
+    return gate, gate['order_type'], gate['order_note']
+
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..', 'data')
 # Resolve relative to repo root
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -208,6 +252,7 @@ def build_intraday_thesis(sym, f, score):
     if not clears_fee_floor(vol):
         # Same fee gate as build_mover_plan: a sub-fee target is a
         # guaranteed net loser even when the direction call is right.
+        _record_gate_rejection('FEE_FLOOR_GROSS')
         return None
     if direction == 'LONG':
         stop = price * (1 - vol / 100 * 0.8)
@@ -215,6 +260,12 @@ def build_intraday_thesis(sym, f, score):
     else:
         stop = price * (1 + vol / 100 * 0.8)
         target = price * (1 - vol / 100 * 1.2)
+    gate, order_type, order_note = _apply_net_gate(
+        price, target, stop, direction, current_price=price)
+    if gate is None:
+        # Net gate (binding): sub-2.8%-net or required-sell miss — the
+        # caller shows the fee note, same as the gross floor.
+        return None
     entry_r, target_r, stop_r = _round_plan(price, target, stop)
 
     now = datetime.now(timezone.utc)
@@ -243,6 +294,9 @@ def build_intraday_thesis(sym, f, score):
         'horizon': '1-4 hours',
         'expected_return_pct': round(exp_ret, 2),
         'max_loss_pct': round(max_loss, 2),
+        'order_type': order_type,
+        'order_note': order_note,
+        'net_return_pct': round(gate['net_return'] * 100, 2),
         'rsi': round(f['rsi'], 0),
         'chg_1h': round(f['chg_1h'], 2),
         'bull_case': bull or ['intraday momentum alignment'],
@@ -362,10 +416,16 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
     if not clears_fee_floor(vol):
         # Target (vol x 1.2) can't clear twice the round-trip fee — emitting
         # it would be a guaranteed net loser. Caller shows the fee note.
+        _record_gate_rejection('FEE_FLOOR_GROSS')
         return None
     entry = price
     stop = entry * (1 - vol / 100 * 0.6)
     target = entry * (1 + vol / 100 * 1.2)
+    gate, order_type, order_note = _apply_net_gate(
+        entry, target, stop, 'LONG', current_price=price)
+    if gate is None:
+        # Net gate (binding): sub-2.8%-net or required-sell miss.
+        return None
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
     # Adaptive precision (round_price, as in the swing engine) so sub-cent
     # plans keep entry < target / entry > stop visibly distinct.
@@ -378,6 +438,9 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
         'horizon': '1-4 hours',
         'expected_return_pct': round(abs(target - entry) / entry * 100, 2),
         'max_loss_pct': round(abs(entry - stop) / entry * 100, 2),
+        'order_type': order_type,
+        'order_note': order_note,
+        'net_return_pct': round(gate['net_return'] * 100, 2),
     }
     # Runner: only when the tape supports reaching higher.
     momentum_ok = (chg_1h is not None and chg_1h >= STRETCH_1H_PCT
@@ -441,6 +504,7 @@ def build_accum_plan(price, vol, range_high=None):
     if not clears_fee_floor(vol):
         # Target (vol x 1.2) can't clear twice the round-trip fee —
         # emitting it would be a guaranteed net loser. Caller shows WATCH.
+        _record_gate_rejection('FEE_FLOOR_GROSS')
         return None
     if range_high and price < range_high <= price * 1.05:
         trigger = range_high
@@ -448,6 +512,12 @@ def build_accum_plan(price, vol, range_high=None):
         trigger = price * (1 + vol / 100 * 0.5)
     target = trigger * (1 + vol / 100 * 1.2)
     stop = trigger * (1 - vol / 100 * 0.6)
+    gate, order_type, order_note = _apply_net_gate(
+        trigger, target, stop, 'LONG', current_price=price)
+    if gate is None:
+        # Net gate (binding): sub-2.8%-net or required-sell miss — the
+        # trigger sits above spot, so this labels STOP_BUY when it passes.
+        return None
     exit_time = datetime.now(timezone.utc) + timedelta(hours=3)
     trigger_r, target_r, stop_r = _round_plan(trigger, target, stop)
     return {
@@ -459,6 +529,9 @@ def build_accum_plan(price, vol, range_high=None):
         'horizon': 'pre-move setup',
         'expected_return_pct': round(abs(target - trigger) / trigger * 100, 2),
         'max_loss_pct': round(abs(trigger - stop) / trigger * 100, 2),
+        'order_type': order_type,
+        'order_note': order_note,
+        'net_return_pct': round(gate['net_return'] * 100, 2),
     }
 
 def _sig(v):
@@ -1470,13 +1543,24 @@ def _proof_trim(record, cap=100):
     return trimmed, dropped
 
 def main():
-    global DATA_DIR
+    global DATA_DIR, _GATE_EVENTS
     if CHECK_MODE:
         # Redirect every data write to a throwaway dir — reads of
         # data/intraday.json fall back to their graceful empty defaults.
         DATA_DIR = tempfile.mkdtemp(prefix='intraday-check-')
         print(f'=== CHECK MODE: no writes to the repo data dir (using {DATA_DIR}) ===')
     print('INTRADAY: hourly signals...')
+    # Fresh event list per run (main() may be called twice in-process in
+    # tests).
+    _GATE_EVENTS = []
+    # Circuit-breaker cross-run memory (Gate v3.0): rejection events
+    # ride inside the committed feed like accum/oi/funding history.
+    prior_gate_events = []
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_gate_events = (json.load(f) or {}).get('gate_events') or []
+    except Exception:
+        pass
     # Cross-run memory for the accumulation detector: the engine itself is
     # stateless, but data/intraday.json is committed every run, so the
     # observation history rides inside it (see accum_history below).
@@ -2027,7 +2111,21 @@ def main():
         'macro_snapshot': macro_snap,
         'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative},
         'coins_scanned': len(mkts),
+        # Circuit-breaker state (Trade Signal Gate v3.0): merge this
+        # run's rejection events with the prior run's carried events,
+        # prune, and stamp the computed breaker state — the alert
+        # selector reads this, no separate fetch needed.
+        'gate_events': gate_circuit.prune_events(
+            prior_gate_events + _GATE_EVENTS),
+        'gate_circuit': gate_circuit.status_from_events(
+            prior_gate_events + _GATE_EVENTS),
     }
+    if out['gate_circuit']['publishing_disabled']:
+        gc = out['gate_circuit']
+        print(f"  Gate circuit: PUBLISHING_DISABLED — "
+              f"{gc['systemic_60min']} systemic failures in 60m "
+              f"({', '.join(gc['reasons_60min']) or 'unknown'}). "
+              f"Buy-card publishing suppressed until the gate recovers.")
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(os.path.join(DATA_DIR, 'intraday.json'), 'w') as f:
         json.dump(out, f, indent=2)
