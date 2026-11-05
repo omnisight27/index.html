@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:," />
-<title>Freedom GPS by Long Solutions — Debt Payoff Planner</title>
+<title>Freedom GPS by Long Solutions — Your Money Dashboard &amp; Debt Payoff Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -36,9 +36,6 @@ button{cursor:pointer;min-height:48px}
 .brand-name{font-weight:800;letter-spacing:.02em;font-size:17px;line-height:1.1}
 .brand-sub{font-size:12px;opacity:.75;letter-spacing:.08em;text-transform:uppercase}
 .topbar-note{font-size:13px;opacity:.85}
-.back-link{color:#fff;text-decoration:none;font-weight:700;font-size:15px;padding:10px 16px;border:1px solid rgba(255,255,255,.4);border-radius:10px;min-height:44px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
-.back-link:hover{background:rgba(255,255,255,.12)}
-.back-link:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy2) 70%);color:#fff;padding:34px 20px 30px}
 .hero-inner{max-width:1120px;margin:0 auto}
 .hero h1{font-family:"DM Serif Display",serif;font-weight:400;font-size:clamp(32px,6vw,52px);line-height:1.05;margin:0 0 12px;max-width:640px}
@@ -136,6 +133,52 @@ input[type=range]{width:100%;accent-color:var(--teal);min-height:40px}
 .step b{display:flex;align-items:center;gap:10px;font-size:16px;margin-bottom:6px}
 .step-num{width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-size:14px;flex:none}
 .step p{margin:0;color:var(--muted);font-size:14px}
+/* Dashboard */
+.dash-grid{display:grid;gap:18px;margin-bottom:18px}
+@media(min-width:960px){.dash-grid{grid-template-columns:1.55fr 1fr;align-items:start}}
+.hero-num{font-size:clamp(34px,7vw,44px);font-weight:800;line-height:1.05;margin:2px 0 2px;letter-spacing:-.01em}
+.hero-num.neg{color:#b91c1c}
+@media (prefers-color-scheme: dark){.hero-num.neg{color:#fca5a5}}
+.dash-sub{color:var(--muted);font-size:14px;margin:0}
+.ex-tag{display:inline-block;background:var(--amber-bg);color:var(--amber-ink);border:1px solid var(--amber-line);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;margin-left:8px;vertical-align:3px}
+.ring-wrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.ring{position:relative;width:132px;height:132px;flex:none}
+.ring svg{width:132px;height:132px;transform:rotate(-90deg)}
+.ring-track{fill:none;stroke:var(--surface2);stroke-width:11}
+.ring-arc{fill:none;stroke:var(--teal);stroke-width:11;stroke-linecap:round}
+.ring-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring-pct{font-size:24px;font-weight:800;line-height:1}
+.ring-cap{font-size:11px;color:var(--muted);font-weight:700}
+.daily-cost{font-size:24px;font-weight:800}
+.count-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.count-box{background:var(--surface2);border-radius:12px;padding:13px 14px}
+.count-box b{display:block;font-size:22px;line-height:1.15}
+.count-box span{font-size:12px;font-weight:700;color:var(--muted)}
+.gauge{height:14px;border-radius:99px;background:linear-gradient(90deg,#0e7c6b 0 30%,#eab308 30% 50%,#f97316 50% 75%,#dc2626 75% 100%);position:relative;margin:10px 0 6px}
+.gauge-pin{position:absolute;top:-5px;width:4px;height:24px;border-radius:2px;background:var(--ink);transform:translateX(-50%);box-shadow:0 0 0 2px var(--surface)}
+.gauge-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:600}
+.surplus-out{border-radius:12px;padding:14px 16px;margin-top:14px;font-size:15px;font-weight:600}
+.surplus-out.ok{background:var(--green-bg);color:var(--green-ink)}
+.surplus-out.bad{background:var(--red-bg);color:var(--red-ink)}
+.surplus-out.idle{background:var(--surface2);color:var(--muted)}
+.alloc-row{display:flex;align-items:center;gap:10px;margin:12px 0 2px}
+.alloc-row .pct-lab{font-size:13px;font-weight:700;white-space:nowrap;min-width:118px}
+.alloc-row output{font-weight:800;min-width:44px;text-align:right}
+.mile-track{display:flex;gap:6px;margin-top:8px}
+.mile{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--muted)}
+.mile i{display:block;height:8px;border-radius:99px;background:var(--surface2);margin-bottom:5px}
+.mile.done{color:var(--teal-dark)}
+.mile.done i{background:var(--teal)}
+@media (prefers-color-scheme: dark){.mile.done{color:#6ee7b7}}
+/* Economic indicators */
+.econ{display:grid;gap:12px;margin-bottom:18px}
+@media(min-width:760px){.econ{grid-template-columns:repeat(3,1fr)}}
+.econ-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.econ-card label{display:block;font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.econ-val{font-size:32px;font-weight:800;line-height:1.1;margin:4px 0 2px}
+.econ-asof{font-size:12px;color:var(--muted);font-weight:600}
+.econ-frame{font-size:14px;margin:10px 0 0;color:var(--ink)}
+.econ-src{font-size:12px;color:var(--muted);margin-top:10px}
 footer{max-width:1120px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}
 footer .cta{background:var(--navy);color:#fff;border-radius:var(--radius);padding:22px;margin-bottom:18px}
 footer .cta h2{font-family:"DM Serif Display",serif;font-weight:400;margin:0 0 6px;font-size:24px;color:#fff}
@@ -147,7 +190,6 @@ footer .cta p{margin:0;color:#cfdde8}
 <body>
 
 <div class="topbar">
-  <a class="back-link" href="https://omnisight27.github.io/index.html/" aria-label="Back to OmniSight">&#8592; OmniSight</a>
   <div class="brand">
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="15.5 8.5 13.5 13.5 8.5 15.5 10.5 10.5" fill="#fff" stroke="none"/></svg></div>
     <div><div class="brand-name">Freedom GPS</div><div class="brand-sub">by Long Solutions</div></div>
@@ -157,13 +199,104 @@ footer .cta p{margin:0;color:#cfdde8}
 
 <header class="hero">
   <div class="hero-inner">
-    <h1>Map your route out of debt.</h1>
-    <p>Add every card and loan you owe, choose how much extra you can put toward them each month, and Freedom GPS builds your payoff route — promo deadlines first, highest cost next, mortgage last on its own schedule.</p>
-    <div class="hero-points"><span>Promo-aware payoff order</span><span>Live debt-free date</span><span>Your numbers stay in this tab</span></div>
+    <h1>Your money, one clear picture.</h1>
+    <p>Start with the dashboard: what you own, what you owe, and what your month leaves over. That leftover becomes the engine of your payoff route — promo deadlines first, highest cost next, mortgage last on its own schedule.</p>
+    <div class="hero-points"><span>Net worth at a glance</span><span>Surplus becomes payoff power</span><span>Your numbers stay in this tab</span></div>
   </div>
 </header>
 
 <main class="wrap">
+  <div class="dash-grid">
+    <section class="card" aria-labelledby="dashHead">
+      <h2 id="dashHead" style="display:inline-block">Your dashboard</h2><span class="ex-tag" id="exTag" hidden>Example numbers</span>
+      <p class="sub">The whole picture on one screen. Fill in what you own and what comes in each month — everything below updates itself.</p>
+
+      <label style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)">Net worth — what you own minus what you owe</label>
+      <div class="hero-num" id="nwValue">—</div>
+      <p class="dash-sub" id="nwBreak">Add what you own below, and your debts in the planner, to see it.</p>
+
+      <div class="ring-wrap">
+        <div class="ring" role="img" aria-label="Progress ring toward debt-free">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="52"></circle><circle class="ring-arc" id="ringArc" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle></svg>
+          <div class="ring-center"><div><div class="ring-pct" id="ringPct">0%</div><div class="ring-cap">of the way there</div></div></div>
+        </div>
+        <div style="flex:1;min-width:210px">
+          <label style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)">What your debt costs you</label>
+          <div><span class="daily-cost" id="dailyCost">$0.00</span> <span style="color:var(--muted);font-weight:600">every single day</span></div>
+          <p class="dash-sub" id="dailyNote">That's the interest ticking on your balances today. Every dollar of principal you clear turns that number down — for good.</p>
+        </div>
+      </div>
+
+      <div class="count-grid">
+        <div class="count-box"><b id="cdDays">—</b><span id="cdDaysLab">days until debt-free</span></div>
+        <div class="count-box"><b id="cdDate">—</b><span>debt-free date on this route</span></div>
+      </div>
+
+      <h3>Milestones on your route</h3>
+      <div class="mile-track" id="mileTrack">
+        <div class="mile"><i></i>First debt gone</div>
+        <div class="mile"><i></i>25% cleared</div>
+        <div class="mile"><i></i>Halfway</div>
+        <div class="mile"><i></i>75% cleared</div>
+        <div class="mile"><i></i>Debt-free</div>
+      </div>
+      <p class="hint" id="mileNote" style="margin-top:8px">Milestones light up as your route clears them.</p>
+    </section>
+
+    <section class="card" aria-labelledby="moneyHead">
+      <h2 id="moneyHead">Your money, monthly</h2>
+      <p class="sub">What you own, what comes in, what goes out. Your surplus is what powers the payoff route.</p>
+      <div class="fgrid">
+        <div class="field full"><label for="aCash">Cash &amp; savings ($)</label><input id="aCash" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label for="aInvest">Investments &amp; retirement ($)</label><input id="aInvest" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label for="aHome">Home &amp; other assets ($)</label><input id="aHome" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"><span class="hint">What they’re worth today, roughly.</span></div>
+        <div class="field"><label for="incMonthly">Monthly take-home income ($)</label><input id="incMonthly" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label for="spendMonthly">Monthly spending ($)</label><input id="spendMonthly" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"><span class="hint">Everything except debt payments — rent, food, bills, life.</span></div>
+      </div>
+      <div class="surplus-out idle" id="surplusOut">Enter your income and spending to see your monthly surplus.</div>
+      <div class="alloc-row">
+        <span class="pct-lab">Send to debt payoff</span>
+        <input type="range" id="allocRange" min="0" max="100" step="5" value="75" aria-label="Share of surplus sent to debt payoff" style="flex:1">
+        <output id="allocPct" for="allocRange">75%</output>
+      </div>
+      <p class="hint" id="allocNote">Set your income and spending, and your surplus flows into the extra payment on your route.</p>
+
+      <h3>Credit card use</h3>
+      <p class="sub" style="margin-bottom:4px" id="utilNote">Add a credit limit on your cards below and this gauge shows how much of your available credit you’re using. Under 30% is the usual comfort zone; under 10% is stronger still.</p>
+      <div class="gauge" aria-hidden="true"><div class="gauge-pin" id="utilPin" style="left:0%"></div></div>
+      <div class="gauge-scale"><span>0%</span><span>30%</span><span>50%</span><span>75%</span><span>100%</span></div>
+      <p style="font-weight:800;font-size:18px;margin:8px 0 0" id="utilValue">—</p>
+    </section>
+  </div>
+
+  <section aria-label="The economy, in plain terms" style="margin-bottom:18px">
+    <h2 style="font-size:21px;margin:0 0 4px">The economy, in plain terms</h2>
+    <p class="sub">Three numbers that actually change what your debt costs you — and what paying it off earns you. Checked Nov 4, 2026.</p>
+    <div class="econ">
+      <div class="econ-card">
+        <label>The Fed’s rate</label>
+        <div class="econ-val">3.75–4.00%</div>
+        <div class="econ-asof">Held steady Oct 28, 2026 · next decision Dec 9</div>
+        <p class="econ-frame" id="econFed">This is the rate underneath almost every card and loan you hold. When it stays up, your APRs stay up with it — and every extra dollar you put on high-rate debt earns you a guaranteed return at that debt’s rate. No savings account pays that.</p>
+        <p class="econ-src">Source: Federal Reserve, FOMC statement, Oct 28, 2026.</p>
+      </div>
+      <div class="econ-card">
+        <label>Inflation (CPI)</label>
+        <div class="econ-val">3.7%</div>
+        <div class="econ-asof">Prices vs. a year ago · September 2026</div>
+        <p class="econ-frame" id="econCpi">Prices rose 3.7% over the past year. Any debt charging more than that is costing you real money above and beyond rising prices — and the faster you clear it, the less of that gap you pay.</p>
+        <p class="econ-src">Source: U.S. Bureau of Labor Statistics, CPI release, Oct 14, 2026.</p>
+      </div>
+      <div class="econ-card">
+        <label>How consumers feel</label>
+        <div class="econ-val">48.0</div>
+        <div class="econ-asof">University of Michigan index · October 2026</div>
+        <p class="econ-frame">Shoppers are feeling the squeeze — this reading sits near the lowest ever recorded, and households expect prices to rise about 4.7% over the next year. You’re not imagining it: money feels tighter because it is. A written route is how you take control back.</p>
+        <p class="econ-src">Source: University of Michigan, Surveys of Consumers, Oct 23, 2026.</p>
+      </div>
+    </div>
+  </section>
+
   <section class="stats" aria-label="Your totals">
     <div class="stat"><label>Total debt</label><strong id="stTotal">$0</strong><small id="stCount">No debts added yet</small></div>
     <div class="stat"><label>Monthly route budget</label><strong id="stBudget">$0</strong><small>Minimums + extra payment</small></div>
@@ -185,6 +318,7 @@ footer .cta p{margin:0;color:#cfdde8}
                 <option value="student">Student loan</option><option value="medical">Medical / other</option><option value="mortgage">Mortgage</option>
               </select></div>
             <div class="field"><label for="fBalance">Balance owed ($)</label><input id="fBalance" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
+            <div class="field" id="limitField"><label for="fLimit">Credit limit ($) <span class="hint">cards only — powers the gauge above</span></label><input id="fLimit" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00"></div>
             <div class="field"><label for="fApr">Interest rate — APR (%)</label><input id="fApr" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 24.99"></div>
             <div class="field"><label for="fMin">Minimum / monthly payment ($)</label><input id="fMin" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 125"><span class="hint">For a mortgage or car loan, use the regular monthly payment.</span></div>
             <div class="promo-box">
@@ -209,9 +343,10 @@ footer .cta p{margin:0;color:#cfdde8}
         <p class="sub">Tap Edit on any debt to fix a number — your route recalculates instantly.</p>
         <div id="debtList"></div>
         <div class="list-actions">
-          <button type="button" class="btn btn-ghost" id="loadExample">Try it with example debts</button>
+          <button type="button" class="btn btn-ghost" id="loadExample">See a full example</button>
           <button type="button" class="btn btn-quiet" id="clearAll">Clear everything</button>
         </div>
+        <p class="hint" style="margin-top:8px">“See a full example” fills the whole dashboard with a fictional household’s numbers so you can watch every gauge and date move — then clear it and use your own.</p>
       </section>
     </div>
 
@@ -228,7 +363,6 @@ footer .cta p{margin:0;color:#cfdde8}
         <div class="field"><label for="extraInput">Extra payment per month ($)</label><input id="extraInput" type="number" inputmode="decimal" min="0" step="10" value="200"></div>
       </div>
       <input type="range" id="extraRange" min="0" max="2000" step="25" value="200" aria-label="Extra payment slider">
-      <p class="hint" style="margin-top:8px">Base this on what's left after monthly bills &mdash; and don't double-count: HOA often already covers garbage, lawn care, and water.</p>
 
       <div class="verdict idle" id="verdict">Add your first debt above and your route, payoff order, and debt-free date will appear here.</div>
 
@@ -349,11 +483,6 @@ function simulate(extra){
   var nonMortLast=nonMort.length?Math.max.apply(null, nonMort.map(function(s){return s.payoff})):-1;
   return {cleared:cleared, months:cleared?lastPayoff:MAX, totalInterest:totalInterest, perDebt:perDebt, totalMin:totalMin, nonMortLast:nonMortLast, hasMortgage: state.some(function(s){return s.src.type==="mortgage"})};
 }
-function simulateMinimumsOnlyInterest(){
-  // rough comparison: same sim with extra=0 interest total is not meaningful if it never clears; return null then
-  var savedExtra=parseFloat($("extraInput").value)||0;
-  return null; // handled in render with a dedicated run below
-}
 function runSim(extraVal){ return simulate(extraVal); }
 
 /* ---------- render ---------- */
@@ -375,7 +504,7 @@ function render(){
       }
       if(d.type==="mortgage") promoHtml+=' <span class="badge badge-mort">Amortized · paid last</span>';
       div.innerHTML='<div class="debt-top"><div><p class="debt-name"></p><span class="debt-type">'+TYPE_LABEL[d.type]+'</span>'+promoHtml+'</div><div class="debt-bal">'+money2(d.balance)+'</div></div>'+
-        '<div class="debt-meta"><span>'+d.apr+'% APR</span><span>'+money2(d.minPayment)+' / mo minimum</span></div>'+
+        '<div class="debt-meta"><span>'+d.apr+'% APR</span><span>'+money2(d.minPayment)+' / mo minimum</span>'+(d.type==="credit"&&d.limit>0?'<span>'+Math.round(d.balance/d.limit*100)+'% of '+money(d.limit)+' limit</span>':'')+'</div>'+
         '<div class="debt-actions"><button type="button" class="btn-ghost edit-btn">Edit account</button><button type="button" class="btn-danger del-btn">Remove</button></div>';
       div.querySelector(".debt-name").textContent=d.name;
       div.querySelector(".edit-btn").addEventListener("click",function(){startEdit(d.id)});
@@ -390,6 +519,7 @@ function render(){
   $("stCount").textContent=debts.length? debts.length+(debts.length===1?" debt":" debts")+" on your route" : "No debts added yet";
   $("stBudget").textContent=money(totalMin+extra);
   var sim=runSim(extra);
+  var simMin=debts.length?runSim(0):null;
   var orderEl=$("orderList"), tl=$("timeline"), cliffBox=$("cliffBox"), verdict=$("verdict");
   cliffBox.innerHTML="";
   if(!sim){
@@ -398,6 +528,7 @@ function render(){
     verdict.className="verdict idle"; verdict.textContent="Add your first debt above and your route, payoff order, and debt-free date will appear here.";
     orderEl.innerHTML='<li><span class="ord-body"><span class="ord-why">Nothing to order yet.</span></span></li>';
     tl.innerHTML='<p class="sub" style="margin:0">Each bar fills as that debt clears.</p>';
+    renderDashboard(null, extra);
     return;
   }
   if(sim.cleared){
@@ -421,7 +552,6 @@ function render(){
   }
   $("stInterest").textContent=money(sim.totalInterest);
   // minimums-only comparison
-  var simMin=runSim(0);
   if(simMin && simMin.cleared && sim.cleared && extra>0){
     $("stInterestNote").textContent="Minimums only would cost "+money(simMin.totalInterest)+" and take "+simMin.months+" months — this route saves about "+money(simMin.totalInterest-sim.totalInterest);
   } else if(simMin && !simMin.cleared){
@@ -463,6 +593,7 @@ function render(){
     row.querySelector(".tl-name").textContent=d.name;
     tl.appendChild(row);
   });
+  renderDashboard(sim, extra);
 }
 function escapeHtml(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
 
@@ -478,26 +609,29 @@ $("debtForm").addEventListener("submit",function(ev){
   if(!(apr>=0)) return formError("Enter the APR. If it's truly 0%, enter 0.");
   if(!(min>0)) return formError("Enter the minimum or regular monthly payment.");
   var hasPromo=$("fHasPromo").checked;
-  var d={ id: editingId||(uid++), name:name, type:$("fType").value, balance:balance, apr:apr, minPayment:min,
+  var type=$("fType").value, limit=parseFloat($("fLimit").value)||0;
+  var d={ id: editingId||(uid++), name:name, type:type, balance:balance, apr:apr, minPayment:min, limit: type==="credit"?limit:0,
     hasPromo:hasPromo, promoApr: hasPromo?(parseFloat($("fPromoApr").value)||0):0,
     promoEnd: hasPromo?$("fPromoEnd").value:"", goToApr: hasPromo?(parseFloat($("fGoTo").value)||apr):apr };
   if(hasPromo && !d.promoEnd) return formError("Pick the month the promo ends — that's what lets the route beat the cliff.");
   if(editingId){ debts=debts.map(function(x){return x.id===editingId?d:x}); }
   else debts.push(d);
-  cancelEdit(); this.reset(); $("promoFields").hidden=true; render();
+  cancelEdit(); this.reset(); $("promoFields").hidden=true; $("limitField").hidden=false; render();
   $("listHead").scrollIntoView({behavior:"smooth",block:"start"});
 });
 function startEdit(id){
   var d=debts.find(function(x){return x.id===id}); if(!d) return;
   editingId=id;
   $("fName").value=d.name; $("fType").value=d.type; $("fBalance").value=d.balance; $("fApr").value=d.apr; $("fMin").value=d.minPayment;
+  $("fLimit").value=d.limit||""; $("limitField").hidden=d.type!=="credit";
   $("fHasPromo").checked=d.hasPromo; $("promoFields").hidden=!d.hasPromo;
   $("fPromoApr").value=d.promoApr; $("fPromoEnd").value=d.promoEnd||""; $("fGoTo").value=d.goToApr;
   $("submitBtn").textContent="Save changes"; $("cancelEdit").hidden=false; $("formHead").textContent="Edit debt";
   $("formHead").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function cancelEdit(){ editingId=null; $("submitBtn").textContent="+ Add this debt"; $("cancelEdit").hidden=true; $("formHead").textContent="Add a debt"; formError(""); }
-$("cancelEdit").addEventListener("click",function(){ $("debtForm").reset(); $("promoFields").hidden=true; cancelEdit(); });
+$("cancelEdit").addEventListener("click",function(){ $("debtForm").reset(); $("promoFields").hidden=true; $("limitField").hidden=false; cancelEdit(); });
+$("fType").addEventListener("change",function(){ $("limitField").hidden=this.value!=="credit"; });
 
 /* ---------- controls ---------- */
 $("extraInput").addEventListener("input",function(){ var v=parseFloat(this.value)||0; $("extraRange").value=Math.min(v,2000); render(); });
@@ -512,19 +646,36 @@ $("segSnowball").addEventListener("click",function(){setStrategy("snowball")});
 $("loadExample").addEventListener("click",function(){
   var now=new Date(); var end=new Date(now.getFullYear(), now.getMonth()+7, 1);
   var ym=end.getFullYear()+"-"+String(end.getMonth()+1).padStart(2,"0");
+  // Fictional example household — every number made up for demonstration.
   debts=[
-    {id:uid++,name:"Example Store Card",type:"credit",balance:2400,apr:29.99,minPayment:65,hasPromo:true,promoApr:0,promoEnd:ym,goToApr:29.99},
-    {id:uid++,name:"Example Visa Card",type:"credit",balance:4800,apr:24.99,minPayment:120,hasPromo:false,promoApr:0,promoEnd:"",goToApr:24.99},
-    {id:uid++,name:"Example Personal Loan",type:"personal",balance:6000,apr:11.5,minPayment:180,hasPromo:false,promoApr:0,promoEnd:"",goToApr:11.5},
-    {id:uid++,name:"Example Auto Loan",type:"auto",balance:14500,apr:7.9,minPayment:310,hasPromo:false,promoApr:0,promoEnd:"",goToApr:7.9}
+    {id:uid++,name:"Example Store Card",type:"credit",balance:2400,apr:29.99,minPayment:65,limit:3000,hasPromo:true,promoApr:0,promoEnd:ym,goToApr:29.99},
+    {id:uid++,name:"Example Visa Card",type:"credit",balance:4800,apr:24.99,minPayment:120,limit:8000,hasPromo:false,promoApr:0,promoEnd:"",goToApr:24.99},
+    {id:uid++,name:"Example Personal Loan",type:"personal",balance:6000,apr:11.5,minPayment:180,limit:0,hasPromo:false,promoApr:0,promoEnd:"",goToApr:11.5},
+    {id:uid++,name:"Example Auto Loan",type:"auto",balance:14500,apr:7.9,minPayment:310,limit:0,hasPromo:false,promoApr:0,promoEnd:"",goToApr:7.9},
+    {id:uid++,name:"Example Mortgage",type:"mortgage",balance:212000,apr:6.4,minPayment:1485,limit:0,hasPromo:false,promoApr:0,promoEnd:"",goToApr:6.4}
   ];
-  cancelEdit(); render();
+  $("aCash").value=6200; $("aInvest").value=18400; $("aHome").value=285000;
+  $("incMonthly").value=7400; $("spendMonthly").value=4250;
+  exampleMode=true; $("exTag").hidden=false;
+  setAlloc(75,false); cancelEdit(); render();
+  document.querySelector(".dash-grid").scrollIntoView({behavior:"smooth",block:"start"});
 });
-$("clearAll").addEventListener("click",function(){ debts=[]; cancelEdit(); $("debtForm").reset(); $("promoFields").hidden=true; render(); });
+$("clearAll").addEventListener("click",function(){
+  debts=[]; cancelEdit(); $("debtForm").reset(); $("promoFields").hidden=true; $("limitField").hidden=false;
+  ["aCash","aInvest","aHome","incMonthly","spendMonthly"].forEach(function(id){ $(id).value=""; });
+  exampleMode=false; $("exTag").hidden=true; render();
+});
 
 function planText(){
   var extra=parseFloat($("extraInput").value)||0; var sim=runSim(extra);
   var lines=["Freedom GPS by Long Solutions — Payoff Plan","Strategy: "+(strategy==="avalanche"?"Avalanche (promo-aware)":"Snowball"),"Extra payment: "+money(extra)+"/month",""];
+  var assets=numVal("aCash")+numVal("aInvest")+numVal("aHome");
+  var inc=numVal("incMonthly"), spend=numVal("spendMonthly"), totalMin0=debts.reduce(function(s,d){return s+d.minPayment},0);
+  var surplus=(inc>0||spend>0)? inc-spend-totalMin0 : null;
+  lines.push("Net worth: "+money(assets-debts.reduce(function(s,d){return s+d.balance},0))+" (assets "+money(assets)+")");
+  if(surplus!==null) lines.push("Monthly surplus after minimums: "+money(surplus));
+  lines.push("Debt costs about "+money2(dailyInterestCost())+" per day in interest");
+  lines.push("");
   if(!debts.length){ lines.push("No debts entered."); return lines.join("\n"); }
   var total=debts.reduce(function(s,d){return s+d.balance},0);
   lines.push("Total debt: "+money(total));
@@ -545,6 +696,132 @@ $("copyBtn").addEventListener("click",function(){
   if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(done,function(){ $("copyNote").textContent="Copy didn't work here — use Download instead."; }); }
   else $("copyNote").textContent="Copy isn't available here — use Download instead.";
 });
+
+/* ---------- dashboard ---------- */
+var exampleMode=false, allocTouched=false;
+function numVal(id){ var v=parseFloat($(id).value); return isNaN(v)||v<0?0:v; }
+function dailyInterestCost(){ return debts.reduce(function(s,d){ return s + d.balance*(effectiveApr(d,0)/100)/365; },0); }
+function topCardApr(){
+  var best=null;
+  debts.forEach(function(d){ if(d.type!=="credit") return; var r=effectiveApr(d,0); if(best===null||r>best) best=r; });
+  return best;
+}
+function setAlloc(pct, renderAfter){
+  pct=Math.max(0,Math.min(100,Math.round(pct)));
+  $("allocRange").value=pct; $("allocPct").textContent=pct+"%";
+  var inc=numVal("incMonthly"), spend=numVal("spendMonthly");
+  var totalMin=debts.reduce(function(s,d){return s+d.minPayment},0);
+  var surplus=inc-spend-totalMin;
+  if(inc>0||spend>0){
+    var target=Math.max(0,Math.round(surplus*pct/100));
+    $("extraInput").value=target; $("extraRange").value=Math.min(target,2000);
+  }
+  if(renderAfter!==false) render();
+}
+function syncExtraFromSurplus(){ if(!allocTouched) setAlloc(parseInt($("allocRange").value,10)||0,false); }
+["aCash","aInvest","aHome","incMonthly","spendMonthly"].forEach(function(id){ $(id).addEventListener("input",function(){ syncExtraFromSurplus(); exampleMode=false; $("exTag").hidden=true; render(); }); });
+$("allocRange").addEventListener("input",function(){ allocTouched=true; setAlloc(parseInt(this.value,10)||0,true); });
+$("extraInput").addEventListener("input",function(){ allocTouched=true; });
+$("extraRange").addEventListener("input",function(){ allocTouched=true; });
+
+function renderDashboard(sim, extra){
+  var totalDebt=debts.reduce(function(s,d){return s+d.balance},0);
+  var totalMin=debts.reduce(function(s,d){return s+d.minPayment},0);
+  var assets=numVal("aCash")+numVal("aInvest")+numVal("aHome");
+  var inc=numVal("incMonthly"), spend=numVal("spendMonthly");
+  var surplus=inc-spend-totalMin;
+  // net worth
+  var nw=$("nwValue");
+  if(!debts.length && assets===0){ nw.textContent="—"; nw.classList.remove("neg"); $("nwBreak").textContent="Add what you own below, and your debts in the planner, to see it."; }
+  else{
+    var nwVal=assets-totalDebt;
+    nw.textContent=(nwVal<0?"−$":"$")+Math.abs(Math.round(nwVal)).toLocaleString("en-US");
+    nw.classList.toggle("neg",nwVal<0);
+    $("nwBreak").textContent=money(assets)+" in assets − "+money(totalDebt)+" in debt. It moves every time a balance drops or savings grow.";
+  }
+  // daily cost
+  var daily=dailyInterestCost();
+  $("dailyCost").textContent=money2(daily);
+  $("dailyNote").textContent = !debts.length
+    ? "That's the interest ticking on your balances today. Every dollar of principal you clear turns that number down — for good."
+    : "That's "+money(daily*30)+" a month, "+money(daily*365)+" a year, going to interest instead of your life. Every dollar of principal you clear turns it down — for good.";
+  // countdown
+  if(sim && sim.cleared){
+    var monthsShown=(sim.hasMortgage&&sim.nonMortLast>0&&sim.nonMortLast<sim.months)?sim.nonMortLast:sim.months;
+    $("cdDays").textContent=(monthsShown*30).toLocaleString("en-US");
+    $("cdDaysLab").textContent="days until debt-free"+(monthsShown!==sim.months?" (cards & loans)":"");
+    $("cdDate").textContent=fmtDate(addMonths(new Date(), monthsShown));
+  } else if(debts.length){
+    $("cdDays").textContent="—"; $("cdDaysLab").textContent="this route doesn't clear yet — raise the extra payment"; $("cdDate").textContent="—";
+  } else {
+    $("cdDays").textContent="—"; $("cdDaysLab").textContent="days until debt-free"; $("cdDate").textContent="—";
+  }
+  // progress ring: share of your debts this route carries all the way to zero
+  var pct=0;
+  if(sim && sim.cleared && debts.length){
+    var clearedCount=0;
+    debts.forEach(function(d){ var pd=sim.perDebt[d.id]; if(pd&&pd.payoff>0) clearedCount++; });
+    pct=Math.round(clearedCount/debts.length*100);
+  }
+  $("ringPct").textContent=pct+"%";
+  $("ringArc").style.strokeDashoffset=(326.7*(1-pct/100)).toFixed(1);
+  document.querySelector(".ring").setAttribute("aria-label","Progress toward debt-free: this route clears "+pct+" percent of your debts");
+  // milestones — light when the route's payoff order clears that share of non-mortgage balance
+  var miles=document.querySelectorAll("#mileTrack .mile");
+  var marks=[0,0.25,0.5,0.75,1];
+  var nonMort=debts.filter(function(d){return d.type!=="mortgage"});
+  var nmTotal=nonMort.reduce(function(s,d){return s+d.balance},0);
+  miles.forEach(function(m,i){
+    var on=false;
+    if(sim && sim.cleared && nmTotal>0){
+      if(i===0){ on=nonMort.some(function(d){ var pd=sim.perDebt[d.id]; return pd&&pd.payoff>0; }); }
+      else if(marks[i]>=1){ on=true; }
+      else{
+        var target=nmTotal*marks[i], c=0;
+        var sorted=nonMort.slice().sort(function(a,b){ return (sim.perDebt[a.id]?sim.perDebt[a.id].payoff:1e9)-(sim.perDebt[b.id]?sim.perDebt[b.id].payoff:1e9); });
+        for(var j=0;j<sorted.length;j++){ c+=sorted[j].balance; if(c>=target){ on=true; break; } }
+      }
+    }
+    m.classList.toggle("done",on);
+  });
+  $("mileNote").textContent = (sim && sim.cleared)
+    ? "On this route each marker is a real date on your calendar — the plan above shows exactly when each debt clears."
+    : "Milestones light up as your route clears them.";
+  // surplus panel
+  var so=$("surplusOut");
+  if(!(inc>0||spend>0)){ so.className="surplus-out idle"; so.textContent="Enter your income and spending to see your monthly surplus."; }
+  else if(surplus>=0){ so.className="surplus-out ok"; so.textContent="Your month leaves "+money(surplus)+" after spending and minimum payments. Aim it below — that surplus is your payoff engine."; }
+  else { so.className="surplus-out bad"; so.textContent="Right now the month runs "+money(-surplus)+" short after spending and minimums. Even a small trim flips this — the route below shows what any extra amount does."; }
+  $("allocNote").textContent = (inc>0||spend>0)
+    ? money(Math.max(0,surplus)*(parseInt($("allocRange").value,10)||0)/100)+" of your "+money(Math.max(0,surplus))+" surplus is flowing to your route as the extra payment. Drag to aim more or less."
+    : "Set your income and spending, and your surplus flows into the extra payment on your route.";
+  // utilization
+  var cardBal=0, cardLim=0;
+  debts.forEach(function(d){ if(d.type==="credit"&&d.limit>0){ cardBal+=d.balance; cardLim+=d.limit; } });
+  if(cardLim>0){
+    var u=Math.round(cardBal/cardLim*100);
+    $("utilPin").style.left=Math.min(u,100)+"%";
+    $("utilValue").textContent=u+"% used — "+money(cardBal)+" of "+money(cardLim);
+    $("utilNote").textContent = u<10 ? "Nicely under 10% — that's the range lenders like best. Keeping it here while you pay down protects your credit score along the way."
+      : u<30 ? "Under 30% — the usual comfort zone. Every payment that drops a balance moves this needle the right way."
+      : u<50 ? "Above the 30% comfort zone. This is one of the fastest numbers to improve: each extra payment on a card lowers it immediately."
+      : "More than half your credit is in use. Bringing this down is a double win — less interest every month, and a healthier credit profile.";
+  } else {
+    $("utilPin").style.left="0%"; $("utilValue").textContent="—";
+    $("utilNote").textContent="Add a credit limit on your cards below and this gauge shows how much of your available credit you're using. Under 30% is the usual comfort zone; under 10% is stronger still.";
+  }
+  // economic framing against the client's top card
+  var top=topCardApr();
+  var fedEl=$("econFed"), cpiEl=$("econCpi");
+  if(top!==null){
+    fedEl.textContent="The Fed held its rate at 3.75–4.00% — the rate underneath almost every card and loan you hold. Your most expensive card charges "+top+"%. Every extra dollar you put on it is a guaranteed "+top+"% return. No savings account comes close.";
+    var above=(top-3.7).toFixed(1);
+    cpiEl.textContent="Prices rose 3.7% over the past year. Your most expensive card, at "+top+"%, costs you "+above+" points above inflation — real money, gone, every month it sits there. Clearing it is the one raise nobody can take back.";
+  } else {
+    fedEl.textContent="This is the rate underneath almost every card and loan you hold. When it stays up, your APRs stay up with it — and every extra dollar you put on high-rate debt earns you a guaranteed return at that debt's rate. No savings account pays that.";
+    cpiEl.textContent="Prices rose 3.7% over the past year. Any debt charging more than that is costing you real money above and beyond rising prices — and the faster you clear it, the less of that gap you pay.";
+  }
+}
 
 render();
 })();
