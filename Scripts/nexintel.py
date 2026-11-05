@@ -12,7 +12,7 @@ If a key is absent, that feed is skipped gracefully — the engine degrades, nev
 """
 
 import json, os, math, time, sys, tempfile, urllib.request, urllib.parse, urllib.error
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
 SNAP_DIR = os.path.join(DATA_DIR, 'snapshots')
@@ -1718,6 +1718,31 @@ def load_history():
     except: return {'picks': [], 'stats': {'wins': 0, 'losses': 0, 'total': 0}}
 
 # ---------------------------------------------------------------- REMEMBER
+def _pick_matured(p, today=None):
+    """Has this pick reached the horizon its thesis promised?
+
+    Theses project exit at entry + 3 days (a 1-5 day swing). Grading a
+    pick on the next loop run (~6h after entry) measures a 6-hour move
+    against a 3-day target: the model-error MAE is then dominated by
+    the horizon gap, not model skill (2026-11-05: daily MAE 8-13.7 while
+    targets run to 50%; median signed error -6 to -8, realized
+    systematically below expectation; the two worst recent days were
+    just the days with the biggest-target mover picks). A pick becomes
+    gradeable once today reaches its thesis projected_exit. Picks
+    without a projected_exit (pre-thesis era) keep the old behavior and
+    score immediately.
+    """
+    if today is None:
+        today = datetime.now(timezone.utc).date()
+    projected = (p.get('thesis') or {}).get('projected_exit')
+    if not projected:
+        return True
+    try:
+        return today >= date.fromisoformat(str(projected)[:10])
+    except ValueError:
+        return True
+
+
 def remember(data, signals):
     """Score previous picks against current prices; build track record + error metrics."""
     print('REMEMBER: scoring prior picks...')
@@ -1786,15 +1811,27 @@ def remember(data, signals):
         v = px_crypto.get(p['asset'])
         return v[0] if v else None
 
-    # Score any unscored picks from prior runs
+    # Score any unscored picks from prior runs — but only once they reach
+    # the horizon their thesis promised (see _pick_matured). A run is
+    # marked scored only when every non-excluded pick in it has been
+    # graded; a run with picks still inside their horizon (or temporarily
+    # unpriceable) stays open and is retried on later runs instead of
+    # stranding its ungraded picks as the old scored_any logic did.
     for run in history['picks']:
         if run.get('scored'): continue
-        scored_any = False
+        pending = False
         for p in run.get('longs', []) + run.get('shorts', []):
             if _excluded_pick(p):
                 continue  # removed from the graded record — never re-score
+            if p.get('return_pct') is not None:
+                continue  # graded in an earlier partial pass — don't double-count
+            if not _pick_matured(p):
+                pending = True  # horizon not reached yet — grade on a later run
+                continue
             cur = price_for(p)
-            if not cur or not p.get('price'): continue
+            if not cur or not p.get('price'):
+                pending = True  # no price this run — retry later
+                continue
             ret = (cur - p['price']) / p['price'] * 100
             if p in run.get('shorts', []): ret = -ret
             p['exit'] = round_price(cur); p['return_pct'] = round(ret, 2)
@@ -1811,10 +1848,9 @@ def remember(data, signals):
                 err['sum_abs_err'] += abs_err; err['n'] += 1
                 if abs_err <= 5.0: err['within_5pct'] += 1
                 p['abs_error'] = round(abs_err, 2)
-            scored_any = True
             stats['total'] += 1
             stats['wins' if ret > 0 else 'losses'] += 1
-        if scored_any: run['scored'] = True
+        if not pending: run['scored'] = True
 
     # Append today's picks as a new run
     now = datetime.now(timezone.utc).isoformat()
