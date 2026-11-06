@@ -157,6 +157,51 @@
     return '<p><strong>Econ:</strong> ' + e.tags.join(' · ') + '</p>';
   }
 
+  // Cycle pulse (engine's cycle_feed, display only). Today's cycle
+  // bands in plain words — research annotations, never a buy input,
+  // never a confidence input. Rendered from intraday.json cycle_state.
+  function escPulse(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function cyclePulseText(st) {
+    if (!st) return '';
+    var fngWords = { FNG_XF: 'Extreme Fear', FNG_F: 'Fear',
+      FNG_N: 'Neutral', FNG_G: 'Greed', FNG_XG: 'Extreme Greed' };
+    var domWords = { DOM_UP: 'Dominance rising',
+      DOM_DOWN: 'Dominance falling', DOM_FLAT: 'Dominance flat' };
+    var ddWords = { DD_SHALLOW: 'near its 365-day high',
+      DD_MID: '10–25% below its 365-day high',
+      DD_DEEP: '25–40% below its 365-day high',
+      DD_EXTREME: 'over 40% below its 365-day high' };
+    var parts = [];
+    parts.push(st.halving_band && st.halving_day != null
+      ? 'Halving day ' + st.halving_day + ' (' + st.halving_band + ')'
+      : 'Halving no data');
+    parts.push(st.month || 'Month no data');
+    parts.push(domWords[st.dom_band] || 'Dominance no data');
+    parts.push(st.fng_band && st.fng_value != null
+      ? 'Fear & Greed ' + st.fng_value + ' (' + fngWords[st.fng_band] + ')'
+      : 'Fear & Greed no data');
+    parts.push(st.dd_band
+      ? 'BTC ' + ddWords[st.dd_band] : 'Drawdown no data');
+    return parts.join(' · ');
+  }
+
+  function renderCyclePulse() {
+    var el = document.getElementById('cycle-pulse');
+    if (!el || !lastIntraday) return;
+    var st = lastIntraday.cycle_state;
+    if (!st) {
+      el.innerHTML = '<p class="live-stamp">Cycle pulse — no cycle data this run.</p>';
+      return;
+    }
+    el.innerHTML = '<div class="card"><h3>🔄 Cycle pulse</h3><p>' +
+      escPulse(cyclePulseText(st)) + '</p>' +
+      '<p class="live-stamp">Research only — cycle states are shadow-graded in the 📒 Proof Book (Reports). They never change a buy call.</p></div>';
+  }
+
   // Price-action pattern tags (engine's pattern_feed, display only).
   // Shows on intraday signal, mover, watch, and setting-up cards when
   // the engine shipped tags for the asset. Research annotations — never
@@ -517,6 +562,7 @@
         lastIntraday = d;
         renderMovers();  // movers/watch render even when no signals fire
         renderVerdicts();
+        renderCyclePulse();
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
         // Unified freshness stamp at the top of the page — the intraday

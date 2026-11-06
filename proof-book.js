@@ -41,9 +41,13 @@
     var kind = e.kind === 'mover' ? '🚀 MOVER'
       : e.kind === 'setup' ? '🔭 SETUP'
       : e.kind === 'pattern_confluence' ? '📊 CLUSTER'
+      : e.kind === 'cycle' ? '🔄 CYCLE'
       : e.kind === 'pattern' ? '📊 PATTERN' : '⚡ SIGNAL';
     var what = (e.kind === 'pattern' || e.kind === 'pattern_confluence') && e.pattern
       ? ' ' + esc(e.pattern) : '';
+    if (e.kind === 'cycle' && e.variable) {
+      what = ' ' + esc(e.variable) + '/' + esc(e.band || '');
+    }
     return kind + what + ' ' + esc(e.asset) + (e.direction === 'SHORT' ? ' (short)' : '');
   }
 
@@ -53,7 +57,7 @@
       return '⏳ Still open';
     }
     var detail = fmtPct(e.result_pct) + ' (' + fmtMoney(e.paper_pnl || 0) + ')';
-    if (e.pattern_expired) return '⌛ Horizon close ' + detail;
+    if (e.pattern_expired || e.cycle_expired) return '⌛ Horizon close ' + detail;
     if (e.status === 'won') return '🎯 Target hit ' + detail;
     if (e.status === 'lost') return '🛑 Stopped out ' + detail;
     if (e.never_triggered) return '⌛ Trigger never hit — no trade taken ' + detail;
@@ -153,6 +157,7 @@
 
     html += renderCells(st);
     html += renderPatternScoreboard(st);
+    html += renderCycleScoreboard(st);
 
     el.innerHTML = html;
   }
@@ -181,6 +186,41 @@
     return '<details style="margin-top:16px;"><summary><strong>Pattern scoreboard (research)</strong> — shadow-graded pattern calls, 6h/24h horizons, $1,000 paper each</summary>' +
       '<p>Wilson 95% lower bound is shown, not gated — promotion is Nic\'s call. Expectancy is $ per $1,000 paper; the +$20 bar is a Phase 3 question.</p>' +
       '<table class="report-table"><thead><tr><th>Pattern</th><th>Dir</th><th>Horizon</th><th>Graded</th><th>Win rate</th><th>Wilson 95% lower</th><th>Expectancy / $1k</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table></details>';
+  }
+
+  // Cycle scoreboard (research track, Phase 2): per-cycle-cell shadow
+  // results — win rate vs the all-days base rate and the variable's
+  // control band, Wilson 95% lower bound, expectancy per $1,000
+  // paper. The CI is shown, never gated; promotion is Nic's call.
+  // Halving rows are cross-asset evidence only (BTC itself is n≤4
+  // per band) — the note says so on the row.
+  function renderCycleScoreboard(st) {
+    var rows = ((st && st.cycle_scoreboard) || [])
+      .filter(function (r) { return r.graded > 0; });
+    if (!rows.length) return '';
+    function cell(v, suffix) {
+      if (v === null || v === undefined) return '—';
+      return v + (suffix || '');
+    }
+    function money(v) {
+      if (v === null || v === undefined) return '—';
+      return (v > 0 ? '+$' : '-$') + Math.abs(v).toFixed(2);
+    }
+    var body = rows.map(function (r) {
+      return '<tr><td>' + esc(r.variable) + '</td><td>' + esc(r.band) +
+        '</td><td>' + esc(r.direction) + '</td><td>' + esc(r.horizon) +
+        '</td><td>' + r.graded + '</td><td>' + cell(r.win_rate, '%') +
+        '</td><td>' + cell(r.base_rate, '%') + '</td><td>' +
+        cell(r.control_rate, '%') + '</td><td>' +
+        cell(r.wilson_lower_95, '%') + '</td><td>' +
+        money(r.expectancy_per_1000) + '</td></tr>' +
+        (r.note ? '<tr><td colspan="10" class="live-stamp">' +
+          esc(r.note) + '</td></tr>' : '');
+    }).join('');
+    return '<details style="margin-top:16px;"><summary><strong>Cycle scoreboard (research)</strong> — shadow-graded cycle calls, 24h/7d horizons, $1,000 paper each</summary>' +
+      '<p>Each cell is graded against the all-days base rate for its horizon and its variable\'s control band (neutral Fear &amp; Greed, flat dominance). Wilson 95% lower bound is shown, not gated — promotion is Nic\'s call. Expectancy is $ per $1,000 paper; the +$20 bar is a Phase 3 question.</p>' +
+      '<table class="report-table"><thead><tr><th>Variable</th><th>Band</th><th>Dir</th><th>Horizon</th><th>Graded</th><th>Win rate</th><th>Base rate</th><th>Control</th><th>Wilson 95% lower</th><th>Expectancy / $1k</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table></details>';
   }
 

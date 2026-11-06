@@ -25,6 +25,10 @@ try:
     import pattern_feed  # Price-action research track, Phase 1 (display only)
 except ImportError:
     pattern_feed = None
+try:
+    import cycle_feed  # Cycle research track, Phase 1 (display only)
+except ImportError:
+    cycle_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -728,6 +732,8 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
     entry_id = f'{kind}:{asset}:{int(now.timestamp())}'
     if extra and extra.get('horizon'):
         entry_id += f":{extra['horizon']}"
+    if extra and extra.get('variable'):
+        entry_id += f":{extra['variable']}"
     entry_out = {
         'id': entry_id,
         'ts_open': now.isoformat(),
@@ -787,6 +793,10 @@ def proof_record_new(record, candidates, now):
             if e.get('asset') != cand['asset'] or e.get('kind') != cand['kind']:
                 continue
             if (e.get('horizon') or '') != (cand.get('horizon') or ''):
+                continue
+            # Cycle rows carry a variable: a halving row and a month row
+            # for the same asset+kind+horizon are distinct entries.
+            if (e.get('variable') or '') != (cand.get('variable') or ''):
                 continue
             if e.get('status') == 'open':
                 dup = True
@@ -922,8 +932,16 @@ PATTERN_KINDS = ('pattern', 'pattern_confluence')
 PATTERN_HORIZONS_H = (6, 24)
 
 
-def _proof_grade_pattern(e, charts_by_sym, now, opened, cur):
-    """Grade one pattern / pattern_confluence entry. Returns
+def _fixed_level_grade(e, charts_by_sym, now, opened, cur, max_age_days,
+                       expired_flag):
+    """Shared fixed-level grader for the research tracks (pattern and
+    cycle — both spec §4): WIN if the +4.2% gross level is touched
+    before the -2.1% adverse level inside the horizon; LOSS if the
+    adverse level hits first; EXPIRED (neither level hit by exit_by +
+    2h grace, or the `max_age_days` hard cap) grades at the horizon
+    close — a WIN iff the direction-signed drift covers the 1.4%
+    costs. The entry carries `{expired_flag}=True` so the horizon
+    close stays distinguishable from a target/stop exit. Returns
     (status, result_pct) or (None, None) to stay open. Never raises."""
     from datetime import timedelta
     try:
@@ -954,17 +972,34 @@ def _proof_grade_pattern(e, charts_by_sym, now, opened, cur):
                     return 'lost', -(PATTERN_ADVERSE_PCT + PATTERN_COST_PCT)
         exit_by = _iso_parse(e.get('exit_by') or '')
         window_over = bool(exit_by and now > exit_by + timedelta(hours=2)) or \
-            bool(opened and (now - opened).total_seconds() > 7 * 86400)
+            bool(opened and (now - opened).total_seconds() > max_age_days * 86400)
         if not window_over:
             return None, None
         last = series[-1] if series else (e.get('last_price') or entry)
         drift = ((last - entry) / entry * 100) if is_long \
             else ((entry - last) / entry * 100)
         result = round(drift - PATTERN_COST_PCT, 2)
-        e['pattern_expired'] = True
+        e[expired_flag] = True
         return ('won' if result >= 0 else 'lost'), result
     except Exception:
         return None, None
+
+
+def _proof_grade_pattern(e, charts_by_sym, now, opened, cur):
+    """Grade one pattern / pattern_confluence entry. Returns
+    (status, result_pct) or (None, None) to stay open. Never raises."""
+    return _fixed_level_grade(e, charts_by_sym, now, opened, cur, 7,
+                              'pattern_expired')
+
+
+def _proof_grade_cycle(e, charts_by_sym, now, opened, cur):
+    """Grade one cycle entry (same fixed levels as the pattern track,
+    spec §4). The hard cap is 8 days, not 7: a 7d-horizon entry must
+    survive until exit_by + 2h grace, which a 7-day cap would cut
+    ~2h short. Returns (status, result_pct) or (None, None) to stay
+    open. Never raises."""
+    return _fixed_level_grade(e, charts_by_sym, now, opened, cur, 8,
+                              'cycle_expired')
 
 
 def _proof_pattern_plan(entry, direction):
@@ -1164,6 +1199,256 @@ def proof_roll_pattern_cumulative(cumulative, dropped):
     return out
 
 
+# --- Cycle research track, Phase 2 (shadow grading, spec §4) ---
+# A cycle candidate is a fixed-horizon, cost-aware paper bet: entry =
+# the asset's close on the observation day, direction per spec §1
+# (cycle_feed.direction_for), two fixed horizons (24h and 7d). Same
+# levels as the pattern track: WIN if +4.2% gross is touched before
+# -2.1% adverse; LOSS if the adverse level hits first; EXPIRED grades
+# at the horizon close (win iff the drift covers the 1.4% costs).
+# Dollars ($1,000 paper): WIN -> +$28, LOSS -> -$35.
+# Cells: variable x band x horizon x direction. One asset-day
+# contributes one row per variable (seven rows per asset-day) — cells
+# are never mixed across variables. Rows live in a SEPARATE cycle
+# ledger (proof.cycle_record, cap 2000), not the 100-entry main
+# ledger: 14 rows per asset-day would flood it and evict live calls.
+# The separate ledger is graded by the same proof_grade machinery.
+# Universe is bounded (BTC first, then this run's card assets, cap 20
+# — see CYCLE_MAX_ASSETS): the full scanned universe at 14 rows/day
+# would still flood even the separate ledger.
+# Base rates (spec §4): every cell is graded against the all-days
+# base rate for its horizon AND its variable's control band
+# (FNG_N for fear bands, DOM_FLAT for dominance). Variables without
+# a control band grade against the all-days base rate alone.
+CYCLE_KINDS = ('cycle',)
+CYCLE_HORIZONS_H = (24, 168)   # labels '24h' and '7d'
+CYCLE_MAX_ASSETS = 20          # BTC + card assets per run (see above)
+CYCLE_RECORD_CAP = 2000        # separate cycle ledger cap
+
+
+def proof_cycle_candidates(cycle_state, assets, mkt_by_sym, name_by_sym,
+                           now, regime_tag):
+    """Ledger candidates for one day's cycle state. One candidate per
+    (asset, variable, horizon): seven variables x two horizons per
+    asset-day, minus the cells direction_for() rules out (DOM_UP on
+    altcoins, DOM_DOWN on BTC, any variable whose band is "no data").
+    The plan is the spec §4 fixed-level plan (+4.2% / -2.1%,
+    +$28 / -$35) — _proof_pattern_plan, shared with the pattern
+    track. Returns [candidates]."""
+    cands = []
+    if not cycle_state:
+        return cands
+    variables = (cycle_feed.VARIABLES if cycle_feed is not None
+                 else ('halving', 'month', 'dom', 'fng', 'dow', 'dd'))
+    for asset in (assets or []):
+        mkt = (mkt_by_sym or {}).get(asset) or {}
+        try:
+            entry = float(mkt.get('price') or 0)
+        except (TypeError, ValueError):
+            entry = 0
+        if not entry or entry <= 0:
+            continue
+        for variable in variables:
+            band = (cycle_feed.state_band(cycle_state, variable)
+                    if cycle_feed is not None else None)
+            if band is None:
+                continue
+            direction = (cycle_feed.direction_for(variable, band, asset)
+                         if cycle_feed is not None else None)
+            if direction is None:
+                continue
+            for horizon_h in CYCLE_HORIZONS_H:
+                label = '24h' if horizon_h == 24 else '7d'
+                cand = _proof_candidate(
+                    'cycle', asset,
+                    (name_by_sym or {}).get(asset) or asset,
+                    direction, _proof_pattern_plan(entry, direction),
+                    now, horizon_h,
+                    tags={'band': band, 'regime': regime_tag},
+                    gate_src={},
+                    extra={'variable': variable, 'horizon': label})
+                if cand:
+                    cands.append(cand)
+    return cands
+
+
+def proof_record_cycle(record, candidates, now):
+    """Prepend fresh cycle rows to the cycle ledger (newest-first).
+    Dedup: the same asset+variable+horizon is never re-recorded
+    within 24h of a previous entry. Unlike proof_record_new there is
+    NO open-block: spec §4 wants one row per asset-day per variable,
+    so overlapping 7d windows are intended — a 7d row opened
+    yesterday does not block today's 7d row for the same cell."""
+    fresh = []
+    for cand in candidates:
+        if not cand:
+            continue
+        dup = False
+        for e in record:
+            if e.get('asset') != cand['asset'] or e.get('kind') != cand['kind']:
+                continue
+            if (e.get('variable') or '') != (cand.get('variable') or ''):
+                continue
+            if (e.get('horizon') or '') != (cand.get('horizon') or ''):
+                continue
+            opened = _iso_parse(e.get('ts_open') or '')
+            if opened and (now - opened).total_seconds() < 24 * 3600:
+                dup = True
+                break
+        if not dup:
+            fresh.append(cand)
+    record[:] = fresh + record
+    return len(fresh)
+
+
+def cycle_cell_key(e):
+    """(variable, band, direction, horizon) for a cycle ledger entry."""
+    return (e.get('variable') or '?', e.get('band') or 'na',
+            e.get('direction') or 'LONG', e.get('horizon') or '?')
+
+
+def cycle_scoreboard(record, cumulative=None):
+    """Per-cycle-cell scoreboard (spec §4 cells, §5 promotion bar,
+    reported — never gated). Each row: variable, band, direction,
+    horizon, graded, wins, losses, expired-horizon closes, win rate,
+    Wilson 95% CI lower bound (percent), expectancy in $ per $1,000
+    paper (mean paper P&L), max drawdown on a running $1,000 bankroll
+    per cell (visible ledger only — cumulative rows carry no time
+    series, so their drawdown is None), the all-days base rate for
+    the horizon, the control-band rate for the variable (None where
+    the variable has no control band), and whether the cell beats
+    each. Promotion flags (sample n >= 100, expectancy >= +$20) are
+    reported as facts; promotion itself is Nic's call, never
+    automatic. Per Nic (2026-11-05) the 95% belt is loosened: the
+    Wilson lower bound is shown, never a gate. Halving rows carry the
+    cross-asset disclosure (BTC itself contributes n<=4 per band)."""
+    cells = {}
+
+    def bucket(key):
+        return cells.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                      'expired': 0, 'paper_pnl_total': 0.0,
+                                      'pnls': []})
+    for e in record or []:
+        if e.get('kind') not in CYCLE_KINDS:
+            continue
+        if e.get('status') not in ('won', 'lost', 'expired'):
+            continue
+        b = bucket(cycle_cell_key(e))
+        b['graded'] += 1
+        if e.get('status') == 'won':
+            b['wins'] += 1
+        elif e.get('status') == 'lost':
+            b['losses'] += 1
+        if e.get('cycle_expired'):
+            b['expired'] += 1
+        b['paper_pnl_total'] += e.get('paper_pnl') or 0
+        b['pnls'].append((e.get('ts_closed') or '', e.get('paper_pnl') or 0))
+    for key_str, c in (cumulative or {}).items():
+        parts = key_str.split('|')
+        if len(parts) != 4:
+            continue
+        b = bucket(tuple(parts))
+        for f in ('graded', 'wins', 'losses', 'expired'):
+            b[f] += c.get(f, 0)
+        b['paper_pnl_total'] += c.get('paper_pnl_total', 0)
+
+    def _win_rate(wins, losses):
+        wl = wins + losses
+        return round(wins / wl * 100, 1) if wl else None
+
+    # All-days base rate per horizon (all cycle cells at that horizon).
+    base = {}
+    for (variable, band, direction, horizon), b in cells.items():
+        h = base.setdefault(horizon, {'wins': 0, 'losses': 0})
+        h['wins'] += b['wins']
+        h['losses'] += b['losses']
+    base_rate = {h: _win_rate(v['wins'], v['losses'])
+                 for h, v in base.items()}
+    # Control-band rate per (variable, horizon).
+    control = {}
+    for (variable, band, direction, horizon), b in cells.items():
+        ctrl = (cycle_feed.CONTROL_BANDS.get(variable)
+                if cycle_feed is not None else None)
+        if ctrl and band == ctrl:
+            c = control.setdefault((variable, horizon),
+                                   {'wins': 0, 'losses': 0})
+            c['wins'] += b['wins']
+            c['losses'] += b['losses']
+    control_rate = {k: _win_rate(v['wins'], v['losses'])
+                    for k, v in control.items()}
+
+    rows = []
+    for (variable, band, direction, horizon), b in sorted(cells.items()):
+        wl = b['wins'] + b['losses']
+        lo = wilson_lower(b['wins'], wl)
+        dd = None
+        if b['pnls']:
+            bankroll, peak, worst = 1000.0, 1000.0, 0.0
+            for _, pnl in sorted(b['pnls']):
+                bankroll += pnl
+                peak = max(peak, bankroll)
+                worst = max(worst, (peak - bankroll) / peak * 100
+                            if peak > 0 else 0.0)
+            dd = round(worst, 1)
+        wr = _win_rate(b['wins'], b['losses'])
+        br = base_rate.get(horizon)
+        cr = control_rate.get((variable, horizon))
+        exp = (round(b['paper_pnl_total'] / b['graded'], 2)
+               if b['graded'] else None)
+        row = {
+            'variable': variable, 'band': band, 'direction': direction,
+            'horizon': horizon,
+            'graded': b['graded'], 'wins': b['wins'],
+            'losses': b['losses'], 'expired': b['expired'],
+            'win_rate': wr,
+            'wilson_lower_95': round(lo * 100, 1) if lo is not None else None,
+            'expectancy_per_1000': exp,
+            'paper_pnl_total': round(b['paper_pnl_total'], 2),
+            'max_drawdown_pct': dd,
+            'drawdown_visible_only': True,
+            'base_rate': br,
+            'control_rate': cr,
+            'beats_base': (wr is not None and br is not None
+                           and wr > br),
+            'beats_control': (None if cr is None else
+                              (wr is not None and wr > cr)),
+            'meets_sample_n100': b['graded'] >= 100,
+            'meets_expectancy_20': (exp is not None and exp >= 20),
+        }
+        if variable == 'halving':
+            row['note'] = ('Cross-asset evidence only — BTC itself '
+                           'contributes n≤4 per band; never "the halving '
+                           'cycle works".')
+            row['frequency_note'] = ('Slow accumulator — each band '
+                                     'recurs once per 4-year cycle.')
+        rows.append(row)
+    return rows
+
+
+def proof_roll_cycle_cumulative(cumulative, dropped):
+    """Fold closed cycle entries that are about to roll off the capped
+    cycle ledger into persistent per-cycle-cell counters (same shape
+    as proof_roll_pattern_cumulative, keyed by cycle_cell_key). Open
+    entries are never rolled."""
+    out = {k: dict(v) for k, v in (cumulative or {}).items()}
+    for e in dropped:
+        if e.get('kind') not in CYCLE_KINDS:
+            continue
+        st = e.get('status')
+        if st not in ('won', 'lost', 'expired'):
+            continue
+        key = '|'.join(cycle_cell_key(e))
+        c = out.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                 'expired': 0, 'paper_pnl_total': 0.0})
+        c['graded'] += 1
+        c['wins' if st == 'won' else 'losses' if st == 'lost' else 'expired'] += 1
+        if e.get('cycle_expired'):
+            c['expired'] += 1
+        c['paper_pnl_total'] = round(c['paper_pnl_total'] +
+                                     (e.get('paper_pnl') or 0), 2)
+    return out
+
+
 def proof_grade(record, mkt_by_sym, charts_by_sym, now):
     """Grade every open ledger entry against fresh market data.
     mkt_by_sym: {sym: {'price', 'high_24h', 'low_24h'}} from the markets
@@ -1190,6 +1475,17 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
                 e['status'] = p_status
                 e['result_pct'] = round(p_result, 2)
                 e['paper_pnl'] = round(p_result * PAPER_USD / 100, 2)
+                e['ts_closed'] = now.isoformat()
+            continue
+        if e.get('kind') in CYCLE_KINDS:
+            # Cycle entries grade on the spec §4 fixed levels, not the
+            # plain since-entry path — see _proof_grade_cycle.
+            c_status, c_result = _proof_grade_cycle(
+                e, charts_by_sym, now, opened, cur)
+            if c_status:
+                e['status'] = c_status
+                e['result_pct'] = round(c_result, 2)
+                e['paper_pnl'] = round(c_result * PAPER_USD / 100, 2)
                 e['ts_closed'] = now.isoformat()
             continue
         if e.get('kind') == 'setup':
@@ -1548,6 +1844,7 @@ def proof_stats(record):
                         for k in ('signal', 'mover', 'setup',
                                   'pattern', 'pattern_confluence')}
     stats['pattern_scoreboard'] = None  # filled by main() (needs cumulative)
+    stats['cycle_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['post_exit'] = _proof_post_exit_stats(record)
     stats['codeword_gate'] = _proof_gate_stats(record, agg)
     return stats
@@ -1909,6 +2206,26 @@ def main():
             prior_pattern_candles = _prior.get('pattern_candles') or {}
             prior_pattern_cumulative = \
                 (_prior.get('proof') or {}).get('pattern_cumulative') or {}
+    except Exception:
+        pass
+    # Cycle research track, Phase 1/2: daily BTC closes, the
+    # dominance/FNG day-cache, the dominance history (30d lookback),
+    # and the separate cycle ledger + cumulative counters.
+    prior_cycle_btc_daily = []
+    prior_cycle_cache = {}
+    prior_cycle_dom_history = {}
+    prior_cycle_record = []
+    prior_cycle_cumulative = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_cycle_btc_daily = _prior.get('cycle_btc_daily') or []
+            prior_cycle_cache = _prior.get('cycle_cache') or {}
+            prior_cycle_dom_history = _prior.get('cycle_dom_history') or {}
+            prior_cycle_record = \
+                (_prior.get('proof') or {}).get('cycle_record') or []
+            prior_cycle_cumulative = \
+                (_prior.get('proof') or {}).get('cycle_cumulative') or {}
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -2367,10 +2684,59 @@ def main():
             pattern_candles = prior_pattern_candles
             print(f'  [warn] pattern feed failed (fail-open): {e}')
 
+    # --- Cycle research track, Phase 1 (display-only research) ---
+    # Today's cycle state: BTC daily closes via Kraken public OHLC
+    # (interval=1440, forming day dropped), dominance via CoinGecko
+    # /global and Fear & Greed via Alternative.me — both day-cached in
+    # intraday.json['cycle_cache'] so the hourly runs make at most one
+    # call each per day. The 30-day dominance change reads the cached
+    # daily dominance history (warms up over the first month: until a
+    # 30-day-old value exists, the DOM band is "no data"). Fail-open
+    # throughout: no state -> no pulse, no candidates, no exceptions
+    # — and this block NEVER records a gate event (diagnostic-only; it
+    # must never trip the circuit breaker).
+    cycle_state = None
+    cycle_btc_daily = prior_cycle_btc_daily
+    cycle_cache = prior_cycle_cache if isinstance(prior_cycle_cache,
+                                                  dict) else {}
+    cycle_dom_history = prior_cycle_dom_history
+    cycle_diag = {'btc_closes': 0, 'dom': None, 'fng': None, 'error': None}
+    if cycle_feed is not None:
+        try:
+            _today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            _fetched_daily = cycle_feed.fetch_btc_daily(fetch_json)
+            cycle_btc_daily = cycle_feed.update_btc_daily_store(
+                prior_cycle_btc_daily, _fetched_daily)
+            cycle_diag['btc_closes'] = len(cycle_btc_daily)
+            if cycle_cache.get('date') != _today:
+                cycle_cache = {
+                    'date': _today,
+                    'dominance': cycle_feed.fetch_dominance(fetch_json),
+                    'fng': cycle_feed.fetch_fng(fetch_json)}
+            _dom_now = cycle_cache.get('dominance')
+            _fng_now = cycle_cache.get('fng')
+            if _dom_now is not None:
+                cycle_dom_history = cycle_feed.update_dom_history(
+                    cycle_dom_history, _today, _dom_now)
+            _dom_30 = cycle_feed.dom_30d_ago(cycle_dom_history, _today)
+            cycle_state = cycle_feed.compute_state(
+                _today, cycle_btc_daily, _dom_now, _dom_30, _fng_now)
+            cycle_diag['dom'] = _dom_now
+            cycle_diag['fng'] = _fng_now
+            print(f"  Cycle pulse: {cycle_feed.pulse_line(cycle_state)}")
+        except Exception as e:
+            # Diagnostic only — a broken cycle feed degrades to
+            # "no cycle data", never a dead run, never a gate event.
+            cycle_diag['error'] = str(e)[:200]
+            cycle_state = None
+            cycle_btc_daily = prior_cycle_btc_daily
+            print(f'  [warn] cycle feed failed (fail-open): {e}')
+
     # --- 📒 Proof Book: grade yesterday's calls before recording today's
     # (a call is never graded in the same run that creates it, so the
     # trailing-24h windows can't credit a pre-entry move) ---
     proof = list(prior_proof)
+    cycle_record = list(prior_cycle_record)
     proof_now = datetime.now(timezone.utc)
     # Legacy entries predate the cell tags: backfill the regime from the
     # swing engine's own run history (data/history.json) — the regime in
@@ -2403,6 +2769,25 @@ def main():
         s = (c['symbol'] or '').upper()
         if s and s not in name_by_sym:
             name_by_sym[s] = c.get('name') or s
+    # Cycle entries grade over 24h/7d horizons, so theirs fetch days=2
+    # (24h) or days=8 (7d — a 7d horizon needs an 8-day lookback).
+    # Fetched BEFORE the main loop so the span check below keeps the
+    # longer chart instead of overwriting it with a days=1/2 refetch.
+    cycle_days_by_sym = {}
+    for e in cycle_record:
+        if e.get('status') != 'open':
+            continue
+        _sym = e['asset']
+        _need = 8 if e.get('horizon') == '7d' else 2
+        cycle_days_by_sym[_sym] = max(cycle_days_by_sym.get(_sym, 0),
+                                      _need)
+    for _sym, _days in sorted(cycle_days_by_sym.items()):
+        if _sym not in id_by_sym:
+            continue
+        ch = fetch_json(f'https://api.coingecko.com/api/v3/coins/{id_by_sym[_sym]}/market_chart'
+                        f'?vs_currency=usd&days={_days}&interval=hourly')
+        if ch and ch.get('prices'):
+            charts_by_sym[_sym] = ch['prices']
     for e in proof:
         # Open calls need a chart for grading; recently-exited calls
         # need one for the after-exit tracker (24h post-exit sampling).
@@ -2411,16 +2796,23 @@ def main():
             continue
         sym = e['asset']
         want_2d = e.get('kind') in PATTERN_KINDS
-        if sym in charts_by_sym and not want_2d:
-            continue
+        days = 2 if want_2d else 1
+        if sym in charts_by_sym:
+            # Keep a longer chart (e.g. the cycle days=8 fetch) — only
+            # refetch when the stored chart is shorter than needed.
+            _pts = charts_by_sym[sym]
+            _span_h = ((_pts[-1][0] - _pts[0][0]) / 3600000
+                       if len(_pts) >= 2 else 0)
+            if _span_h >= days * 24 - 1:
+                continue
         if sym not in id_by_sym:
             continue
-        days = 2 if want_2d else 1
         ch = fetch_json(f'https://api.coingecko.com/api/v3/coins/{id_by_sym[sym]}/market_chart'
                         f'?vs_currency=usd&days={days}&interval=hourly')
         if ch and ch.get('prices'):
             charts_by_sym[sym] = ch['prices']
     proof_grade(proof, mkt_by_sym, charts_by_sym, proof_now)
+    proof_grade(cycle_record, mkt_by_sym, charts_by_sym, proof_now)
     n_pe_done = proof_track_post_exit(proof, mkt_by_sym, charts_by_sym,
                                       proof_now)
     if n_pe_done:
@@ -2463,6 +2855,32 @@ def main():
             patterns, mkt_by_sym, name_by_sym, proof_now, regime_tag)
         n_pattern_cands = len(_pcands)
         proof_cands.extend(_pcands)
+    # Cycle track, Phase 2 (shadow grading only): one row per variable
+    # per asset-day per horizon (24h + 7d). Bounded universe: BTC
+    # first, then this run's card assets, capped at CYCLE_MAX_ASSETS
+    # — the full scanned universe would flood even the separate cycle
+    # ledger (14 rows/asset/day). No gate, no alert, no confidence
+    # input — the book just gains rows.
+    n_cycle_cands = 0
+    if cycle_state:
+        _csyms = []
+        for _src in (longs, shorts, movers, watch, accum):
+            for _it in _src:
+                _s = (_it or {}).get('asset')
+                if _s and _s not in _csyms:
+                    _csyms.append(_s)
+        if 'BTC' in _csyms:
+            _csyms.remove('BTC')
+        _csyms = (['BTC'] + _csyms)[:CYCLE_MAX_ASSETS]
+        _ccands = proof_cycle_candidates(
+            cycle_state, _csyms, mkt_by_sym, name_by_sym, proof_now,
+            regime_tag)
+        n_cycle_cands = len(_ccands)
+        proof_record_cycle(cycle_record, _ccands, proof_now)
+    cycle_record, cycle_dropped = _proof_trim(cycle_record,
+                                             cap=CYCLE_RECORD_CAP)
+    cycle_cumulative = proof_roll_cycle_cumulative(
+        prior_cycle_cumulative, cycle_dropped)
     n_added = proof_record_new(proof, proof_cands, proof_now)
     proof, dropped = _proof_trim(proof)
     cumulative = proof_roll_cumulative(prior_cumulative, dropped)
@@ -2473,8 +2891,11 @@ def main():
     pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
     pstats['pattern_scoreboard'] = pattern_scoreboard(
         proof, pattern_cumulative)
+    pstats['cycle_scoreboard'] = cycle_scoreboard(
+        cycle_record, cycle_cumulative)
     print(f"  Proof book: +{n_added} new calls "
-          f"({n_pattern_cands} pattern), {pstats['open']} open, "
+          f"({n_pattern_cands} pattern, {n_cycle_cands} cycle), "
+          f"{pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
     pub_now = datetime.now(timezone.utc).isoformat()
@@ -2499,8 +2920,18 @@ def main():
         'pattern_candles': pattern_candles,
         'patterns': patterns,
         'pattern_diag': pattern_diag,
+        # Cycle research track, Phase 1/2 (display-only research):
+        # today's state, the daily BTC closes, the day-cache for
+        # dominance/Fear & Greed, and the dominance history.
+        'cycle_state': cycle_state,
+        'cycle_diag': cycle_diag,
+        'cycle_btc_daily': cycle_btc_daily,
+        'cycle_cache': cycle_cache,
+        'cycle_dom_history': cycle_dom_history,
         'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative,
-                  'pattern_cumulative': pattern_cumulative},
+                  'pattern_cumulative': pattern_cumulative,
+                  'cycle_record': cycle_record,
+                  'cycle_cumulative': cycle_cumulative},
         'coins_scanned': len(mkts),
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
