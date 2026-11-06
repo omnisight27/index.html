@@ -145,8 +145,13 @@
       if (p.news_flag) newsFlagged[p.asset] = p;
     });
     function push(list, v) { if (!seen[v.asset]) { seen[v.asset] = 1; list.push(v); } }
+    // The 60% buy bar reads RAW confidence (Nic 2026-11-05): the bar is
+    // the raw model claim and the calibrated number is display-only.
+    // conf_raw is set on every swing pick; intraday picks carry no
+    // conf_raw (their confidence IS raw), so fall back to confidence.
+    function barConf(p) { return (p.conf_raw !== undefined && p.conf_raw !== null) ? p.conf_raw : (p.confidence || 0); }
     (intra.longs || []).filter(function (s) { return !s.direction || s.direction === 'LONG'; }).forEach(function (s) {
-      if ((s.confidence || 0) >= 60 && !newsFlagged[s.asset]) {
+      if (barConf(s) >= 60 && !newsFlagged[s.asset]) {
         var t = s.thesis || {};
         push(buys, { asset: s.asset, name: s.name, 'class': s['class'], tradable: s.tradable,
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null });
@@ -154,7 +159,7 @@
     });
     (swing.longs || []).forEach(function (p) {
       var agree = tfAgree(p);
-      if ((p.confidence || 0) >= 60 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
+      if (barConf(p) >= 60 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
         var t = p.thesis || {};
         push(buys, { asset: p.asset, name: p.name, 'class': p['class'], tradable: p.tradable,
           plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit } });
@@ -173,10 +178,10 @@
     if (!buys.length) {
       var cands = [];
       (swing.longs || []).forEach(function (p) {
-        if (!newsFlagged[p.asset] && !seen[p.asset]) cands.push({ p: p, conf: p.confidence || 0 });
+        if (!newsFlagged[p.asset] && !seen[p.asset]) cands.push({ p: p, conf: barConf(p) });
       });
       (intra.longs || []).forEach(function (s) {
-        if (!newsFlagged[s.asset] && !seen[s.asset]) cands.push({ p: s, conf: s.confidence || 0 });
+        if (!newsFlagged[s.asset] && !seen[s.asset]) cands.push({ p: s, conf: barConf(s) });
       });
       cands.sort(function (a, b) { return b.conf - a.conf; });
       if (cands.length) { closest = cands[0]; seen[closest.p.asset] = 1; }

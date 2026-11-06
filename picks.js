@@ -100,7 +100,9 @@
       '<p><strong>Stop:</strong> $' + (t.stop_loss !== undefined ? Number(t.stop_loss).toLocaleString() : '—') +
       ' &nbsp; <strong>R:R</strong> ' + (t.risk_reward || '—') +
       ' &nbsp; <strong>Expected:</strong> +' + (t.expected_return_pct || 0) + '%</p>' +
-      '<p><strong>Confidence:</strong> ' + p.confidence + '% · <strong>Position:</strong> ' + (p.position_pct !== undefined ? p.position_pct + '%' : '—') + ' (Kelly)</p>' +
+      '<p><strong>Confidence:</strong> ' + p.confidence + '%' +
+      (p.conf_v2 !== undefined && p.conf_v2 !== null && p.conf_v2 !== p.confidence ? ' · <strong>V2 (shadow):</strong> ' + p.conf_v2 + '%' : '') +
+      ' · <strong>Position:</strong> ' + (p.position_pct !== undefined ? p.position_pct + '%' : '—') + ' (Kelly)</p>' +
       '<p class="profit-line" style="display:none"></p>' +
       '<p><strong>Bull case:</strong></p><ul class="thesis-list">' + bull + '</ul>' +
       '<p><strong>Bear case:</strong></p><ul class="thesis-list">' + bear + '</ul>' +
@@ -388,22 +390,28 @@
     function seenKey(p) { return p.asset + '|' + marketParamOf(p); }
     function push(list, v) { var k = seenKey(v); if (!seen[k]) { seen[k] = 1; list.push(v); } }
 
+    // The 60% buy bar reads RAW confidence (Nic 2026-11-05): the bar is
+    // the raw model claim and the calibrated number is display-only.
+    // conf_raw is set on every swing pick; intraday picks carry no
+    // conf_raw (their confidence IS raw), so fall back to confidence.
+    function barConf(p) { return (p.conf_raw !== undefined && p.conf_raw !== null) ? p.conf_raw : (p.confidence || 0); }
+
     // BUY — intraday signals, then aligned swing longs, then hot movers
     intraLongs.forEach(function (s) {
-      if ((s.confidence || 0) >= 60 && !newsFlagged[s.asset]) {
+      if (barConf(s) >= 60 && !newsFlagged[s.asset]) {
         var t = s.thesis || {};
         push(buys, { verdict: 'BUY', asset: s.asset, name: s.name, info_url: s.info_url, 'class': s['class'], tradable: s.tradable,
-          reason: 'Intraday signal at ' + s.confidence + '% confidence — past the 60% buy bar.',
+          reason: 'Intraday signal at ' + barConf(s) + '% confidence — past the 60% buy bar.',
           plan: t.entry !== undefined ? { entry: t.entry, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.exit_by } : null,
           detail: detailLink(s, 'intraday') });
       }
     });
     swingLongs.forEach(function (p) {
       var agree = tfAgree(p);
-      if ((p.confidence || 0) >= 60 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
+      if (barConf(p) >= 60 && agree !== null && agree >= 4 && !newsFlagged[p.asset]) {
         var t = p.thesis || {};
         push(buys, { verdict: 'BUY', asset: p.asset, name: p.name, info_url: p.info_url, 'class': p['class'], tradable: p.tradable,
-          reason: p.confidence + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
+          reason: barConf(p) + '% confidence with ' + agree + ' of 5 timeframes agreeing — clears the buy bar.',
           plan: { entry: p.price, take_profit: t.take_profit, stop_loss: t.stop_loss, exit_by: t.projected_exit },
           detail: detailLink(p, 'swing', 'long') });
       }
@@ -421,10 +429,10 @@
     if (!buys.length) {
       var cands = [];
       swingLongs.forEach(function (p) {
-        if (!newsFlagged[p.asset] && !seen[seenKey(p)]) cands.push({ src: 'swing', p: p, conf: p.confidence || 0 });
+        if (!newsFlagged[p.asset] && !seen[seenKey(p)]) cands.push({ src: 'swing', p: p, conf: barConf(p) });
       });
       intraLongs.forEach(function (s) {
-        if (!newsFlagged[s.asset] && !seen[seenKey(s)]) cands.push({ src: 'intra', p: s, conf: s.confidence || 0 });
+        if (!newsFlagged[s.asset] && !seen[seenKey(s)]) cands.push({ src: 'intra', p: s, conf: barConf(s) });
       });
       cands.sort(function (a, b) { return b.conf - a.conf; });
       if (cands.length) {
@@ -611,6 +619,8 @@
             '<p><strong>Within 5% target:</strong> ' + (er.within_5pct_rate !== null && er.within_5pct_rate !== undefined ? er.within_5pct_rate + '%' : '—') + '</p>' +
             (d.calibration || []).filter(function (c) { return c.n >= 3 && c.win_rate !== null && c.win_rate !== undefined; })
               .map(function (c) { return '<p><strong>Calibration:</strong> says ' + c.band + '% → actually wins ' + c.win_rate + '% (n=' + c.n + ')</p>'; }).join('') +
+            (d.calibration_v2 || []).filter(function (c) { return c.direction && c.n >= 3 && c.win_rate !== null && c.win_rate !== undefined; })
+              .map(function (c) { return '<p><strong>Calibration V2 (shadow):</strong> ' + (c.direction === 'LONG' ? 'Long' : 'Short') + ' says ' + c.band + '% → actually wins ' + c.win_rate + '% (n=' + c.n + ')</p>'; }).join('') +
             '<p class="live-stamp">Target: 5% margin of error · weights re-optimized every run via row echelon form</p>';
         }
         var ps = document.getElementById('psychology');

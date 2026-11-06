@@ -11,7 +11,7 @@ API keys (FRED, Finnhub, EIA) are read from environment variables = GitHub Secre
 If a key is absent, that feed is skipped gracefully — the engine degrades, never dies.
 """
 
-import json, os, math, time, sys, tempfile, urllib.request, urllib.parse, urllib.error
+import argparse, json, os, math, time, sys, tempfile, urllib.request, urllib.parse, urllib.error
 from datetime import datetime, timezone, timedelta, date
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data')
@@ -770,6 +770,14 @@ CONF_BANDS = [('50-59', 50, 59), ('60-69', 60, 69), ('70-79', 70, 79), ('80+', 8
 CALIB_MIN_N = 10    # bands with fewer scored picks keep the raw confidence
 CALIB_MAX_PULL = 0.5  # cap the blend so a noisy band can't snap the value
 
+# VE calibration shadow (Nic 2026-11-05, approved; shadow forever).
+# CALIB_V2 gates the V2 computation: True = compute conf_v2 alongside the
+# current number on every run. The bar reads RAW confidence and no gate
+# reads conf_v2, so the shadow is display-only. Flip to False to disable.
+CALIB_V2 = True
+CALIB_V2_MAX_PULL = 0.8  # VE: stronger pull than the v1 0.5 cap
+CALIB_V2_SHRINK_K = 20   # VE ramp: w = min(0.8, n / (n + 20))
+
 def calibrate_confidence(raw, calibration_rows):
     """Shrink a raw confidence toward its band's empirical win rate.
 
@@ -786,6 +794,36 @@ def calibrate_confidence(raw, calibration_rows):
     if label is None or n < CALIB_MIN_N or emp is None:
         return int(round(raw)), label, n, emp
     w = min(CALIB_MAX_PULL, n / 60.0)
+    cal = raw * (1 - w) + emp * w
+    return int(round(clamp(cal, 35, 97))), label, n, emp
+
+
+def calibrate_confidence_v2(raw, direction, calibration_rows):
+    """VE calibration (design 2026-11-05; shadow only, never gates).
+
+    Per-direction, raw-banded table with a stronger pull: cap 0.8 and a
+    shrinkage ramp w = min(0.8, n / (n + 20)). Hierarchical fallback: if
+    the (direction, band) cell has fewer than CALIB_MIN_N scored picks,
+    fall back to the pooled band rate at half weight; if the pooled band
+    is also thin, keep raw. Returns (calibrated, band_label, n,
+    empirical_rate) — same shape as calibrate_confidence.
+    """
+    label = next((b[0] for b in CONF_BANDS if b[1] <= raw <= b[2]), None)
+    if label is None:
+        return int(round(raw)), label, 0, None
+    rows = {(c.get('direction'), c.get('band')): c for c in (calibration_rows or [])}
+    w = 1.0
+    row = rows.get((direction, label)) or {}
+    n = row.get('n') or 0
+    emp = row.get('win_rate')
+    if n < CALIB_MIN_N or emp is None:
+        row = rows.get((None, label)) or {}
+        n = row.get('n') or 0
+        emp = row.get('win_rate')
+        w = 0.5
+    if n < CALIB_MIN_N or emp is None:
+        return int(round(raw)), label, n, emp
+    w *= min(CALIB_V2_MAX_PULL, n / (n + CALIB_V2_SHRINK_K))
     cal = raw * (1 - w) + emp * w
     return int(round(clamp(cal, 35, 97))), label, n, emp
 
@@ -1508,6 +1546,31 @@ def think(data, history):
     else:
         print('  calibration: no band has enough samples yet — raw confidence kept')
 
+    # --- VE calibration shadow (Nic 2026-11-05, approved; shadow forever) ---
+    # Compute the V2 calibrated number alongside the current one and store
+    # it as conf_v2 on every pick. Display only: the 60% buy bar reads
+    # RAW confidence (Nic's decision) and no gate reads conf_v2, so the
+    # shadow cannot change alerts, gates, or sizing. The V2 table is
+    # built in remember(); if this history predates it, build it on the
+    # fly (read-only) so the first run after deployment still shadows.
+    if CALIB_V2:
+        calib_v2_rows = history.get('calibration_v2')
+        if calib_v2_rows is None:
+            calib_v2_rows = calibration_from_picks_v2(
+                history.get('picks', []), history.get('calibration_reset_at'))
+        calib_v2_applied = []
+        for direction, plist in (('LONG', longs), ('SHORT', shorts)):
+            for p in plist:
+                raw = p.get('conf_raw', p['confidence'])
+                v2, label, n, emp = calibrate_confidence_v2(raw, direction, calib_v2_rows)
+                p['conf_v2'] = v2
+                if v2 != raw:
+                    calib_v2_applied.append(f"{p['asset']} {raw}%→{v2}% ({label}: n={n}, {emp}%)")
+        if calib_v2_applied:
+            print(f"  calibration v2 (shadow): {len(calib_v2_applied)} picks adjusted")
+        else:
+            print('  calibration v2 (shadow): no band has enough samples yet — raw confidence kept')
+
     # --- Generate buy/sell alerts from high-conviction picks ---
     # Nic's rule (2026-10-21): the alerts feed is a push surface, not a
     # research surface. A BUY alert fires only for something he can
@@ -1671,13 +1734,17 @@ def _excluded_pick(p):
     return bool(p.get('excluded'))
 
 
-def calibration_from_picks(picks):
+def calibration_from_picks(picks, reset_at=None):
     """Bucket scored picks by stated confidence band and compare against
     realized win rate — "says 70-79% → actually wins X%". Excluded
-    picks never count."""
+    picks never count. Runs dated before reset_at (a calibration regime
+    break, set by reset_calibration_tables) are skipped so the table
+    never mixes weight regimes."""
     bands = CONF_BANDS
     calib = {b[0]: {'n': 0, 'wins': 0} for b in bands}
     for run in picks:
+        if reset_at and run.get('date') and run['date'] < reset_at:
+            continue
         for p in run.get('longs', []) + run.get('shorts', []):
             if _excluded_pick(p):
                 continue
@@ -1692,6 +1759,69 @@ def calibration_from_picks(picks):
         {'band': label, 'n': c['n'],
          'win_rate': round(100 * c['wins'] / c['n'], 1) if c['n'] else None}
         for label, c in calib.items()]
+
+
+def calibration_from_picks_v2(picks, reset_at=None):
+    """VE calibration table (design 2026-11-05): bucket scored picks by
+    (direction, RAW band) using conf_raw — falling back to confidence
+    for the pre-Oct-21 picks that lack conf_raw — plus pooled rows per
+    band for the hierarchical fallback. 8 directional cells + 4 pooled
+    rows. Excluded picks never count; picks without a win are skipped;
+    runs dated before reset_at (a calibration regime break) are skipped
+    so the table never mixes weight regimes."""
+    cells = {(d, b[0]): {'n': 0, 'wins': 0}
+             for d in ('LONG', 'SHORT') for b in CONF_BANDS}
+    pooled = {b[0]: {'n': 0, 'wins': 0} for b in CONF_BANDS}
+    for run in picks:
+        if reset_at and run.get('date') and run['date'] < reset_at:
+            continue
+        for direction, lst in (('LONG', run.get('longs', [])),
+                               ('SHORT', run.get('shorts', []))):
+            for p in lst:
+                if _excluded_pick(p):
+                    continue
+                if p.get('win') is None:
+                    continue
+                raw = p.get('conf_raw', p.get('confidence'))
+                if raw is None:
+                    continue
+                label = next((b[0] for b in CONF_BANDS if b[1] <= raw <= b[2]), None)
+                if label is None:
+                    continue
+                cells[(direction, label)]['n'] += 1
+                pooled[label]['n'] += 1
+                if p['win']:
+                    cells[(direction, label)]['wins'] += 1
+                    pooled[label]['wins'] += 1
+
+    def row(c):
+        return {'n': c['n'],
+                'win_rate': round(100 * c['wins'] / c['n'], 1) if c['n'] else None}
+    return (
+        [{'direction': d, 'band': label, **row(cells[(d, label)])}
+         for d in ('LONG', 'SHORT') for label, _, _ in CONF_BANDS]
+        + [{'direction': None, 'band': label, **row(pooled[label])}
+           for label, _, _ in CONF_BANDS]
+    )
+
+
+def reset_calibration_tables(history, reason):
+    """Regime break for the calibration tables (design 2026-11-05 §4
+    guardrail). Call when self-tune weights are promoted — a
+    human-approved event, never automatic: stored conf_raw values were
+    computed under the old weights, so the tables would mix weight
+    regimes. Marks the break in history['corrections'], records the
+    cutoff in history['calibration_reset_at'] (both table builders skip
+    earlier runs), and clears the stored tables; the next remember()
+    rebuilds them from post-break picks only. Does NOT touch weights,
+    gates, or the graded record itself."""
+    now = datetime.now(timezone.utc).isoformat()
+    history['calibration_reset_at'] = now
+    history.setdefault('corrections', []).append({
+        'date': now, 'type': 'calibration_regime_break', 'reason': reason})
+    history['calibration'] = calibration_from_picks([])
+    history['calibration_v2'] = calibration_from_picks_v2([])
+    return history
 
 
 def _avg_win_loss(history):
@@ -1867,7 +1997,10 @@ def remember(data, signals):
     s['win_rate'] = round(100 * s['wins'] / s['total'], 1) if s['total'] else None
     # Calibration: bucket scored picks by stated confidence band and compare
     # against realized win rate — "says 70-79% → actually wins X%"
-    history['calibration'] = calibration_from_picks(history['picks'])
+    reset_at = history.get('calibration_reset_at')
+    history['calibration'] = calibration_from_picks(history['picks'], reset_at)
+    # VE shadow table: per-direction raw bands + pooled fallback rows.
+    history['calibration_v2'] = calibration_from_picks_v2(history['picks'], reset_at)
     # Error summary: mean absolute error + % within the 5% target
     if err['n']:
         err['mae'] = round(err['sum_abs_err'] / err['n'], 2)
@@ -1975,6 +2108,7 @@ def publish(data, signals, history, data_pulled_at=None):
         'track_record': history['stats'],
         'model_error': history.get('error', {}),
         'calibration': history.get('calibration', []),
+        'calibration_v2': history.get('calibration_v2', []),
         'regime': signals.get('regime'),
         'regime_label': REGIME_LABELS.get(signals.get('regime'), signals.get('regime')),
         'buy_pct': signals.get('buy_pct'),
@@ -2000,6 +2134,22 @@ def publish(data, signals, history, data_pulled_at=None):
 
 def main():
     global DATA_DIR, SNAP_DIR
+    # --reset-calibration "reason": regime break for the calibration
+    # tables (design 2026-11-05 §4 guardrail). Run when self-tune
+    # weights are promoted — a human-approved event. Marks the break,
+    # clears both tables, and exits WITHOUT running the loop.
+    # parse_known_args so the existing --check flag still passes through.
+    _parser = argparse.ArgumentParser(description='NexIntel loop')
+    _parser.add_argument('--reset-calibration', metavar='REASON', default=None,
+                         help='Reset calibration tables (regime break) and exit')
+    _args, _ = _parser.parse_known_args()
+    if _args.reset_calibration:
+        history = load_history()
+        reset_calibration_tables(history, _args.reset_calibration)
+        with open(os.path.join(DATA_DIR, 'history.json'), 'w') as f:
+            json.dump(history, f, indent=2)
+        print(f"CALIBRATION RESET: regime break recorded ({_args.reset_calibration}); tables cleared.")
+        return
     if CHECK_MODE:
         # Redirect every data write to a throwaway dir — reads fall back to
         # their graceful empty defaults (load_history catches the miss, etc.).
