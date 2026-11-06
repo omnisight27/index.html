@@ -1494,6 +1494,26 @@ CMI_SIGNAL_HORIZONS_H = (6, 24)     # labels '6h' and '24h'
 CMI_RECORD_CAP = 2000               # separate CMI ledger cap
 CMI_EXIT_TRIGGER = 0.50             # spec §1b: CMI > 0.50 exit trigger
 
+# Shadow universe expansion (Phase 1, 2026-11-05): the signal scan covers
+# the top SIGNAL_UNIVERSE_N by market cap (live); ranks
+# SHADOW_UNIVERSE_START..SHADOW_UNIVERSE_END are scanned the same way
+# but SHADOW-graded only — they never join longs/shorts (no cards, no
+# bar, no alerts, no pattern symbols). Promotion to the live universe
+# is Nic's call, on the shadow scoreboard's evidence. Measured cost:
+# ~0.53s per coin (CoinGecko market_chart, 199/200 ok, no throttling
+# at ~2 calls/sec), so +300 coins is ~+160s on an hourly loop.
+# MEASURED (2026-11-06 check run): the slice is 300 coins but the
+# $100M floor in _scan_coin admits only ~67 of them — the floor binds
+# at rank ~267 by market cap, so ranks 201-500 yield 62 charted coins
+# (233 under the floor, 4 symbol collisions with live, 1 failed fetch).
+# Extending the slice to 1,000 adds nothing at this floor (still 67);
+# a lower shadow floor ($50M -> 238 coins, $25M -> 300) is Nic's call,
+# not an engine default.
+SIGNAL_UNIVERSE_N = 200             # live signal universe (top N by mcap)
+SHADOW_UNIVERSE_START = 200         # shadow starts where live ends
+SHADOW_UNIVERSE_END = 500           # shadow covers ranks 201-500
+SHADOW_RECORD_CAP = 2000            # separate shadow ledger cap
+
 
 def _proof_grade_cmi_confluence(e, charts_by_sym, cmi_by_sym, now,
                                 opened, cur):
@@ -2562,6 +2582,92 @@ def _proof_trim(record, cap=100):
     dropped = [e for i, e in enumerate(record) if i in drop] + kept[cap:]
     return trimmed, dropped
 
+
+def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
+               btc_chg24, econ_feed, run_ts, tradable_on, blocked):
+    """One coin of the signal scan: hourly chart (24h) -> features ->
+    balance/econ (display only) -> score -> thesis. Returns the signal
+    dict or None (filtered, failed fetch, weak score, or fee floor).
+    Shared by the live scan (top SIGNAL_UNIVERSE_N) and the shadow
+    scan (ranks SHADOW_UNIVERSE_START..SHADOW_UNIVERSE_END) so the two
+    universes are scored identically; the caller decides what a
+    returned signal becomes (live pick vs shadow-graded candidate).
+    charts_by_sym is mutated: the chart is retained for Proof Book
+    grading (hourly points). Fail-open throughout: a failed fetch or
+    econ pack just skips the coin, never the run."""
+    cid = c['id']
+    sym = (c['symbol'] or '').upper()
+    if sym in blocked:
+        return None
+    mcap = c.get('market_cap') or 0
+    if mcap < 100_000_000:
+        return None
+    # Hourly chart (24h)
+    chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
+        '?vs_currency=usd&days=1&interval=hourly')
+    if not chart or not chart.get('prices'):
+        return None
+    f = hourly_features(chart['prices'])
+    if not f:
+        return None
+    charts_by_sym[sym] = chart['prices']
+    # Auction-market balance: coiled-range read from the same 24h
+    # hourly chart (prices + volumes ride free in one response) and
+    # the 7d sparkline already in the markets payload. Display only —
+    # never touches the score above.
+    _closes = [p[1] for p in chart['prices'] if p and p[1] is not None]
+    _vols = [v[1] for v in (chart.get('total_volumes') or [])
+             if v and v[1] is not None]
+    _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
+               if p is not None]
+    bs, bs_parts = balance_score(_closes, volumes=_vols, closes_7d=_spark7)
+    # Milestone 2 econ pack (display only — never a buy input). Coil
+    # delta = compression now vs prior 24h, from the 7d sparkline.
+    econ_display = None
+    if econ_feed is not None:
+        try:
+            _coil = None
+            if _spark7 and len(_spark7) >= 48:
+                _b_now, _ = balance_score(_spark7[-24:], closes_7d=_spark7)
+                _b_prev, _ = balance_score(_spark7[-48:-24], closes_7d=_spark7)
+                if _b_now is not None and _b_prev is not None:
+                    _coil = round(_b_now - _b_prev, 3)
+            _frow = (fund_map or {}).get(sym) or {}
+            _, econ_display = econ_feed.compute_econ({
+                'mode': 'full', 'asset': sym, 'price': _closes[-1],
+                'closes': _closes, 'volumes': _vols,
+                'funding_score': _frow.get('score'),
+                'fund_hist': fund_hist, 'oi_hist': oi_hist,
+                'chg_1h': f.get('chg_1h'), 'now_ts': run_ts,
+                'coil_delta': _coil, 'macro_snap': macro_snap,
+                'btc_chg24': btc_chg24, 'fg_now': None,
+            })
+        except Exception as e:
+            print(f'  [warn] econ pack failed for {sym}: {e}')
+            econ_display = None
+    score = score_intraday(f)
+    conf = min(95, max(40, 50 + abs(score) * 3))
+    # Only signals with meaningful score
+    if abs(score) < 3:
+        return None
+    thesis = build_intraday_thesis(sym, f, score)
+    if thesis is None:
+        return None  # fee floor: target can't clear round-trip costs
+    return {
+        'asset': sym, 'score': round(score, 2), 'confidence': round(conf),
+        'direction': thesis['direction'], 'thesis': thesis,
+        'name': c.get('name') or sym,
+        'info_url': f'https://www.coingecko.com/en/coins/{cid}',
+        'tradable': tradable_on(sym),
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        # Auction-market balance (display only — never a buy input)
+        'balance_score': bs, 'balance_parts': bs_parts,
+        'coiled': bool(bs is not None and bs >= COILED_THRESHOLD),
+        # Milestone 2 econ pack (display only — never a buy input)
+        'econ': econ_display,
+    }
+
+
 def main():
     global DATA_DIR, _GATE_EVENTS
     if CHECK_MODE:
@@ -2662,6 +2768,20 @@ def main():
                 (_prior.get('proof') or {}).get('cmi_record') or []
             prior_cmi_cumulative = \
                 (_prior.get('proof') or {}).get('cmi_cumulative') or {}
+    except Exception:
+        pass
+    # Shadow universe expansion, Phase 1: the separate shadow ledger
+    # + cumulative counters (same pattern as cycle/CMI — the shadow
+    # rows must not flood the 100-entry main ledger).
+    prior_shadow_record = []
+    prior_shadow_cumulative = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_shadow_record = \
+                (_prior.get('proof') or {}).get('shadow_record') or []
+            prior_shadow_cumulative = \
+                (_prior.get('proof') or {}).get('shadow_cumulative') or {}
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -2783,7 +2903,7 @@ def main():
                          if _c.get('price_change_percentage_24h_in_currency') is not None
                          else _c.get('price_change_percentage_24h'))
             break
-    mkts = universe[:200]
+    mkts = universe[:SIGNAL_UNIVERSE_N]
     # Market lookup for Proof Book grading — universe is market-cap
     # ordered, so the first occurrence of a symbol is its biggest coin.
     mkt_by_sym = {}
@@ -2797,81 +2917,43 @@ def main():
     signals = []
     charts_by_sym = {}  # retained for Proof Book grading (hourly points)
     for c in mkts:
-        cid = c['id']
-        sym = (c['symbol'] or '').upper()
-        if sym in BLOCKED:
-            continue
-        mcap = c.get('market_cap') or 0
-        if mcap < 100_000_000:
-            continue
-        # Hourly chart (24h)
-        chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
-            '?vs_currency=usd&days=1&interval=hourly')
-        if not chart or not chart.get('prices'):
-            continue
-        f = hourly_features(chart['prices'])
-        if not f:
-            continue
-        charts_by_sym[sym] = chart['prices']
-        # Auction-market balance: coiled-range read from the same 24h
-        # hourly chart (prices + volumes ride free in one response) and
-        # the 7d sparkline already in the markets payload. Display only —
-        # never touches the score above.
-        _closes = [p[1] for p in chart['prices'] if p and p[1] is not None]
-        _vols = [v[1] for v in (chart.get('total_volumes') or [])
-                 if v and v[1] is not None]
-        _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
-                   if p is not None]
-        bs, bs_parts = balance_score(_closes, volumes=_vols, closes_7d=_spark7)
-        # Milestone 2 econ pack (display only — never a buy input). Coil
-        # delta = compression now vs prior 24h, from the 7d sparkline.
-        econ_display = None
-        if econ_feed is not None:
-            try:
-                _coil = None
-                if _spark7 and len(_spark7) >= 48:
-                    _b_now, _ = balance_score(_spark7[-24:], closes_7d=_spark7)
-                    _b_prev, _ = balance_score(_spark7[-48:-24], closes_7d=_spark7)
-                    if _b_now is not None and _b_prev is not None:
-                        _coil = round(_b_now - _b_prev, 3)
-                _frow = (fund_map or {}).get(sym) or {}
-                _, econ_display = econ_feed.compute_econ({
-                    'mode': 'full', 'asset': sym, 'price': _closes[-1],
-                    'closes': _closes, 'volumes': _vols,
-                    'funding_score': _frow.get('score'),
-                    'fund_hist': fund_hist, 'oi_hist': oi_hist,
-                    'chg_1h': f.get('chg_1h'), 'now_ts': run_ts,
-                    'coil_delta': _coil, 'macro_snap': macro_snap,
-                    'btc_chg24': btc_chg24, 'fg_now': None,
-                })
-            except Exception as e:
-                print(f'  [warn] econ pack failed for {sym}: {e}')
-                econ_display = None
-        score = score_intraday(f)
-        conf = min(95, max(40, 50 + abs(score) * 3))
-        # Only signals with meaningful score
-        if abs(score) < 3:
-            continue
-        thesis = build_intraday_thesis(sym, f, score)
-        if thesis is None:
-            continue  # fee floor: target can't clear round-trip costs
-        signals.append({
-            'asset': sym, 'score': round(score, 2), 'confidence': round(conf),
-            'direction': thesis['direction'], 'thesis': thesis,
-            'name': c.get('name') or sym,
-            'info_url': f'https://www.coingecko.com/en/coins/{cid}',
-            'tradable': tradable_on(sym),
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            # Auction-market balance (display only — never a buy input)
-            'balance_score': bs, 'balance_parts': bs_parts,
-            'coiled': bool(bs is not None and bs >= COILED_THRESHOLD),
-            # Milestone 2 econ pack (display only — never a buy input)
-            'econ': econ_display,
-        })
+        sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
+                         macro_snap, btc_chg24, econ_feed, run_ts,
+                         tradable_on, BLOCKED)
+        if sig:
+            signals.append(sig)
 
     signals.sort(key=lambda s: -abs(s['score']))
     longs = [s for s in signals if s['direction'] == 'LONG'][:5]
     shorts = [s for s in signals if s['direction'] == 'SHORT'][:5]
+
+    # --- Shadow universe expansion (Phase 1): ranks 201-500 by market
+    # cap, scanned with the same _scan_coin work AFTER the live scan,
+    # so live results are in hand before any throttling risk. Shadow
+    # signals NEVER join longs/shorts (no cards, no bar, no alerts, no
+    # pattern symbols) — the top 5 each way are graded in the Proof
+    # Book only, in a separate shadow ledger. Fail-open: a throttled
+    # shadow scan just means fewer shadow coins that run.
+    shadow_signals = []
+    shadow_coins_scanned = 0
+    for c in universe[SHADOW_UNIVERSE_START:SHADOW_UNIVERSE_END]:
+        _sym = (c.get('symbol') or '').upper()
+        if _sym in charts_by_sym:
+            # Same symbol already scanned live (bigger coin wins the
+            # symbol) — the live chart already covers it for grading.
+            continue
+        sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
+                         macro_snap, btc_chg24, econ_feed, run_ts,
+                         tradable_on, BLOCKED)
+        if _sym in charts_by_sym:
+            shadow_coins_scanned += 1
+        if sig:
+            shadow_signals.append(sig)
+    shadow_signals.sort(key=lambda s: -abs(s['score']))
+    shadow_longs = [s for s in shadow_signals if s['direction'] == 'LONG'][:5]
+    shadow_shorts = [s for s in shadow_signals if s['direction'] == 'SHORT'][:5]
+    print(f'  Shadow scan: {shadow_coins_scanned} coins, '
+          f'{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts')
 
     # --- Movers scan (two tiers) over the full top-1,000 universe ---
     # 🚀 MOVER: already moving — |1h| >= 5% or |24h| >= 10%, mcap >= $100M.
@@ -3211,6 +3293,7 @@ def main():
     proof = list(prior_proof)
     cycle_record = list(prior_cycle_record)
     cmi_record = list(prior_cmi_record)
+    shadow_record = list(prior_shadow_record)
     proof_now = datetime.now(timezone.utc)
     # Legacy entries predate the cell tags: backfill the regime from the
     # swing engine's own run history (data/history.json) — the regime in
@@ -3272,7 +3355,7 @@ def main():
                         f'?vs_currency=usd&days={_days}&interval=hourly')
         if ch and ch.get('prices'):
             charts_by_sym[_sym] = ch['prices']
-    for e in proof:
+    for e in list(proof) + list(shadow_record):
         # Open calls need a chart for grading; recently-exited calls
         # need one for the after-exit tracker (24h post-exit sampling).
         if e.get('status') != 'open' and \
@@ -3315,6 +3398,10 @@ def main():
             cmi_series_by_sym = {}
     proof_grade(cmi_record, mkt_by_sym, charts_by_sym, proof_now,
                 cmi_by_sym=cmi_series_by_sym)
+    # Shadow universe, Phase 1: grade the shadow ledger the same way
+    # as live signals (default since-entry path — 'signal_shadow' is
+    # not a pattern/cycle/CMI kind, so it grades exactly like 'signal').
+    proof_grade(shadow_record, mkt_by_sym, charts_by_sym, proof_now)
     n_pe_done = proof_track_post_exit(proof, mkt_by_sym, charts_by_sym,
                                       proof_now)
     if n_pe_done:
@@ -3411,6 +3498,29 @@ def main():
     cumulative = proof_roll_cumulative(prior_cumulative, dropped)
     pattern_cumulative = proof_roll_pattern_cumulative(
         prior_pattern_cumulative, dropped)
+    # Shadow universe, Phase 1: the top shadow longs/shorts join the
+    # book as kind='signal_shadow' — same +2h horizon and levels as
+    # live signals, same band/regime tags, but a separate ledger and
+    # scoreboard, so the shadow cells never mix with the live ones.
+    # proof_flagged_cells runs over the shadow scoreboard too: a shadow
+    # cell at n>=20 with an extreme win rate is flagged for Nic's
+    # review (promotion candidate) — recommendation only, never an
+    # automatic promotion.
+    shadow_cands = []
+    for s in shadow_longs + shadow_shorts:
+        shadow_cands.append(_proof_candidate(
+            'signal_shadow', s['asset'], s.get('name'), s.get('direction'),
+            s.get('thesis'), proof_now, 2,
+            tags={'band': conf_band(s.get('confidence')),
+                  'regime': regime_tag},
+            gate_src={'confidence': s.get('confidence'),
+                      'tradable': s.get('tradable'),
+                      'news_flag': s.get('news_flag')}))
+    n_shadow_added = proof_record_new(shadow_record, shadow_cands, proof_now)
+    shadow_record, shadow_dropped = _proof_trim(
+        shadow_record, cap=SHADOW_RECORD_CAP)
+    shadow_cumulative = proof_roll_cumulative(
+        prior_shadow_cumulative, shadow_dropped)
     pstats = proof_stats(proof)
     pstats['cells'] = proof_cells(proof, cumulative)
     pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
@@ -3420,9 +3530,13 @@ def main():
         cycle_record, cycle_cumulative)
     pstats['cmi_scoreboard'] = cmi_scoreboard(
         cmi_record, cmi_cumulative)
+    pstats['shadow_scoreboard'] = proof_cells(
+        shadow_record, shadow_cumulative)
+    pstats['shadow_flagged_cells'] = proof_flagged_cells(
+        pstats['shadow_scoreboard'])
     print(f"  Proof book: +{n_added} new calls "
           f"({n_pattern_cands} pattern, {n_cycle_cands} cycle, "
-          f"{n_cmi_cands} CMI), "
+          f"{n_cmi_cands} CMI, {n_shadow_added} shadow), "
           f"{pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
@@ -3469,8 +3583,15 @@ def main():
                   'cycle_record': cycle_record,
                   'cycle_cumulative': cycle_cumulative,
                   'cmi_record': cmi_record,
-                  'cmi_cumulative': cmi_cumulative},
+                  'cmi_cumulative': cmi_cumulative,
+                  'shadow_record': shadow_record,
+                  'shadow_cumulative': shadow_cumulative},
         'coins_scanned': len(mkts),
+        # Shadow universe expansion, Phase 1 (display-only): top shadow
+        # longs/shorts and how many shadow coins actually got charts.
+        'shadow_longs': shadow_longs,
+        'shadow_shorts': shadow_shorts,
+        'shadow_coins_scanned': shadow_coins_scanned,
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
         # prune, and stamp the computed breaker state — the alert
@@ -3489,7 +3610,9 @@ def main():
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(os.path.join(DATA_DIR, 'intraday.json'), 'w') as f:
         json.dump(out, f, indent=2)
-    print(f'  Intraday complete: {len(longs)} longs, {len(shorts)} shorts from {len(mkts)} coins')
+    print(f'  Intraday complete: {len(longs)} longs, {len(shorts)} shorts from {len(mkts)} coins'
+          f' (+{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts'
+          f' from {shadow_coins_scanned} shadow coins)')
 
 if __name__ == '__main__':
     main()

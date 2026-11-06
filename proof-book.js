@@ -45,6 +45,7 @@
       : e.kind === 'cmi_regime' ? '🧲 CMI'
       : e.kind === 'cmi_confluence' ? '🧲 CMI CONF'
       : e.kind === 'cmi_trap' ? '🧲 CMI TRAP'
+      : e.kind === 'signal_shadow' ? '🌑 SHADOW'
       : e.kind === 'pattern' ? '📊 PATTERN' : '⚡ SIGNAL';
     var what = (e.kind === 'pattern' || e.kind === 'pattern_confluence') && e.pattern
       ? ' ' + esc(e.pattern) : '';
@@ -85,6 +86,7 @@
   function cellLabel(c) {
     var type = c.type === 'mover' ? 'Mover' : c.type === 'setup' ? 'Setup'
       : c.type === 'pattern_confluence' ? 'Pattern cluster'
+      : c.type === 'signal_shadow' ? 'Shadow signal'
       : c.type === 'pattern' ? 'Pattern' : 'Signal';
     var band = c.band && c.band !== 'na' ? ' · ' + esc(c.band) + ' confidence' : '';
     return type + ' · ' + esc(c.direction) + band + ' · ' +
@@ -167,8 +169,41 @@
     html += renderPatternScoreboard(st);
     html += renderCycleScoreboard(st);
     html += renderCmiScoreboard(st);
+    html += renderShadowScoreboard(st);
 
     el.innerHTML = html;
+  }
+
+  // Shadow universe scoreboard (expansion Phase 1): per-cell shadow
+  // results for ranks 201-500 by market cap — same +2h horizon and
+  // levels as live signals, graded in a separate ledger. A flagged
+  // cell (n >= 20, extreme win rate) is a promotion candidate for
+  // Nic's review — recommendation only, never automatic.
+  function renderShadowScoreboard(st) {
+    var rows = ((st && st.shadow_scoreboard) || [])
+      .filter(function (c) { return c.graded > 0 || c.open > 0; });
+    if (!rows.length) return '';
+    var body = rows.map(function (c) {
+      return '<tr><td>' + cellLabel(c) + '</td><td>' + c.wins + '</td><td>' +
+        c.losses + '</td><td>' + c.expired + '</td><td>' + c.open + '</td><td>' +
+        c.graded + '</td><td>' +
+        (c.win_rate === null || c.win_rate === undefined ? '—' : c.win_rate + '%') +
+        '</td></tr>';
+    }).join('');
+    var html = '<details style="margin-top:16px;"><summary><strong>Shadow universe scoreboard (expansion)</strong> — shadow-graded signals from ranks 201–500 by market cap, $1,000 paper each</summary>' +
+      '<p>Top shadow longs/shorts each run, graded like live signals but never alerted. A cell with n &gt;= 20 at an extreme win rate is flagged below as a promotion candidate for Nic\'s review.</p>' +
+      '<table class="report-table"><thead><tr><th>Scenario</th><th>Won</th><th>Lost</th>' +
+      '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table>';
+    var flags = (st && st.shadow_flagged_cells) || [];
+    if (flags.length) {
+      html += '<p>' + flags.map(function (f) {
+        return '⭐ Review candidate (' + (f.candidate === 'include' ? 'inclusion' : 'exclusion') +
+          '): ' + cellLabel(f) + ' — ' + f.win_rate + '% over ' + f.graded +
+          ' graded calls. Recommendation only — no alert rule changes on its own.';
+      }).join('<br>') + '</p>';
+    }
+    return html + '</details>';
   }
 
   // Pattern scoreboard (research track, Phase 2): per-pattern shadow
