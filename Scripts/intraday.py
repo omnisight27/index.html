@@ -33,6 +33,10 @@ try:
     import cmi_feed  # Manipulation research track, Phase 1 (display only)
 except ImportError:
     cmi_feed = None
+try:
+    import stock_feed  # Stocks research track, Phase 1 (display only)
+except ImportError:
+    stock_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -1514,6 +1518,11 @@ SHADOW_UNIVERSE_START = 200         # shadow starts where live ends
 SHADOW_UNIVERSE_END = 500           # shadow covers ranks 201-500
 SHADOW_RECORD_CAP = 2000            # separate shadow ledger cap
 
+# Stocks research track, Phase 1: separate stock ledger cap (same
+# pattern as the shadow ledger — stock rows must not flood the
+# 100-entry main ledger).
+STOCK_RECORD_CAP = 2000
+
 
 def _proof_grade_cmi_confluence(e, charts_by_sym, cmi_by_sym, now,
                                 opened, cur):
@@ -2784,6 +2793,20 @@ def main():
                 (_prior.get('proof') or {}).get('shadow_cumulative') or {}
     except Exception:
         pass
+    # Stocks research track, Phase 1: the separate stock ledger +
+    # cumulative counters (same pattern as the shadow ledger — stock
+    # rows must not flood the 100-entry main ledger).
+    prior_stock_record = []
+    prior_stock_cumulative = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_stock_record = \
+                (_prior.get('proof') or {}).get('stock_record') or []
+            prior_stock_cumulative = \
+                (_prior.get('proof') or {}).get('stock_cumulative') or {}
+    except Exception:
+        pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
     BLOCKED = {'XMR',  # Monero — delisted from Coinbase
                # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
@@ -2954,6 +2977,78 @@ def main():
     shadow_shorts = [s for s in shadow_signals if s['direction'] == 'SHORT'][:5]
     print(f'  Shadow scan: {shadow_coins_scanned} coins, '
           f'{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts')
+
+    # --- Stocks research track, Phase 1 (display-only + shadow
+    # grading): 30 liquid US large-caps, Yahoo Finance v8 chart API
+    # (keyless, verified). Runs ONLY during US market hours
+    # (9:30-16:00 ET, Mon-Fri) — outside hours the scan is skipped
+    # entirely, no signals from stale data. Stock signals NEVER join
+    # longs/shorts (no cards, no bar, no alerts) — the top 5 each way
+    # are graded in the Proof Book only, in a separate stock ledger.
+    # The stock thesis uses the stock shadow fee tier (commission-free,
+    # 0.5% net floor) — see stock_feed; the live crypto gates are
+    # untouched. Fail-open: a throttled Yahoo fetch just means fewer
+    # stock signals that run.
+    stock_longs, stock_shorts = [], []
+    stock_symbols_scanned = 0
+    stock_diag = {'market_open': False, 'scanned': 0, 'signals': 0,
+                  'skipped': None}
+    if stock_feed is not None:
+        try:
+            _mkt_open = stock_feed.us_market_open_now()
+        except Exception:
+            _mkt_open = False
+        stock_diag['market_open'] = _mkt_open
+        if _mkt_open:
+            _stock_charts = {}
+            # Backstop first: if the first symbol's latest candle is
+            # >2h old the market is not really open (holiday list
+            # stale, half day) — skip the whole scan rather than
+            # scoring stale data.
+            _probe = stock_feed.fetch_stock_candles(
+                stock_feed.STOCK_UNIVERSE[0])
+            if _probe:
+                _age_h = (datetime.now(timezone.utc).timestamp()
+                          - _probe['closes'][-1][0] / 1000) / 3600
+                if _age_h > 2:
+                    stock_diag['skipped'] = 'stale_candles'
+                    _probe = None
+            if _probe:
+                _stock_charts[stock_feed.STOCK_UNIVERSE[0]] = _probe
+                stock_symbols_scanned += 1
+                for _sym in stock_feed.STOCK_UNIVERSE[1:]:
+                    _cd = stock_feed.fetch_stock_candles(_sym)
+                    if not _cd:
+                        continue
+                    _stock_charts[_sym] = _cd
+                    stock_symbols_scanned += 1
+            if _stock_charts:
+                _stock_signals = []
+                for _sym, _cd in _stock_charts.items():
+                    _closes = _cd['closes']
+                    _vols = [v for _, v in _cd['volumes']]
+                    _stock_sig = stock_feed.scan_stock_with(
+                        _sym, _closes, hourly_features, score_intraday,
+                        balance_score, volumes=_vols, closes_7d=_closes)
+                    if _stock_sig:
+                        _stock_signals.append(_stock_sig)
+                    # Keep the chart for grading (open stock entries
+                    # grade on this same trading-hours path).
+                    charts_by_sym[_sym] = _closes
+                    mkt_by_sym[_sym] = {'price': _cd['last']}
+                _stock_signals.sort(key=lambda s: -abs(s['score']))
+                stock_longs = [s for s in _stock_signals
+                               if s['direction'] == 'LONG'][:stock_feed.STOCK_TOP_N]
+                stock_shorts = [s for s in _stock_signals
+                                if s['direction'] == 'SHORT'][:stock_feed.STOCK_TOP_N]
+                stock_diag['scanned'] = stock_symbols_scanned
+                stock_diag['signals'] = len(_stock_signals)
+            print(f'  Stock scan: {stock_symbols_scanned} symbols, '
+                  f'{len(stock_longs)} stock longs, '
+                  f'{len(stock_shorts)} stock shorts')
+        else:
+            stock_diag['skipped'] = 'market_closed'
+            print('  Stock scan: skipped (market closed)')
 
     # --- Movers scan (two tiers) over the full top-1,000 universe ---
     # 🚀 MOVER: already moving — |1h| >= 5% or |24h| >= 10%, mcap >= $100M.
@@ -3294,6 +3389,7 @@ def main():
     cycle_record = list(prior_cycle_record)
     cmi_record = list(prior_cmi_record)
     shadow_record = list(prior_shadow_record)
+    stock_record = list(prior_stock_record)
     proof_now = datetime.now(timezone.utc)
     # Legacy entries predate the cell tags: backfill the regime from the
     # swing engine's own run history (data/history.json) — the regime in
@@ -3402,6 +3498,25 @@ def main():
     # as live signals (default since-entry path — 'signal_shadow' is
     # not a pattern/cycle/CMI kind, so it grades exactly like 'signal').
     proof_grade(shadow_record, mkt_by_sym, charts_by_sym, proof_now)
+    # Stocks research track, Phase 1: grade the stock ledger the same
+    # way (default since-entry path — 'stock' is not a pattern/cycle/
+    # CMI kind, so it grades exactly like 'signal'). Charts come from
+    # Yahoo, not CoinGecko; the scan already stored this run's charts
+    # above, this fetch covers open entries whose symbols were not
+    # scanned (market closed, failed fetch).
+    if stock_feed is not None:
+        for e in list(stock_record):
+            if e.get('status') != 'open' and \
+                    not _proof_post_exit_active(e, proof_now):
+                continue
+            _sym = e['asset']
+            if _sym in charts_by_sym:
+                continue
+            _cd = stock_feed.fetch_stock_candles(_sym, range_='2d')
+            if _cd and _cd.get('closes'):
+                charts_by_sym[_sym] = _cd['closes']
+                mkt_by_sym[_sym] = {'price': _cd['last']}
+    proof_grade(stock_record, mkt_by_sym, charts_by_sym, proof_now)
     n_pe_done = proof_track_post_exit(proof, mkt_by_sym, charts_by_sym,
                                       proof_now)
     if n_pe_done:
@@ -3521,6 +3636,29 @@ def main():
         shadow_record, cap=SHADOW_RECORD_CAP)
     shadow_cumulative = proof_roll_cumulative(
         prior_shadow_cumulative, shadow_dropped)
+    # Stocks research track, Phase 1: the top stock longs/shorts join
+    # the book as kind='stock' — same +2h horizon and levels as live
+    # signals, same band tags, but a separate ledger and scoreboard,
+    # so the stock cells never mix with the live ones. Regime is
+    # 'unknown': the swing regime is crypto-based and is never guessed
+    # onto stocks. proof_flagged_cells runs over the stock scoreboard
+    # too: a stock cell at n>=20 with an extreme win rate is flagged
+    # for Nic's review (promotion candidate) — recommendation only,
+    # never an automatic promotion.
+    stock_cands = []
+    for s in stock_longs + stock_shorts:
+        stock_cands.append(_proof_candidate(
+            'stock', s['asset'], s.get('name'), s.get('direction'),
+            s.get('thesis'), proof_now, 2,
+            tags={'band': conf_band(s.get('confidence')),
+                  'regime': 'unknown'},
+            gate_src={'confidence': s.get('confidence'),
+                      'tradable': s.get('tradable')}))
+    n_stock_added = proof_record_new(stock_record, stock_cands, proof_now)
+    stock_record, stock_dropped = _proof_trim(
+        stock_record, cap=STOCK_RECORD_CAP)
+    stock_cumulative = proof_roll_cumulative(
+        prior_stock_cumulative, stock_dropped)
     pstats = proof_stats(proof)
     pstats['cells'] = proof_cells(proof, cumulative)
     pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
@@ -3534,9 +3672,14 @@ def main():
         shadow_record, shadow_cumulative)
     pstats['shadow_flagged_cells'] = proof_flagged_cells(
         pstats['shadow_scoreboard'])
+    pstats['stock_scoreboard'] = proof_cells(
+        stock_record, stock_cumulative)
+    pstats['stock_flagged_cells'] = proof_flagged_cells(
+        pstats['stock_scoreboard'])
     print(f"  Proof book: +{n_added} new calls "
           f"({n_pattern_cands} pattern, {n_cycle_cands} cycle, "
-          f"{n_cmi_cands} CMI, {n_shadow_added} shadow), "
+          f"{n_cmi_cands} CMI, {n_shadow_added} shadow, "
+          f"{n_stock_added} stock), "
           f"{pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
@@ -3585,13 +3728,22 @@ def main():
                   'cmi_record': cmi_record,
                   'cmi_cumulative': cmi_cumulative,
                   'shadow_record': shadow_record,
-                  'shadow_cumulative': shadow_cumulative},
+                  'shadow_cumulative': shadow_cumulative,
+                  'stock_record': stock_record,
+                  'stock_cumulative': stock_cumulative},
         'coins_scanned': len(mkts),
         # Shadow universe expansion, Phase 1 (display-only): top shadow
         # longs/shorts and how many shadow coins actually got charts.
         'shadow_longs': shadow_longs,
         'shadow_shorts': shadow_shorts,
         'shadow_coins_scanned': shadow_coins_scanned,
+        # Stocks research track, Phase 1 (display-only): top stock
+        # longs/shorts, how many tickers got charts, and the run
+        # diagnostic (market_open / skipped reason).
+        'stock_longs': stock_longs,
+        'stock_shorts': stock_shorts,
+        'stock_symbols_scanned': stock_symbols_scanned,
+        'stock_diag': stock_diag,
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
         # prune, and stamp the computed breaker state — the alert
@@ -3612,7 +3764,9 @@ def main():
         json.dump(out, f, indent=2)
     print(f'  Intraday complete: {len(longs)} longs, {len(shorts)} shorts from {len(mkts)} coins'
           f' (+{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts'
-          f' from {shadow_coins_scanned} shadow coins)')
+          f' from {shadow_coins_scanned} shadow coins'
+          f' +{len(stock_longs)} stock longs, {len(stock_shorts)} stock shorts'
+          f' from {stock_symbols_scanned} stock symbols)')
 
 if __name__ == '__main__':
     main()

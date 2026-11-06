@@ -170,6 +170,7 @@
     html += renderCycleScoreboard(st);
     html += renderCmiScoreboard(st);
     html += renderShadowScoreboard(st);
+    html += renderStockScoreboard(st);
 
     el.innerHTML = html;
   }
@@ -196,6 +197,38 @@
       '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table>';
     var flags = (st && st.shadow_flagged_cells) || [];
+    if (flags.length) {
+      html += '<p>' + flags.map(function (f) {
+        return '⭐ Review candidate (' + (f.candidate === 'include' ? 'inclusion' : 'exclusion') +
+          '): ' + cellLabel(f) + ' — ' + f.win_rate + '% over ' + f.graded +
+          ' graded calls. Recommendation only — no alert rule changes on its own.';
+      }).join('<br>') + '</p>';
+    }
+    return html + '</details>';
+  }
+
+  // Stocks scoreboard (research track, Phase 1): per-cell stock
+  // results — same +2h horizon and levels as live signals, graded in
+  // a separate ledger, never alerted. A flagged cell (n >= 20,
+  // extreme win rate) is a promotion candidate for Nic's review —
+  // recommendation only, never automatic.
+  function renderStockScoreboard(st) {
+    var rows = ((st && st.stock_scoreboard) || [])
+      .filter(function (c) { return c.graded > 0 || c.open > 0; });
+    if (!rows.length) return '';
+    var body = rows.map(function (c) {
+      return '<tr><td>' + cellLabel(c) + '</td><td>' + c.wins + '</td><td>' +
+        c.losses + '</td><td>' + c.expired + '</td><td>' + c.open + '</td><td>' +
+        c.graded + '</td><td>' +
+        (c.win_rate === null || c.win_rate === undefined ? '—' : c.win_rate + '%') +
+        '</td></tr>';
+    }).join('');
+    var html = '<details style="margin-top:16px;"><summary><strong>Stocks scoreboard (research)</strong> — shadow-graded stock signals (30 liquid US large-caps, Yahoo 1h), $1,000 paper each</summary>' +
+      '<p>Top stock longs/shorts each market-hours run, graded like live signals but never alerted. Stock theses use the stock shadow fee tier (commission-free, 0.5% net floor) — see the stocks spec. A cell with n &gt;= 20 at an extreme win rate is flagged below as a promotion candidate for Nic\'s review.</p>' +
+      '<table class="report-table"><thead><tr><th>Scenario</th><th>Won</th><th>Lost</th>' +
+      '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table>';
+    var flags = (st && st.stock_flagged_cells) || [];
     if (flags.length) {
       html += '<p>' + flags.map(function (f) {
         return '⭐ Review candidate (' + (f.candidate === 'include' ? 'inclusion' : 'exclusion') +
