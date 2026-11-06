@@ -67,3 +67,21 @@ def test_regime_labels_are_the_display_strings():
     assert nexintel.REGIME_LABELS['RISK_ON'] == '🟢 Conditions favor buying'
     assert nexintel.REGIME_LABELS['RISK_OFF'] == '🔴 Conditions favor caution'
     assert nexintel.REGIME_LABELS['NEUTRAL'] == '🟡 Mixed conditions'
+
+
+def test_weak_pick_names_its_score_instead_of_empty_case():
+    # 2026-11-06 review: 7 of 9 longs printed "no strong bullish
+    # factors" as their bull case. A pick leans its way because its
+    # score points that way — the supporting case must say so.
+    weak_long = nexintel.build_thesis('XRP', 0.5, 0.5, 1.0, 0.4, 40,
+                                      'NEUTRAL', 50, 0.0, 'crypto')
+    assert 'no strong bullish factors' not in weak_long['bull_case']
+    assert weak_long['bull_case'] == [
+        'weak positive score (+0.4) — no single factor stands out']
+    assert weak_long['bear_case'] == ['no strong bearish factors']
+    weak_short = nexintel.build_thesis('DRV', -0.5, -0.5, 1.0, -0.4, 40,
+                                       'NEUTRAL', 50, 0.0, 'crypto')
+    assert 'no strong bearish factors' not in weak_short['bear_case']
+    assert weak_short['bear_case'] == [
+        'weak negative score (-0.4) — no single factor stands out']
+    assert weak_short['bull_case'] == ['no strong bullish factors']

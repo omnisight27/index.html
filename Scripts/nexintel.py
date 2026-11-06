@@ -1132,6 +1132,16 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
     if geo_edge < -0.15: bear.append('pattern resembles historical losers')
     if regime == 'RISK_ON' and direction == 'LONG': bull.append('conditions favor buying, which helps longs')
     if regime == 'RISK_OFF' and direction == 'SHORT': bear.append('conditions favor caution, which helps shorts')
+    # A pick only reaches the list because its score points its way, so
+    # the supporting case must never read as empty: when no single factor
+    # fires, name the weak score itself instead of printing "no strong
+    # bullish/bearish factors" on a pick that leans that way (2026-11-06
+    # review: 7 of 9 longs printed an empty bull case). The opposing
+    # case keeps the plain "no strong …" line — that one is good news.
+    if not bull and direction == 'LONG':
+        bull = [f'weak positive score (+{score:.1f}) — no single factor stands out']
+    if not bear and direction == 'SHORT':
+        bear = [f'weak negative score ({score:.1f}) — no single factor stands out']
     return {
         'direction': direction,
         'bull_case': bull or ['no strong bullish factors'],
