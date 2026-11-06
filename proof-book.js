@@ -39,8 +39,12 @@
 
   function callLabel(e) {
     var kind = e.kind === 'mover' ? '🚀 MOVER'
-      : e.kind === 'setup' ? '🔭 SETUP' : '⚡ SIGNAL';
-    return kind + ' ' + esc(e.asset) + (e.direction === 'SHORT' ? ' (short)' : '');
+      : e.kind === 'setup' ? '🔭 SETUP'
+      : e.kind === 'pattern_confluence' ? '📊 CLUSTER'
+      : e.kind === 'pattern' ? '📊 PATTERN' : '⚡ SIGNAL';
+    var what = (e.kind === 'pattern' || e.kind === 'pattern_confluence') && e.pattern
+      ? ' ' + esc(e.pattern) : '';
+    return kind + what + ' ' + esc(e.asset) + (e.direction === 'SHORT' ? ' (short)' : '');
   }
 
   function resultCell(e) {
@@ -49,6 +53,7 @@
       return '⏳ Still open';
     }
     var detail = fmtPct(e.result_pct) + ' (' + fmtMoney(e.paper_pnl || 0) + ')';
+    if (e.pattern_expired) return '⌛ Horizon close ' + detail;
     if (e.status === 'won') return '🎯 Target hit ' + detail;
     if (e.status === 'lost') return '🛑 Stopped out ' + detail;
     if (e.never_triggered) return '⌛ Trigger never hit — no trade taken ' + detail;
@@ -66,7 +71,9 @@
   };
 
   function cellLabel(c) {
-    var type = c.type === 'mover' ? 'Mover' : c.type === 'setup' ? 'Setup' : 'Signal';
+    var type = c.type === 'mover' ? 'Mover' : c.type === 'setup' ? 'Setup'
+      : c.type === 'pattern_confluence' ? 'Pattern cluster'
+      : c.type === 'pattern' ? 'Pattern' : 'Signal';
     var band = c.band && c.band !== 'na' ? ' · ' + esc(c.band) + ' confidence' : '';
     return type + ' · ' + esc(c.direction) + band + ' · ' +
       (REGIME_LABEL[c.regime] || REGIME_LABEL.unknown);
@@ -145,8 +152,36 @@
     }
 
     html += renderCells(st);
+    html += renderPatternScoreboard(st);
 
     el.innerHTML = html;
+  }
+
+  // Pattern scoreboard (research track, Phase 2): per-pattern shadow
+  // results — win rate, Wilson 95% lower bound, expectancy per $1,000
+  // paper. The CI is shown, never gated; promotion is Nic's call.
+  function renderPatternScoreboard(st) {
+    var rows = ((st && st.pattern_scoreboard) || [])
+      .filter(function (r) { return r.graded > 0; });
+    if (!rows.length) return '';
+    function cell(v, suffix) {
+      if (v === null || v === undefined) return '—';
+      return v + (suffix || '');
+    }
+    function money(v) {
+      if (v === null || v === undefined) return '—';
+      return (v > 0 ? '+$' : '-$') + Math.abs(v).toFixed(2);
+    }
+    var body = rows.map(function (r) {
+      return '<tr><td>' + esc(r.pattern) + '</td><td>' + esc(r.direction) +
+        '</td><td>' + esc(r.horizon) + '</td><td>' + r.graded + '</td><td>' +
+        cell(r.win_rate, '%') + '</td><td>' + cell(r.wilson_lower_95, '%') +
+        '</td><td>' + money(r.expectancy_per_1000) + '</td></tr>';
+    }).join('');
+    return '<details style="margin-top:16px;"><summary><strong>Pattern scoreboard (research)</strong> — shadow-graded pattern calls, 6h/24h horizons, $1,000 paper each</summary>' +
+      '<p>Wilson 95% lower bound is shown, not gated — promotion is Nic\'s call. Expectancy is $ per $1,000 paper; the +$20 bar is a Phase 3 question.</p>' +
+      '<table class="report-table"><thead><tr><th>Pattern</th><th>Dir</th><th>Horizon</th><th>Graded</th><th>Win rate</th><th>Wilson 95% lower</th><th>Expectancy / $1k</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table></details>';
   }
 
   function init() {

@@ -157,6 +157,21 @@
     return '<p><strong>Econ:</strong> ' + e.tags.join(' · ') + '</p>';
   }
 
+  // Price-action pattern tags (engine's pattern_feed, display only).
+  // Shows on intraday signal, mover, watch, and setting-up cards when
+  // the engine shipped tags for the asset. Research annotations — never
+  // a buy input, never a confidence input.
+  function patternLine(s) {
+    var tags = s.patterns;
+    if (!tags || !tags.length) return '';
+    var parts = tags.map(function (t) {
+      return t.pattern + ' ' + (t.direction === 'SHORT' ? '▼' : '▲');
+    });
+    var conf = tags.some(function (t) { return t.confluence_id; });
+    return '<p><strong>Patterns (1h):</strong> ' + parts.join(' · ') +
+      (conf ? ' <span class="live-stamp">confluence</span>' : '') + '</p>';
+  }
+
   // Insider flow feed (engine's Form 4 buy/sell tags, display only).
   // Shows on equity pick cards when the engine shipped one.
   function insiderLine(p) {
@@ -179,6 +194,7 @@
       '<p><strong>1h:</strong> ' + t.chg_1h + '% · <strong>RSI:</strong> ' + t.rsi + '</p>' +
       balanceLine(s) +
       econLine(s) +
+      patternLine(s) +
       '<p><a class="details-toggle" href="' + detailLink(s, 'intraday') + '">📄 Full detail page →</a></p>' +
       '</div>';
   }
@@ -256,6 +272,7 @@
       (m.chg_1h >= 0 ? '+' : '') + m.chg_1h + '% 1h · $' + Number(m.price).toLocaleString() + watchNote + '</p>' +
       balanceLine(m) +
       econLine(m) +
+      patternLine(m) +
       planLine +
       detail + '</div>';
   }
@@ -268,6 +285,7 @@
       '<h4>🔭 ' + m.asset + '</h4>' +
       '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
       '<p>$' + Number(m.price).toLocaleString() + ' · <span class="live-stamp">' + (m.watch_reason || '') + '</span></p>' +
+      patternLine(m) +
       '</div>';
   }
 

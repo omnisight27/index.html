@@ -21,6 +21,10 @@ try:
     import econ_features as econ_feed  # Milestone 2: econ candidate pack (display only)
 except ImportError:
     econ_feed = None
+try:
+    import pattern_feed  # Price-action research track, Phase 1 (display only)
+except ImportError:
+    pattern_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -690,7 +694,7 @@ def proof_cell_key(e):
             e.get('regime') or 'unknown')
 
 def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
-                     tags=None, gate_src=None):
+                     tags=None, gate_src=None, extra=None):
     """Normalize a signal thesis / mover plan / accum trigger plan into
     a ledger entry. horizon_h matches the builders: signals exit at +2h
     (build_intraday_thesis), mover and accum plans at +3h
@@ -700,7 +704,10 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
     moment ({confidence, tradable, news_flag, chg_1h, chg_24h} —
     whichever the family really has) for the shadow codeword gate;
     the gate is measurement only and never feeds back into the
-    candidate itself."""
+    candidate itself. `extra` stamps research-track fields (pattern
+    kinds carry {'pattern'/'patterns', 'horizon': '6h'/'24h'}); the
+    horizon also joins the entry id so a 6h and a 24h candidate for
+    the same asset in the same run stay distinct entries."""
     from datetime import timedelta
     if not plan:
         return None
@@ -718,8 +725,11 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
     max_loss = plan.get('max_loss_pct')
     if max_loss is None:
         max_loss = round(abs(entry - sl) / entry * 100, 2)
+    entry_id = f'{kind}:{asset}:{int(now.timestamp())}'
+    if extra and extra.get('horizon'):
+        entry_id += f":{extra['horizon']}"
     entry_out = {
-        'id': f'{kind}:{asset}:{int(now.timestamp())}',
+        'id': entry_id,
         'ts_open': now.isoformat(),
         'kind': kind,
         'asset': asset,
@@ -740,6 +750,11 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
     tags = tags or {}
     entry_out['band'] = tags.get('band') or 'na'
     entry_out['regime'] = tags.get('regime') or 'unknown'
+    if extra:
+        # Research-track fields only (pattern kinds). Plain dict merge
+        # — never overwrites the core fields above (no shared keys).
+        for k, v in extra.items():
+            entry_out.setdefault(k, v)
     if kind == 'setup':
         # A setup is a resting limit buy at the trigger: entry IS the
         # trigger price, and grading must know whether price ever got
@@ -760,7 +775,9 @@ def proof_record_new(record, candidates, now):
     """Prepend fresh calls to the ledger (kept newest-first). Dedup: the
     same asset+kind is never re-recorded while an entry is still open,
     nor within 24h of a previous entry — movers re-fire every hour and
-    must not flood the book."""
+    must not flood the book. Pattern kinds carry two horizons per
+    firing (6h and 24h), so the dedup key includes the horizon: a 6h
+    and a 24h candidate for the same asset are distinct entries."""
     fresh = []
     for cand in candidates:
         if not cand:
@@ -768,6 +785,8 @@ def proof_record_new(record, candidates, now):
         dup = False
         for e in record:
             if e.get('asset') != cand['asset'] or e.get('kind') != cand['kind']:
+                continue
+            if (e.get('horizon') or '') != (cand.get('horizon') or ''):
                 continue
             if e.get('status') == 'open':
                 dup = True
@@ -876,6 +895,275 @@ def _proof_grade_setup(e, mkt, charts_by_sym, now, opened, cur):
         return 'expired', (last - trigger) / trigger * 100
     return None, None
 
+# --- Price-action pattern track, Phase 2 (shadow grading, spec §4) ---
+# A pattern candidate is a fixed-horizon, cost-aware paper bet: entry =
+# the price at detection, direction per the pattern, two fixed horizons
+# (6h and 24h). WIN if the +4.2% gross level is touched before the
+# -2.1% adverse level inside the horizon (4.2% = 2.8% net target +
+# 1.4% round-trip costs); LOSS if the adverse level hits first.
+# Dollars ($1,000 paper, matching book convention): WIN -> +$28
+# (2.8% net), LOSS -> -$35 (2.1% adverse + 1.4% costs).
+# EXPIRED (neither level hit by the horizon end, exit_by + 2h grace —
+# the same window convention as every other call, and the same
+# projected-exit discipline as the Nov 5 swing grading-horizon fix):
+# graded at the horizon close — a WIN iff the direction-signed drift
+# covers costs (LONG: close >= entry x 1.014), else a LOSS, with
+# result_pct = drift_pct - 1.4, i.e. $1,000 x (close/entry - 1 - 0.014).
+# The entry carries pattern_expired=True so the horizon close stays
+# distinguishable from a target/stop exit in the record. The ride-the-
+# win trail logic of the main grader does NOT apply to pattern entries
+# (their levels are the spec's fixed test, not a live plan).
+# Grading walks hourly closes since entry (the same simplification as
+# the main grader: an intra-hour spike that fully reverts is missed).
+PATTERN_WIN_GROSS_PCT = 4.2
+PATTERN_ADVERSE_PCT = 2.1
+PATTERN_COST_PCT = 1.4
+PATTERN_KINDS = ('pattern', 'pattern_confluence')
+PATTERN_HORIZONS_H = (6, 24)
+
+
+def _proof_grade_pattern(e, charts_by_sym, now, opened, cur):
+    """Grade one pattern / pattern_confluence entry. Returns
+    (status, result_pct) or (None, None) to stay open. Never raises."""
+    from datetime import timedelta
+    try:
+        entry = float(e['entry'])
+        is_long = e.get('direction') != 'SHORT'
+        if not entry or entry <= 0:
+            return None, None
+        win_px = entry * (1 + PATTERN_WIN_GROSS_PCT / 100) if is_long \
+            else entry * (1 - PATTERN_WIN_GROSS_PCT / 100)
+        adv_px = entry * (1 - PATTERN_ADVERSE_PCT / 100) if is_long \
+            else entry * (1 + PATTERN_ADVERSE_PCT / 100)
+        pts = []
+        chart = charts_by_sym.get(e['asset'])
+        if chart and opened:
+            opened_ms = opened.timestamp() * 1000
+            pts = [pr for ts, pr in chart if ts >= opened_ms]
+        series = pts + ([cur] if cur else [])
+        for p in series:
+            if is_long:
+                if p >= win_px:
+                    return 'won', PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT
+                if p <= adv_px:
+                    return 'lost', -(PATTERN_ADVERSE_PCT + PATTERN_COST_PCT)
+            else:
+                if p <= win_px:
+                    return 'won', PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT
+                if p >= adv_px:
+                    return 'lost', -(PATTERN_ADVERSE_PCT + PATTERN_COST_PCT)
+        exit_by = _iso_parse(e.get('exit_by') or '')
+        window_over = bool(exit_by and now > exit_by + timedelta(hours=2)) or \
+            bool(opened and (now - opened).total_seconds() > 7 * 86400)
+        if not window_over:
+            return None, None
+        last = series[-1] if series else (e.get('last_price') or entry)
+        drift = ((last - entry) / entry * 100) if is_long \
+            else ((entry - last) / entry * 100)
+        result = round(drift - PATTERN_COST_PCT, 2)
+        e['pattern_expired'] = True
+        return ('won' if result >= 0 else 'lost'), result
+    except Exception:
+        return None, None
+
+
+def _proof_pattern_plan(entry, direction):
+    """The spec §4 plan for a pattern candidate: +4.2% gross target /
+    -2.1% adverse stop, with the cost-aware paper outcomes baked in
+    as expected_return_pct (+2.8 net) and max_loss_pct (-3.5)."""
+    if direction == 'SHORT':
+        return {'entry': entry,
+                'take_profit': entry * (1 - PATTERN_WIN_GROSS_PCT / 100),
+                'stop_loss': entry * (1 + PATTERN_ADVERSE_PCT / 100),
+                'expected_return_pct': round(
+                    PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT, 2),
+                'max_loss_pct': round(
+                    PATTERN_ADVERSE_PCT + PATTERN_COST_PCT, 2)}
+    return {'entry': entry,
+            'take_profit': entry * (1 + PATTERN_WIN_GROSS_PCT / 100),
+            'stop_loss': entry * (1 - PATTERN_ADVERSE_PCT / 100),
+            'expected_return_pct': round(
+                PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT, 2),
+            'max_loss_pct': round(
+                PATTERN_ADVERSE_PCT + PATTERN_COST_PCT, 2)}
+
+
+def proof_pattern_candidates(patterns_by_asset, mkt_by_sym, name_by_sym,
+                            now, regime_tag):
+    """Ledger candidates for one run's pattern firings. One candidate
+    per (asset, direction, horizon): two horizons (6h, 24h) per firing.
+    Confluence rule (spec §3 + §4): when >= 2 same-direction patterns
+    fire on an asset, the firing is graded ONLY as a cluster
+    (kind='pattern_confluence', tagged with the pattern set) — the
+    single-pattern cells are never polluted by cluster membership.
+    A lone firing grades as kind='pattern'. Returns [candidates]."""
+    cands = []
+    for asset, tags in (patterns_by_asset or {}).items():
+        if not tags:
+            continue
+        mkt = (mkt_by_sym or {}).get(asset) or {}
+        try:
+            entry = float(mkt.get('price') or 0)
+        except (TypeError, ValueError):
+            entry = 0
+        if not entry or entry <= 0:
+            continue
+        by_dir = {}
+        for t in tags:
+            by_dir.setdefault((t or {}).get('direction') or 'LONG',
+                              []).append(t)
+        for direction, dtags in sorted(by_dir.items()):
+            pnames = sorted({(t or {}).get('pattern') or '?'
+                             for t in dtags})
+            if len(dtags) >= 2:
+                kind = 'pattern_confluence'
+                extra_base = {'pattern': '+'.join(pnames),
+                              'patterns': pnames}
+            else:
+                kind = 'pattern'
+                extra_base = {'pattern': pnames[0], 'patterns': pnames}
+            for horizon_h in PATTERN_HORIZONS_H:
+                extra = dict(extra_base)
+                extra['horizon'] = f'{horizon_h}h'
+                cand = _proof_candidate(
+                    kind, asset, (name_by_sym or {}).get(asset) or asset,
+                    direction, _proof_pattern_plan(entry, direction),
+                    now, horizon_h,
+                    tags={'band': 'na', 'regime': regime_tag},
+                    gate_src={},
+                    extra=extra)
+                if cand:
+                    cands.append(cand)
+    return cands
+
+
+def wilson_lower(wins, n, z=1.96):
+    """Wilson score 95% CI lower bound on a win rate (fraction, not
+    percent). Mirrors self_tune.wilson_interval — duplicated here so
+    the intraday engine does not import the tuning module. None when
+    n == 0. Recorded honestly in the scoreboard; per Nic (2026-11-05)
+    the 95% belt is loosened, so it is NEVER a gate in Phase 1/2."""
+    if not n:
+        return None
+    try:
+        import math as _math
+        p = wins / n
+        denom = 1.0 + z * z / n
+        center = (p + z * z / (2.0 * n)) / denom
+        half = z * _math.sqrt(p * (1.0 - p) / n
+                             + z * z / (4.0 * n * n)) / denom
+        return max(0.0, center - half)
+    except Exception:
+        return None
+
+
+def pattern_cell_key(e):
+    """(pattern-or-cluster, direction, horizon) for a pattern ledger
+    entry. The cluster key is the '+'-joined sorted pattern set."""
+    names = e.get('patterns')
+    if not names:
+        names = [e.get('pattern')] if e.get('pattern') else ['?']
+    return ('+'.join(sorted(names)),
+            e.get('direction') or 'LONG',
+            e.get('horizon') or '?')
+
+def pattern_scoreboard(record, cumulative=None):
+    """Per-pattern-cell scoreboard (spec §4 cells, §5 promotion bar,
+    reported — never gated). Each row: pattern, direction, horizon,
+    graded, wins, losses, expired-horizon closes, win rate, Wilson
+    95% CI lower bound (percent), expectancy in $ per $1,000 paper
+    (mean paper P&L), and max drawdown on a running $1,000 bankroll
+    per cell (each graded outcome added in close order; the spec does
+    not define the drawdown denominator, so this is the conservative
+    display-only choice — Nic can redefine it). Drawdown is computed
+    from the visible ledger only: cumulative rows carry no time
+    series, so their drawdown is None and the row says so.
+    Promotion flags (sample n >= 100, expectancy >= +$20) are reported
+    as facts; promotion itself is Nic's call, never automatic."""
+    cells = {}
+
+    def bucket(key):
+        return cells.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                      'expired': 0, 'paper_pnl_total': 0.0,
+                                      'pnls': []})
+    for e in record or []:
+        if e.get('kind') not in PATTERN_KINDS:
+            continue
+        if e.get('status') not in ('won', 'lost', 'expired'):
+            continue
+        b = bucket(pattern_cell_key(e))
+        b['graded'] += 1
+        if e.get('status') == 'won':
+            b['wins'] += 1
+        elif e.get('status') == 'lost':
+            b['losses'] += 1
+        if e.get('pattern_expired'):
+            b['expired'] += 1
+        b['paper_pnl_total'] += e.get('paper_pnl') or 0
+        b['pnls'].append((e.get('ts_closed') or '', e.get('paper_pnl') or 0))
+    for key_str, c in (cumulative or {}).items():
+        parts = key_str.split('|')
+        if len(parts) != 3:
+            continue
+        b = bucket(tuple(parts))
+        for f in ('graded', 'wins', 'losses', 'expired'):
+            b[f] += c.get(f, 0)
+        b['paper_pnl_total'] += c.get('paper_pnl_total', 0)
+    rows = []
+    for (pattern, direction, horizon), b in sorted(cells.items()):
+        wl = b['wins'] + b['losses']
+        lo = wilson_lower(b['wins'], wl)
+        dd = None
+        if b['pnls']:
+            bankroll, peak, worst = 1000.0, 1000.0, 0.0
+            for _, pnl in sorted(b['pnls']):
+                bankroll += pnl
+                peak = max(peak, bankroll)
+                worst = max(worst, (peak - bankroll) / peak * 100
+                            if peak > 0 else 0.0)
+            dd = round(worst, 1)
+        rows.append({
+            'pattern': pattern, 'direction': direction, 'horizon': horizon,
+            'graded': b['graded'], 'wins': b['wins'], 'losses': b['losses'],
+            'expired': b['expired'],
+            'win_rate': round(b['wins'] / wl * 100, 1) if wl else None,
+            'wilson_lower_95': round(lo * 100, 1) if lo is not None else None,
+            'expectancy_per_1000': round(b['paper_pnl_total'] / b['graded'], 2)
+                                   if b['graded'] else None,
+            'paper_pnl_total': round(b['paper_pnl_total'], 2),
+            'max_drawdown_pct': dd,
+            'drawdown_visible_only': True,
+            'meets_sample_n100': b['graded'] >= 100,
+            'meets_expectancy_20': (b['paper_pnl_total'] / b['graded'] >= 20
+                                    if b['graded'] else False),
+        })
+    return rows
+
+
+def proof_roll_pattern_cumulative(cumulative, dropped):
+    """Fold closed pattern entries that are about to roll off the
+    capped ledger into persistent per-pattern-cell counters (same
+    shape as proof_roll_cumulative, keyed by pattern_cell_key). Open
+    entries are never rolled."""
+    out = {k: dict(v) for k, v in (cumulative or {}).items()}
+    for e in dropped:
+        if e.get('kind') not in PATTERN_KINDS:
+            continue
+        st = e.get('status')
+        if st not in ('won', 'lost', 'expired'):
+            continue
+        key = '|'.join(pattern_cell_key(e))
+        c = out.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                 'expired': 0, 'paper_pnl_total': 0.0})
+        c['graded'] += 1
+        c['wins' if st == 'won' else 'losses' if st == 'lost' else 'expired'] += 1
+        if e.get('pattern_expired'):
+            c['expired'] += 1
+        c['paper_pnl_total'] = round(c['paper_pnl_total'] +
+                                     (e.get('paper_pnl') or 0), 2)
+    return out
+
+
 def proof_grade(record, mkt_by_sym, charts_by_sym, now):
     """Grade every open ledger entry against fresh market data.
     mkt_by_sym: {sym: {'price', 'high_24h', 'low_24h'}} from the markets
@@ -893,6 +1181,17 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
         cur = mkt.get('price')
         if cur:
             e['last_price'] = cur
+        if e.get('kind') in PATTERN_KINDS:
+            # Pattern entries grade on the spec §4 fixed levels, not the
+            # plain since-entry path — see _proof_grade_pattern.
+            p_status, p_result = _proof_grade_pattern(
+                e, charts_by_sym, now, opened, cur)
+            if p_status:
+                e['status'] = p_status
+                e['result_pct'] = round(p_result, 2)
+                e['paper_pnl'] = round(p_result * PAPER_USD / 100, 2)
+                e['ts_closed'] = now.isoformat()
+            continue
         if e.get('kind') == 'setup':
             # Setups grade on the trigger mechanic, not the plain
             # since-entry path — see _proof_grade_setup.
@@ -1246,7 +1545,9 @@ def proof_stats(record):
         }
     stats = agg(record)
     stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
-                        for k in ('signal', 'mover', 'setup')}
+                        for k in ('signal', 'mover', 'setup',
+                                  'pattern', 'pattern_confluence')}
+    stats['pattern_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['post_exit'] = _proof_post_exit_stats(record)
     stats['codeword_gate'] = _proof_gate_stats(record, agg)
     return stats
@@ -1596,6 +1897,18 @@ def main():
             _prior = (json.load(f) or {}).get('proof') or {}
             prior_proof = _prior.get('record') or []
             prior_cumulative = _prior.get('cumulative') or {}
+    except Exception:
+        pass
+    # Price-action pattern track, Phase 1: OHLC history + per-pattern
+    # cumulative counters ride in the feed the same way.
+    prior_pattern_candles = {}
+    prior_pattern_cumulative = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_pattern_candles = _prior.get('pattern_candles') or {}
+            prior_pattern_cumulative = \
+                (_prior.get('proof') or {}).get('pattern_cumulative') or {}
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -2008,6 +2321,52 @@ def main():
     accum = accum[:8]
     print(f'  Accumulation scan: {len(accum)} setting up')
 
+    # --- Price-action pattern track, Phase 1 (display-only research) ---
+    # Kraken public OHLC (keyless, interval=60) for the bounded
+    # universe: assets with active plans + movers + watch + setting-up,
+    # capped at 30 symbols/run. One pull, two consumers: the candles
+    # land in intraday.json['pattern_candles'] for the manipulation
+    # track to read without a second fetch. Fail-open throughout: no
+    # candles -> no patterns -> no card lines, no exceptions — and
+    # this block NEVER records a gate event (diagnostic-only; it must
+    # never trip the circuit breaker).
+    pattern_candles = prior_pattern_candles
+    patterns = {}
+    pattern_diag = {'symbols_requested': 0, 'symbols_with_candles': 0,
+                    'tags': 0, 'error': None}
+    if pattern_feed is not None:
+        try:
+            _syms = []
+            for _src in (longs, shorts, movers, watch, accum):
+                for _it in _src:
+                    _s = (_it or {}).get('asset')
+                    if _s and _s not in _syms:
+                        _syms.append(_s)
+            _syms = _syms[:pattern_feed.MAX_SYMBOLS_PER_RUN]
+            pattern_diag['symbols_requested'] = len(_syms)
+            _fetched = pattern_feed.fetch_ohlc(fetch_json, _syms)
+            pattern_candles = pattern_feed.update_pattern_candles(
+                prior_pattern_candles, _fetched)
+            patterns = pattern_feed.detect_for_universe(pattern_candles)
+            pattern_diag['symbols_with_candles'] = len(pattern_candles)
+            pattern_diag['tags'] = sum(len(v) for v in patterns.values())
+            # Display-only tags ride on the cards that carry the asset.
+            for _coll in (longs, shorts, movers, watch, accum):
+                for _it in _coll:
+                    _tg = patterns.get((_it or {}).get('asset'))
+                    if _tg:
+                        _it['patterns'] = _tg
+            print(f"  Patterns: {pattern_diag['tags']} tags on "
+                  f"{len(patterns)} assets "
+                  f"({pattern_diag['symbols_with_candles']} candle sets)")
+        except Exception as e:
+            # Diagnostic only — a broken pattern feed degrades to
+            # "no patterns", never a dead run, never a gate event.
+            pattern_diag['error'] = str(e)[:200]
+            patterns = {}
+            pattern_candles = prior_pattern_candles
+            print(f'  [warn] pattern feed failed (fail-open): {e}')
+
     # --- 📒 Proof Book: grade yesterday's calls before recording today's
     # (a call is never graded in the same run that creates it, so the
     # trailing-24h windows can't credit a pre-entry move) ---
@@ -2031,12 +2390,19 @@ def main():
     # Grading wants an hourly path for every open call, not just the
     # top-50 signal universe: fetch charts for open entries' assets that
     # the signal scan didn't cover (one fetch per symbol, bounded by the
-    # number of open calls).
+    # number of open calls). Pattern entries grade over 6h/24h horizons,
+    # so theirs fetch days=2 (a 24h horizon needs a 48h lookback); the
+    # days=1 chart the signal scan may already hold is refetched.
     id_by_sym = {}
     for c in universe:
         s = (c['symbol'] or '').upper()
         if s and s not in id_by_sym:
             id_by_sym[s] = c['id']
+    name_by_sym = {}
+    for c in universe:
+        s = (c['symbol'] or '').upper()
+        if s and s not in name_by_sym:
+            name_by_sym[s] = c.get('name') or s
     for e in proof:
         # Open calls need a chart for grading; recently-exited calls
         # need one for the after-exit tracker (24h post-exit sampling).
@@ -2044,10 +2410,14 @@ def main():
                 not _proof_post_exit_active(e, proof_now):
             continue
         sym = e['asset']
-        if sym in charts_by_sym or sym not in id_by_sym:
+        want_2d = e.get('kind') in PATTERN_KINDS
+        if sym in charts_by_sym and not want_2d:
             continue
+        if sym not in id_by_sym:
+            continue
+        days = 2 if want_2d else 1
         ch = fetch_json(f'https://api.coingecko.com/api/v3/coins/{id_by_sym[sym]}/market_chart'
-                        '?vs_currency=usd&days=1&interval=hourly')
+                        f'?vs_currency=usd&days={days}&interval=hourly')
         if ch and ch.get('prices'):
             charts_by_sym[sym] = ch['prices']
     proof_grade(proof, mkt_by_sym, charts_by_sym, proof_now)
@@ -2084,13 +2454,27 @@ def main():
             tags={'band': 'na', 'regime': regime_tag},
             gate_src={'tradable': a.get('tradable'),
                       'news_flag': a.get('news_flag')}))
+    # Pattern track, Phase 2 (shadow grading only): every firing
+    # becomes 6h + 24h paper candidates. No gate, no alert, no
+    # confidence input — the book just gains rows.
+    n_pattern_cands = 0
+    if patterns:
+        _pcands = proof_pattern_candidates(
+            patterns, mkt_by_sym, name_by_sym, proof_now, regime_tag)
+        n_pattern_cands = len(_pcands)
+        proof_cands.extend(_pcands)
     n_added = proof_record_new(proof, proof_cands, proof_now)
     proof, dropped = _proof_trim(proof)
     cumulative = proof_roll_cumulative(prior_cumulative, dropped)
+    pattern_cumulative = proof_roll_pattern_cumulative(
+        prior_pattern_cumulative, dropped)
     pstats = proof_stats(proof)
     pstats['cells'] = proof_cells(proof, cumulative)
     pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
-    print(f"  Proof book: +{n_added} new calls, {pstats['open']} open, "
+    pstats['pattern_scoreboard'] = pattern_scoreboard(
+        proof, pattern_cumulative)
+    print(f"  Proof book: +{n_added} new calls "
+          f"({n_pattern_cands} pattern), {pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
     pub_now = datetime.now(timezone.utc).isoformat()
@@ -2109,7 +2493,14 @@ def main():
         'oi_history': oi_hist,
         'funding_history': fund_hist,
         'macro_snapshot': macro_snap,
-        'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative},
+        # Price-action pattern track, Phase 1/2 (display-only research):
+        # the shared OHLC store (also read by the manipulation track),
+        # this run's tags, and a small run diagnostic.
+        'pattern_candles': pattern_candles,
+        'patterns': patterns,
+        'pattern_diag': pattern_diag,
+        'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative,
+                  'pattern_cumulative': pattern_cumulative},
         'coins_scanned': len(mkts),
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
