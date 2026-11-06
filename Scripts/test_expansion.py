@@ -49,8 +49,10 @@ def coin(cid, sym, mcap=500_000_000):
             'sparkline_in_7d': {'price': spark_7d()}}
 
 
-def scan(c, fetch, charts=None, blocked=None):
-    """Run _scan_coin with a stubbed fetch_json and no econ feed."""
+def scan(c, fetch, charts=None, blocked=None, min_mcap=100_000_000):
+    """Run _scan_coin with a stubbed fetch_json and no econ feed.
+    min_mcap defaults to the LIVE floor ($100M); pass
+    intraday.SHADOW_MCAP_FLOOR for the shadow scan."""
     if charts is None:
         charts = {}
     monkey = {'calls': []}
@@ -59,7 +61,8 @@ def scan(c, fetch, charts=None, blocked=None):
     try:
         return intraday._scan_coin(
             c, charts, {}, {}, {}, None, None, None, 0.0,
-            lambda sym: [], blocked or {'XMR', 'USDT'})
+            lambda sym: [], blocked or {'XMR', 'USDT'},
+            min_mcap=min_mcap)
     finally:
         intraday.fetch_json = orig
 
@@ -122,6 +125,52 @@ def test_scan_coin_low_mcap_returns_none_without_fetch():
 
     assert scan(coin('tiny', 'TINY', mcap=50_000_000), _fetch) is None
     assert calls['n'] == 0
+
+
+def test_scan_coin_shadow_floor_admits_50m_coins():
+    # Nic 2026-11-05: the SHADOW floor is $50M (live stays $100M). A
+    # $60M coin with a strong trend is scanned under the shadow floor
+    # and returns a signal; the fetch is actually called.
+    calls = {'n': 0}
+
+    def _fetch(url, timeout=30):
+        calls['n'] += 1
+        return chart_for([4.0] * 24, vols=[1_000_000] * 25)
+
+    sig = scan(coin('mid', 'MID', mcap=60_000_000), _fetch,
+               min_mcap=intraday.SHADOW_MCAP_FLOOR)
+    assert sig is not None and sig['direction'] == 'LONG'
+    assert calls['n'] == 1
+    # Exactly at the floor: $50M admits.
+    sig = scan(coin('at-floor', 'ATF', mcap=50_000_000), _fetch,
+               min_mcap=intraday.SHADOW_MCAP_FLOOR)
+    assert sig is not None
+
+
+def test_scan_coin_shadow_floor_rejects_below_50m_without_fetch():
+    calls = {'n': 0}
+
+    def _fetch(url, timeout=30):
+        calls['n'] += 1
+        return chart_for([4.0] * 24)
+
+    assert scan(coin('small', 'SML', mcap=40_000_000), _fetch,
+                min_mcap=intraday.SHADOW_MCAP_FLOOR) is None
+    assert calls['n'] == 0
+
+
+def test_scan_coin_live_floor_still_100m():
+    # The live floor did NOT move: a $75M coin is still rejected by
+    # the default (live) scan without a fetch.
+    calls = {'n': 0}
+
+    def _fetch(url, timeout=30):
+        calls['n'] += 1
+        return chart_for([4.0] * 24)
+
+    assert scan(coin('mid', 'MID', mcap=75_000_000), _fetch) is None
+    assert calls['n'] == 0
+    assert intraday.SHADOW_MCAP_FLOOR == 50_000_000
 
 
 def test_scan_coin_failed_fetch_returns_none():

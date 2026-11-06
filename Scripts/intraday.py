@@ -1510,12 +1510,16 @@ CMI_EXIT_TRIGGER = 0.50             # spec §1b: CMI > 0.50 exit trigger
 # $100M floor in _scan_coin admits only ~67 of them — the floor binds
 # at rank ~267 by market cap, so ranks 201-500 yield 62 charted coins
 # (233 under the floor, 4 symbol collisions with live, 1 failed fetch).
-# Extending the slice to 1,000 adds nothing at this floor (still 67);
-# a lower shadow floor ($50M -> 238 coins, $25M -> 300) is Nic's call,
-# not an engine default.
+# Extending the slice to 1,000 adds nothing at this floor (still 67).
+# DECIDED (Nic, 2026-11-05): shadow floor lowered to $50M — at $50M
+# the effective shadow universe is ~238 coins (measured in the
+# expansion report). The LIVE floor stays $100M; only the shadow scan
+# passes min_mcap=SHADOW_MCAP_FLOOR to _scan_coin.
 SIGNAL_UNIVERSE_N = 200             # live signal universe (top N by mcap)
 SHADOW_UNIVERSE_START = 200         # shadow starts where live ends
 SHADOW_UNIVERSE_END = 500           # shadow covers ranks 201-500
+SHADOW_MCAP_FLOOR = 50_000_000      # shadow floor (Nic 2026-11-05);
+                                    # live floor stays $100M
 SHADOW_RECORD_CAP = 2000            # separate shadow ledger cap
 
 # Stocks research track, Phase 1: separate stock ledger cap (same
@@ -2593,7 +2597,8 @@ def _proof_trim(record, cap=100):
 
 
 def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
-               btc_chg24, econ_feed, run_ts, tradable_on, blocked):
+               btc_chg24, econ_feed, run_ts, tradable_on, blocked,
+               min_mcap=100_000_000):
     """One coin of the signal scan: hourly chart (24h) -> features ->
     balance/econ (display only) -> score -> thesis. Returns the signal
     dict or None (filtered, failed fetch, weak score, or fee floor).
@@ -2601,6 +2606,11 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
     scan (ranks SHADOW_UNIVERSE_START..SHADOW_UNIVERSE_END) so the two
     universes are scored identically; the caller decides what a
     returned signal becomes (live pick vs shadow-graded candidate).
+    min_mcap is the market-cap floor for THIS scan: $100M for live
+    (Nic's live floor, unchanged), SHADOW_MCAP_FLOOR ($50M, Nic
+    2026-11-05) for the shadow scan — the shadow universe is wider
+    than the live one by design, and the floor is the only difference
+    between the two scans.
     charts_by_sym is mutated: the chart is retained for Proof Book
     grading (hourly points). Fail-open throughout: a failed fetch or
     econ pack just skips the coin, never the run."""
@@ -2609,7 +2619,7 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
     if sym in blocked:
         return None
     mcap = c.get('market_cap') or 0
-    if mcap < 100_000_000:
+    if mcap < min_mcap:
         return None
     # Hourly chart (24h)
     chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
@@ -2967,7 +2977,8 @@ def main():
             continue
         sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                          macro_snap, btc_chg24, econ_feed, run_ts,
-                         tradable_on, BLOCKED)
+                         tradable_on, BLOCKED,
+                         min_mcap=SHADOW_MCAP_FLOOR)
         if _sym in charts_by_sym:
             shadow_coins_scanned += 1
         if sig:
