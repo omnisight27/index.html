@@ -202,6 +202,65 @@
       '<p class="live-stamp">Research only — cycle states are shadow-graded in the 📒 Proof Book (Reports). They never change a buy call.</p></div>';
   }
 
+  // Manipulation pulse (engine's cmi_feed, display only). The share
+  // of scanned assets per CMI band, in plain words — research
+  // annotations, never a buy input, never a confidence input.
+  // CMI measures deviation from predictable price behavior; it is a
+  // proxy, not a window into institutional intent.
+  function cmiPulseText(pulse, cmi) {
+    if (!pulse || !pulse.total) return '';
+    var text = pulse.clean_pct + '% clean / ' + pulse.caution_pct +
+      '% caution / ' + pulse.manip_pct + '% manipulated (' +
+      pulse.total + ' assets)';
+    var manip = [];
+    if (cmi) {
+      Object.keys(cmi).forEach(function (a) {
+        if (cmi[a] && cmi[a].band === 'MANIP') manip.push(a);
+      });
+    }
+    if (manip.length) {
+      text += ' · manipulated now: ' + manip.slice(0, 3).join(', ') +
+        (manip.length > 3 ? ' +' + (manip.length - 3) + ' more' : '');
+    }
+    return text;
+  }
+
+  function renderCmiPulse() {
+    var el = document.getElementById('cmi-pulse');
+    if (!el || !lastIntraday) return;
+    var pulse = lastIntraday.cmi_pulse;
+    if (!pulse || !pulse.total) {
+      el.innerHTML = '<p class="live-stamp">Manipulation pulse — no CMI data this run.</p>';
+      return;
+    }
+    el.innerHTML = '<div class="card"><h3>🧲 Manipulation pulse</h3><p>' +
+      escPulse(cmiPulseText(pulse, lastIntraday.cmi)) + '</p>' +
+      '<p class="live-stamp">Research only — CMI bands are shadow-graded in the 📒 Proof Book (Reports). They never change a buy call. CMI measures deviation from predictable price behavior — a proxy for manipulation, not a detector of institutional intent.</p></div>';
+  }
+
+  // CMI entry (engine's cmi_feed, display only). Shows on intraday
+  // signal, mover, watch, and setting-up cards when the engine
+  // shipped a CMI entry for the asset. Research annotation — never
+  // a buy input, never a confidence input.
+  function cmiLine(s) {
+    var cm = s.cmi || (lastIntraday && lastIntraday.cmi &&
+      lastIntraday.cmi[s.asset]);
+    if (!cm) return '';
+    var bandWords = { CLEAN: 'Clean', CAUTION: 'Caution',
+      MANIP: 'Manipulated' };
+    var text = '<p><strong>Manipulation:</strong> CMI ' + cm.cmi +
+      ' (' + (bandWords[cm.band] || 'no data') + ') · SuperTrend ' +
+      cm.supertrend;
+    if (cm.confluence) {
+      text += ' · <span class="live-stamp">confluence ' +
+        cm.confluence + '</span>';
+    } else if (cm.trap) {
+      text += ' · <span class="live-stamp">SuperTrend flip in ' +
+        'caution — trap watch</span>';
+    }
+    return text + '</p>';
+  }
+
   // Price-action pattern tags (engine's pattern_feed, display only).
   // Shows on intraday signal, mover, watch, and setting-up cards when
   // the engine shipped tags for the asset. Research annotations — never
@@ -240,6 +299,7 @@
       balanceLine(s) +
       econLine(s) +
       patternLine(s) +
+      cmiLine(s) +
       '<p><a class="details-toggle" href="' + detailLink(s, 'intraday') + '">📄 Full detail page →</a></p>' +
       '</div>';
   }
@@ -318,6 +378,7 @@
       balanceLine(m) +
       econLine(m) +
       patternLine(m) +
+      cmiLine(m) +
       planLine +
       detail + '</div>';
   }
@@ -331,6 +392,7 @@
       '<p class="asset-sub">' + assetBadge(m) + nm + link + tradableBadge(m) + '</p>' +
       '<p>$' + Number(m.price).toLocaleString() + ' · <span class="live-stamp">' + (m.watch_reason || '') + '</span></p>' +
       patternLine(m) +
+      cmiLine(m) +
       '</div>';
   }
 
@@ -563,6 +625,7 @@
         renderMovers();  // movers/watch render even when no signals fire
         renderVerdicts();
         renderCyclePulse();
+        renderCmiPulse();
         var all = (d.longs || []).concat(d.shorts || []);
         all.sort(function (a, b) { return b.confidence - a.confidence; });
         // Unified freshness stamp at the top of the page — the intraday

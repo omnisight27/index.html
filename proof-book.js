@@ -42,11 +42,18 @@
       : e.kind === 'setup' ? '🔭 SETUP'
       : e.kind === 'pattern_confluence' ? '📊 CLUSTER'
       : e.kind === 'cycle' ? '🔄 CYCLE'
+      : e.kind === 'cmi_regime' ? '🧲 CMI'
+      : e.kind === 'cmi_confluence' ? '🧲 CMI CONF'
+      : e.kind === 'cmi_trap' ? '🧲 CMI TRAP'
       : e.kind === 'pattern' ? '📊 PATTERN' : '⚡ SIGNAL';
     var what = (e.kind === 'pattern' || e.kind === 'pattern_confluence') && e.pattern
       ? ' ' + esc(e.pattern) : '';
     if (e.kind === 'cycle' && e.variable) {
       what = ' ' + esc(e.variable) + '/' + esc(e.band || '');
+    }
+    if ((e.kind === 'cmi_regime' || e.kind === 'cmi_confluence' ||
+         e.kind === 'cmi_trap') && e.band) {
+      what = ' ' + esc(e.band);
     }
     return kind + what + ' ' + esc(e.asset) + (e.direction === 'SHORT' ? ' (short)' : '');
   }
@@ -57,7 +64,8 @@
       return '⏳ Still open';
     }
     var detail = fmtPct(e.result_pct) + ' (' + fmtMoney(e.paper_pnl || 0) + ')';
-    if (e.pattern_expired || e.cycle_expired) return '⌛ Horizon close ' + detail;
+    if (e.cmi_exit) return '⌛ CMI exit trigger ' + detail;
+    if (e.pattern_expired || e.cycle_expired || e.cmi_expired) return '⌛ Horizon close ' + detail;
     if (e.status === 'won') return '🎯 Target hit ' + detail;
     if (e.status === 'lost') return '🛑 Stopped out ' + detail;
     if (e.never_triggered) return '⌛ Trigger never hit — no trade taken ' + detail;
@@ -158,6 +166,7 @@
     html += renderCells(st);
     html += renderPatternScoreboard(st);
     html += renderCycleScoreboard(st);
+    html += renderCmiScoreboard(st);
 
     el.innerHTML = html;
   }
@@ -221,6 +230,45 @@
     return '<details style="margin-top:16px;"><summary><strong>Cycle scoreboard (research)</strong> — shadow-graded cycle calls, 24h/7d horizons, $1,000 paper each</summary>' +
       '<p>Each cell is graded against the all-days base rate for its horizon and its variable\'s control band (neutral Fear &amp; Greed, flat dominance). Wilson 95% lower bound is shown, not gated — promotion is Nic\'s call. Expectancy is $ per $1,000 paper; the +$20 bar is a Phase 3 question.</p>' +
       '<table class="report-table"><thead><tr><th>Variable</th><th>Band</th><th>Dir</th><th>Horizon</th><th>Graded</th><th>Win rate</th><th>Base rate</th><th>Control</th><th>Wilson 95% lower</th><th>Expectancy / $1k</th></tr></thead>' +
+      '<tbody>' + body + '</tbody></table></details>';
+  }
+
+  // CMI scoreboard (research track, Phase 2): per-CMI-cell shadow
+  // results — regime bands (24h/7d, MANIP as both LONG and SHORT
+  // cells), confluence flips (6h/24h, with CMI > 0.50 exit-trigger
+  // closes counted), trap flips (6h/24h). Win rate, Wilson 95%
+  // lower bound, expectancy per $1,000 paper, occurrences per week.
+  // The CI is shown, never gated; promotion is Nic's call. CMI
+  // measures deviation from predictable price behavior — a proxy,
+  // not a detector of institutional intent.
+  function renderCmiScoreboard(st) {
+    var rows = ((st && st.cmi_scoreboard) || [])
+      .filter(function (r) { return r.graded > 0; });
+    if (!rows.length) return '';
+    function cell(v, suffix) {
+      if (v === null || v === undefined) return '—';
+      return v + (suffix || '');
+    }
+    function money(v) {
+      if (v === null || v === undefined) return '—';
+      return (v > 0 ? '+$' : '-$') + Math.abs(v).toFixed(2);
+    }
+    var kindWords = { cmi_regime: 'Regime', cmi_confluence: 'Confluence',
+      cmi_trap: 'Trap' };
+    var body = rows.map(function (r) {
+      return '<tr><td>' + esc(kindWords[r.kind] || r.kind) + '</td><td>' +
+        esc(r.band) + '</td><td>' + esc(r.direction) + '</td><td>' +
+        esc(r.horizon) + '</td><td>' + r.graded + '</td><td>' +
+        cell(r.win_rate, '%') + '</td><td>' + cell(r.wilson_lower_95, '%') +
+        '</td><td>' + money(r.expectancy_per_1000) + '</td><td>' +
+        r.cmi_exits + '</td><td>' +
+        cell(r.occurrences_per_week, '/wk') +
+        (r.insufficient_frequency ? ' ⚠️ low frequency' : '') +
+        '</td></tr>';
+    }).join('');
+    return '<details style="margin-top:16px;"><summary><strong>Manipulation scoreboard (research)</strong> — shadow-graded CMI calls, $1,000 paper each</summary>' +
+      '<p>Regime rows grade 24h/7d; confluence and trap rows grade 6h/24h. “CMI exits” counts confluence rows closed by the CMI &gt; 0.50 exit trigger. Wilson 95% lower bound is shown, not gated — promotion is Nic\'s call. Expectancy is $ per $1,000 paper; the +$20 bar is a Phase 3 question.</p>' +
+      '<table class="report-table"><thead><tr><th>Kind</th><th>Band</th><th>Dir</th><th>Horizon</th><th>Graded</th><th>Win rate</th><th>Wilson 95% lower</th><th>Expectancy / $1k</th><th>CMI exits</th><th>Frequency</th></tr></thead>' +
       '<tbody>' + body + '</tbody></table></details>';
   }
 

@@ -29,6 +29,10 @@ try:
     import cycle_feed  # Cycle research track, Phase 1 (display only)
 except ImportError:
     cycle_feed = None
+try:
+    import cmi_feed  # Manipulation research track, Phase 1 (display only)
+except ImportError:
+    cmi_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -734,6 +738,11 @@ def _proof_candidate(kind, asset, name, direction, plan, now, horizon_h,
         entry_id += f":{extra['horizon']}"
     if extra and extra.get('variable'):
         entry_id += f":{extra['variable']}"
+    if extra and extra.get('cell'):
+        # CMI regime rows: MANIP grades as both a LONG cell and a
+        # SHORT-bias cell for the same asset+horizon — the cell joins
+        # the id so the two rows stay distinct entries.
+        entry_id += f":{extra['cell']}"
     entry_out = {
         'id': entry_id,
         'ts_open': now.isoformat(),
@@ -1449,11 +1458,403 @@ def proof_roll_cycle_cumulative(cumulative, dropped):
     return out
 
 
-def proof_grade(record, mkt_by_sym, charts_by_sym, now):
+# --- Manipulation research track, Phase 2 (shadow grading, spec §4) ---
+# Three kinds, one separate ledger (proof.cmi_record, cap 2000) — the
+# same shape as the cycle ledger, so the 100-entry main ledger is
+# never flooded by research rows.
+#   kind='cmi_regime': one candidate per asset-day per band, LONG in
+#     CLEAN and CAUTION, horizons 24h + 7d. MANIP grades TWICE — as a
+#     LONG cell and as a SHORT-bias cell (the video's contrarian
+#     claim) — both reported, neither assumed.
+#   kind='cmi_confluence': one candidate per SuperTrend flip with
+#     CMI < 0.30, direction per the flip, horizons 6h + 24h. The
+#     CMI > 0.50 exit trigger applies during the horizon: if CMI
+#     crosses 0.50 before either level hits, the position closes at
+#     that candle's close and grades as EXPIRED at that price
+#     (cmi_exit=True). This tests the video's exit rule directly.
+#     At a candle where a level AND the trigger both hit, the level
+#     decides first (conservative: a target actually touched is a
+#     win, not an exit-suggestion close).
+#   kind='cmi_trap': SuperTrend flips with CMI >= 0.30, direction =
+#     the flip direction, horizons 6h + 24h — the video claims these
+#     reverse; the grading tests whether fading them or simply
+#     avoiding them is the profitable response.
+# Levels and dollars match the pattern/cycle tracks (+4.2% / -2.1%,
+# +$28 / -$35 on $1,000 paper; EXPIRED grades at the horizon close,
+# win iff the direction-signed drift covers the 1.4% costs).
+# The exit trigger needs a CMI series, not just prices: main()
+# builds cmi_by_sym = {asset: [[ts_ms, cmi], ...]} from the shared
+# pattern_candles store (cmi_feed.cmi_series) and passes it to
+# proof_grade. A missing series degrades to plain fixed-level
+# grading (the trigger simply never fires) — fail-open, never an
+# exception.
+CMI_KINDS = ('cmi_regime', 'cmi_confluence', 'cmi_trap')
+CMI_REGIME_HORIZONS_H = (24, 168)   # labels '24h' and '7d'
+CMI_SIGNAL_HORIZONS_H = (6, 24)     # labels '6h' and '24h'
+CMI_RECORD_CAP = 2000               # separate CMI ledger cap
+CMI_EXIT_TRIGGER = 0.50             # spec §1b: CMI > 0.50 exit trigger
+
+
+def _proof_grade_cmi_confluence(e, charts_by_sym, cmi_by_sym, now,
+                                opened, cur):
+    """Grade one cmi_confluence entry: the spec §4 fixed levels plus
+    the CMI > 0.50 exit trigger. Walks hourly closes since entry in
+    time order; at each observation the win/adverse levels decide
+    first, then the trigger (the latest CMI value at or before that
+    observation). A trigger close grades as EXPIRED at that candle's
+    close (win iff the direction-signed drift covers the 1.4%
+    costs) with cmi_exit=True. Past the window (exit_by + 2h grace
+    or the 7-day hard cap) with neither level nor trigger hit, the
+    plain horizon-close rule applies. Returns (status, result_pct)
+    or (None, None) to stay open. Never raises."""
+    from datetime import timedelta
+    try:
+        entry = float(e['entry'])
+        is_long = e.get('direction') != 'SHORT'
+        if not entry or entry <= 0:
+            return None, None
+        win_px = entry * (1 + PATTERN_WIN_GROSS_PCT / 100) if is_long \
+            else entry * (1 - PATTERN_WIN_GROSS_PCT / 100)
+        adv_px = entry * (1 - PATTERN_ADVERSE_PCT / 100) if is_long \
+            else entry * (1 + PATTERN_ADVERSE_PCT / 100)
+        pts = []
+        chart = charts_by_sym.get(e['asset'])
+        if chart and opened:
+            opened_ms = opened.timestamp() * 1000
+            pts = [(ts, pr) for ts, pr in chart if ts >= opened_ms]
+        series = list(pts)
+        if cur:
+            series.append((int(now.timestamp() * 1000), cur))
+        cmi_pts = sorted((cmi_by_sym or {}).get(e['asset']) or [])
+        cmi_at = {}
+        for ts, px in series:
+            # Latest CMI value at or before this observation.
+            val = None
+            for cts, cv in cmi_pts:
+                if cts <= ts:
+                    val = cv
+                else:
+                    break
+            cmi_at[ts] = val
+        for ts, p in series:
+            if is_long:
+                if p >= win_px:
+                    return 'won', PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT
+                if p <= adv_px:
+                    return 'lost', -(PATTERN_ADVERSE_PCT + PATTERN_COST_PCT)
+            else:
+                if p <= win_px:
+                    return 'won', PATTERN_WIN_GROSS_PCT - PATTERN_COST_PCT
+                if p >= adv_px:
+                    return 'lost', -(PATTERN_ADVERSE_PCT + PATTERN_COST_PCT)
+            cmi = cmi_at.get(ts)
+            if cmi is not None and cmi > CMI_EXIT_TRIGGER:
+                drift = ((p - entry) / entry * 100) if is_long \
+                    else ((entry - p) / entry * 100)
+                result = round(drift - PATTERN_COST_PCT, 2)
+                e['cmi_expired'] = True
+                e['cmi_exit'] = True
+                return ('won' if result >= 0 else 'lost'), result
+        exit_by = _iso_parse(e.get('exit_by') or '')
+        window_over = bool(exit_by and now > exit_by + timedelta(hours=2)) or \
+            bool(opened and (now - opened).total_seconds() > 7 * 86400)
+        if not window_over:
+            return None, None
+        last = series[-1][1] if series else (e.get('last_price') or entry)
+        drift = ((last - entry) / entry * 100) if is_long \
+            else ((entry - last) / entry * 100)
+        result = round(drift - PATTERN_COST_PCT, 2)
+        e['cmi_expired'] = True
+        return ('won' if result >= 0 else 'lost'), result
+    except Exception:
+        return None, None
+
+
+def _proof_grade_cmi_regime(e, charts_by_sym, now, opened, cur):
+    """Grade one cmi_regime entry (24h/7d fixed levels). Hard cap 8
+    days, like the cycle track — a 7d-horizon entry must survive
+    until exit_by + 2h grace. Returns (status, result_pct) or
+    (None, None). Never raises."""
+    return _fixed_level_grade(e, charts_by_sym, now, opened, cur, 8,
+                              'cmi_expired')
+
+
+def _proof_grade_cmi_trap(e, charts_by_sym, now, opened, cur):
+    """Grade one cmi_trap entry (6h/24h fixed levels, 7-day hard
+    cap like the pattern track). Returns (status, result_pct) or
+    (None, None). Never raises."""
+    return _fixed_level_grade(e, charts_by_sym, now, opened, cur, 7,
+                              'cmi_expired')
+
+
+def proof_cmi_regime_candidates(cmi_map, assets, mkt_by_sym, name_by_sym,
+                                now, regime_tag):
+    """Ledger candidates for one run's CMI bands. One candidate per
+    (asset, direction, horizon): LONG in CLEAN/CAUTION, and in MANIP
+    BOTH a LONG row and a SHORT-bias row (same band, opposite
+    directions — the 'cell' extra keeps their entry ids distinct).
+    Horizons 24h + 7d (regime is a slow variable — spec §8 default).
+    Returns [candidates]."""
+    cands = []
+    for asset in (assets or []):
+        band = ((cmi_map or {}).get(asset) or {}).get('band')
+        if band not in ('CLEAN', 'CAUTION', 'MANIP'):
+            continue
+        mkt = (mkt_by_sym or {}).get(asset) or {}
+        try:
+            entry = float(mkt.get('price') or 0)
+        except (TypeError, ValueError):
+            entry = 0
+        if not entry or entry <= 0:
+            continue
+        directions = ('LONG',) if band != 'MANIP' else ('LONG', 'SHORT')
+        for direction in directions:
+            for horizon_h in CMI_REGIME_HORIZONS_H:
+                label = '24h' if horizon_h == 24 else '7d'
+                cand = _proof_candidate(
+                    'cmi_regime', asset,
+                    (name_by_sym or {}).get(asset) or asset,
+                    direction, _proof_pattern_plan(entry, direction),
+                    now, horizon_h,
+                    tags={'band': band, 'regime': regime_tag},
+                    gate_src={},
+                    extra={'horizon': label,
+                           'cell': f'{band}:{direction}'})
+                if cand:
+                    cands.append(cand)
+    return cands
+
+
+def proof_cmi_confluence_candidates(cmi_map, mkt_by_sym, name_by_sym,
+                                    now, regime_tag):
+    """Ledger candidates for one run's confluence flips (SuperTrend
+    flip + CMI < 0.30 at the flip close). One candidate per (asset,
+    horizon): 6h + 24h, direction per the flip. Returns [candidates]."""
+    cands = []
+    for asset, row in (cmi_map or {}).items():
+        direction = (row or {}).get('confluence')
+        if direction not in ('LONG', 'SHORT'):
+            continue
+        mkt = (mkt_by_sym or {}).get(asset) or {}
+        try:
+            entry = float(mkt.get('price') or 0)
+        except (TypeError, ValueError):
+            entry = 0
+        if not entry or entry <= 0:
+            continue
+        band = (row or {}).get('band') or 'na'
+        for horizon_h in CMI_SIGNAL_HORIZONS_H:
+            cand = _proof_candidate(
+                'cmi_confluence', asset,
+                (name_by_sym or {}).get(asset) or asset,
+                direction, _proof_pattern_plan(entry, direction),
+                now, horizon_h,
+                tags={'band': band, 'regime': regime_tag},
+                gate_src={},
+                extra={'horizon': f'{horizon_h}h',
+                       'cell': 'confluence'})
+            if cand:
+                cands.append(cand)
+    return cands
+
+
+def proof_cmi_trap_candidates(cmi_map, mkt_by_sym, name_by_sym,
+                              now, regime_tag):
+    """Ledger candidates for one run's trap flips (SuperTrend flip
+    with CMI >= 0.30). Direction = the flip direction, horizons
+    6h + 24h. Returns [candidates]."""
+    cands = []
+    for asset, row in (cmi_map or {}).items():
+        if not (row or {}).get('trap'):
+            continue
+        direction = 'LONG' if (row or {}).get('supertrend') == 'bullish' \
+            else 'SHORT'
+        mkt = (mkt_by_sym or {}).get(asset) or {}
+        try:
+            entry = float(mkt.get('price') or 0)
+        except (TypeError, ValueError):
+            entry = 0
+        if not entry or entry <= 0:
+            continue
+        band = (row or {}).get('band') or 'na'
+        for horizon_h in CMI_SIGNAL_HORIZONS_H:
+            cand = _proof_candidate(
+                'cmi_trap', asset,
+                (name_by_sym or {}).get(asset) or asset,
+                direction, _proof_pattern_plan(entry, direction),
+                now, horizon_h,
+                tags={'band': band, 'regime': regime_tag},
+                gate_src={},
+                extra={'horizon': f'{horizon_h}h', 'cell': 'trap'})
+            if cand:
+                cands.append(cand)
+    return cands
+
+
+def proof_record_cmi(record, candidates, now):
+    """Prepend fresh CMI rows to the CMI ledger (newest-first).
+    Dedup: the same asset+kind+cell+horizon is never re-recorded
+    within 24h of a previous entry. Like the cycle ledger there is
+    NO open-block: one row per asset-day is intended, so overlapping
+    7d windows do not block each other."""
+    fresh = []
+    for cand in candidates:
+        if not cand:
+            continue
+        dup = False
+        for e in record:
+            if e.get('asset') != cand['asset'] or e.get('kind') != cand['kind']:
+                continue
+            if (e.get('cell') or '') != (cand.get('cell') or ''):
+                continue
+            if (e.get('horizon') or '') != (cand.get('horizon') or ''):
+                continue
+            opened = _iso_parse(e.get('ts_open') or '')
+            if opened and (now - opened).total_seconds() < 24 * 3600:
+                dup = True
+                break
+        if not dup:
+            fresh.append(cand)
+    record[:] = fresh + record
+    return len(fresh)
+
+
+def cmi_cell_key(e):
+    """(kind, band, direction, horizon) for a CMI ledger entry."""
+    return (e.get('kind') or '?', e.get('band') or 'na',
+            e.get('direction') or 'LONG', e.get('horizon') or '?')
+
+
+def cmi_scoreboard(record, cumulative=None):
+    """Per-CMI-cell scoreboard (spec §4 cells, §5 promotion bar,
+    reported — never gated). Each row: kind, band, direction,
+    horizon, graded, wins, losses, expired-horizon closes (of which
+    cmi_exits closed by the CMI > 0.50 trigger), win rate, Wilson
+    95% CI lower bound (percent), expectancy in $ per $1,000 paper
+    (mean paper P&L), max drawdown on a running $1,000 bankroll per
+    cell (visible ledger only), occurrences per week + the
+    insufficient-frequency flag (spec §4: a band averaging < 1
+    occurrence/week — judged only once a cell spans >= 14 days, so
+    a young cell reads None, not a false flag). Promotion flags
+    (sample n >= 100, expectancy >= +$20) are reported as facts;
+    promotion itself is Nic's call, never automatic. Per Nic
+    (2026-11-05) the 95% belt is loosened: the Wilson lower bound
+    is shown, never a gate."""
+    cells = {}
+
+    def bucket(key):
+        return cells.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                      'expired': 0, 'cmi_exits': 0,
+                                      'paper_pnl_total': 0.0, 'pnls': [],
+                                      'opened': []})
+    for e in record or []:
+        if e.get('kind') not in CMI_KINDS:
+            continue
+        if e.get('status') not in ('won', 'lost', 'expired'):
+            continue
+        b = bucket(cmi_cell_key(e))
+        b['graded'] += 1
+        if e.get('status') == 'won':
+            b['wins'] += 1
+        elif e.get('status') == 'lost':
+            b['losses'] += 1
+        if e.get('cmi_expired'):
+            b['expired'] += 1
+        if e.get('cmi_exit'):
+            b['cmi_exits'] += 1
+        b['paper_pnl_total'] += e.get('paper_pnl') or 0
+        b['pnls'].append((e.get('ts_closed') or '', e.get('paper_pnl') or 0))
+        opened = _iso_parse(e.get('ts_open') or '')
+        if opened:
+            b['opened'].append(opened)
+    for key_str, c in (cumulative or {}).items():
+        parts = key_str.split('|')
+        if len(parts) != 4:
+            continue
+        b = bucket(tuple(parts))
+        for f in ('graded', 'wins', 'losses', 'expired', 'cmi_exits'):
+            b[f] += c.get(f, 0)
+        b['paper_pnl_total'] += c.get('paper_pnl_total', 0)
+    rows = []
+    for (kind, band, direction, horizon), b in sorted(cells.items()):
+        wl = b['wins'] + b['losses']
+        lo = wilson_lower(b['wins'], wl)
+        dd = None
+        if b['pnls']:
+            bankroll, peak, worst = 1000.0, 1000.0, 0.0
+            for _, pnl in sorted(b['pnls']):
+                bankroll += pnl
+                peak = max(peak, bankroll)
+                worst = max(worst, (peak - bankroll) / peak * 100
+                            if peak > 0 else 0.0)
+            dd = round(worst, 1)
+        freq = None
+        insufficient = None
+        if len(b['opened']) >= 2:
+            span_days = (max(b['opened']) - min(b['opened'])) \
+                .total_seconds() / 86400
+            if span_days >= 14:
+                freq = round(b['graded'] / (span_days / 7), 2)
+                insufficient = freq < 1.0
+        exp = (round(b['paper_pnl_total'] / b['graded'], 2)
+               if b['graded'] else None)
+        rows.append({
+            'kind': kind, 'band': band, 'direction': direction,
+            'horizon': horizon,
+            'graded': b['graded'], 'wins': b['wins'],
+            'losses': b['losses'], 'expired': b['expired'],
+            'cmi_exits': b['cmi_exits'],
+            'win_rate': round(b['wins'] / wl * 100, 1) if wl else None,
+            'wilson_lower_95': round(lo * 100, 1) if lo is not None else None,
+            'expectancy_per_1000': exp,
+            'paper_pnl_total': round(b['paper_pnl_total'], 2),
+            'max_drawdown_pct': dd,
+            'drawdown_visible_only': True,
+            'occurrences_per_week': freq,
+            'insufficient_frequency': insufficient,
+            'meets_sample_n100': b['graded'] >= 100,
+            'meets_expectancy_20': (exp is not None and exp >= 20),
+        })
+    return rows
+
+
+def proof_roll_cmi_cumulative(cumulative, dropped):
+    """Fold closed CMI entries that are about to roll off the capped
+    CMI ledger into persistent per-CMI-cell counters (same shape as
+    proof_roll_pattern_cumulative, keyed by cmi_cell_key). Open
+    entries are never rolled."""
+    out = {k: dict(v) for k, v in (cumulative or {}).items()}
+    for e in dropped:
+        if e.get('kind') not in CMI_KINDS:
+            continue
+        st = e.get('status')
+        if st not in ('won', 'lost', 'expired'):
+            continue
+        key = '|'.join(cmi_cell_key(e))
+        c = out.setdefault(key, {'graded': 0, 'wins': 0, 'losses': 0,
+                                 'expired': 0, 'cmi_exits': 0,
+                                 'paper_pnl_total': 0.0})
+        c['graded'] += 1
+        c['wins' if st == 'won' else 'losses' if st == 'lost' else 'expired'] += 1
+        if e.get('cmi_expired'):
+            c['expired'] += 1
+        if e.get('cmi_exit'):
+            c['cmi_exits'] += 1
+        c['paper_pnl_total'] = round(c['paper_pnl_total'] +
+                                     (e.get('paper_pnl') or 0), 2)
+    return out
+
+
+def proof_grade(record, mkt_by_sym, charts_by_sym, now,
+                cmi_by_sym=None):
     """Grade every open ledger entry against fresh market data.
     mkt_by_sym: {sym: {'price', 'high_24h', 'low_24h'}} from the markets
     payload; charts_by_sym: {sym: [[ts_ms, price], ...]} hourly points —
-    main() tops this up so every open call's asset is covered."""
+    main() tops this up so every open call's asset is covered.
+    cmi_by_sym: {sym: [[ts_ms, cmi], ...]} — the CMI series the
+    confluence exit-trigger grader walks (main() builds it from the
+    shared pattern_candles store; None degrades confluence rows to
+    plain fixed-level grading, trigger never fires)."""
     from datetime import timedelta
     for e in record:
         if e.get('status') != 'open':
@@ -1486,6 +1887,26 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now):
                 e['status'] = c_status
                 e['result_pct'] = round(c_result, 2)
                 e['paper_pnl'] = round(c_result * PAPER_USD / 100, 2)
+                e['ts_closed'] = now.isoformat()
+            continue
+        if e.get('kind') in CMI_KINDS:
+            # CMI entries grade on the spec §4 fixed levels, not the
+            # plain since-entry path. Confluence rows additionally
+            # walk the CMI > 0.50 exit trigger — see
+            # _proof_grade_cmi_confluence.
+            if e.get('kind') == 'cmi_confluence':
+                m_status, m_result = _proof_grade_cmi_confluence(
+                    e, charts_by_sym, cmi_by_sym or {}, now, opened, cur)
+            elif e.get('kind') == 'cmi_regime':
+                m_status, m_result = _proof_grade_cmi_regime(
+                    e, charts_by_sym, now, opened, cur)
+            else:
+                m_status, m_result = _proof_grade_cmi_trap(
+                    e, charts_by_sym, now, opened, cur)
+            if m_status:
+                e['status'] = m_status
+                e['result_pct'] = round(m_result, 2)
+                e['paper_pnl'] = round(m_result * PAPER_USD / 100, 2)
                 e['ts_closed'] = now.isoformat()
             continue
         if e.get('kind') == 'setup':
@@ -1845,6 +2266,7 @@ def proof_stats(record):
                                   'pattern', 'pattern_confluence')}
     stats['pattern_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['cycle_scoreboard'] = None  # filled by main() (needs cumulative)
+    stats['cmi_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['post_exit'] = _proof_post_exit_stats(record)
     stats['codeword_gate'] = _proof_gate_stats(record, agg)
     return stats
@@ -2226,6 +2648,20 @@ def main():
                 (_prior.get('proof') or {}).get('cycle_record') or []
             prior_cycle_cumulative = \
                 (_prior.get('proof') or {}).get('cycle_cumulative') or {}
+    except Exception:
+        pass
+    # Manipulation research track, Phase 1/2: the separate CMI ledger
+    # + cumulative counters. The CMI feed reads the shared
+    # pattern_candles store — no prior state of its own to load.
+    prior_cmi_record = []
+    prior_cmi_cumulative = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_cmi_record = \
+                (_prior.get('proof') or {}).get('cmi_record') or []
+            prior_cmi_cumulative = \
+                (_prior.get('proof') or {}).get('cmi_cumulative') or {}
     except Exception:
         pass
     # Coins not tradable on major US exchanges (delisted / regulatory)
@@ -2732,11 +3168,49 @@ def main():
             cycle_btc_daily = prior_cycle_btc_daily
             print(f'  [warn] cycle feed failed (fail-open): {e}')
 
+    # --- Manipulation research track, Phase 1 (display-only research) ---
+    # CMI + SuperTrend per asset, computed from the SHARED
+    # pattern_candles store (one Kraken OHLC pull, two consumers —
+    # this module makes no fetch of its own). No candles -> no CMI
+    # -> no pulse, no candidates, no exceptions — and this block
+    # NEVER records a gate event (diagnostic-only; it must never
+    # trip the circuit breaker). The CMI > 0.50 exit trigger is a
+    # display-only suggestion here; it never auto-closes engine plans.
+    cmi = {}
+    cmi_pulse = None
+    cmi_diag = {'assets': 0, 'confluence': 0, 'traps': 0, 'error': None}
+    if cmi_feed is not None:
+        try:
+            cmi = cmi_feed.detect_for_universe(pattern_candles)
+            cmi_pulse = cmi_feed.regime_pulse(cmi)
+            cmi_diag['assets'] = len(cmi)
+            cmi_diag['confluence'] = sum(
+                1 for v in cmi.values() if v.get('confluence'))
+            cmi_diag['traps'] = sum(
+                1 for v in cmi.values() if v.get('trap'))
+            # Display-only CMI entries ride on the cards that carry
+            # the asset (the Picks page reads intraday.json['cmi']
+            # for the pulse; the per-card copy serves detail pages).
+            for _coll in (longs, shorts, movers, watch, accum):
+                for _it in _coll:
+                    _cm = cmi.get((_it or {}).get('asset'))
+                    if _cm:
+                        _it['cmi'] = _cm
+            print(f"  Manipulation pulse: {cmi_feed.pulse_line(cmi)}")
+        except Exception as e:
+            # Diagnostic only — a broken CMI feed degrades to
+            # "no CMI data", never a dead run, never a gate event.
+            cmi_diag['error'] = str(e)[:200]
+            cmi = {}
+            cmi_pulse = None
+            print(f'  [warn] CMI feed failed (fail-open): {e}')
+
     # --- 📒 Proof Book: grade yesterday's calls before recording today's
     # (a call is never graded in the same run that creates it, so the
     # trailing-24h windows can't credit a pre-entry move) ---
     proof = list(prior_proof)
     cycle_record = list(prior_cycle_record)
+    cmi_record = list(prior_cmi_record)
     proof_now = datetime.now(timezone.utc)
     # Legacy entries predate the cell tags: backfill the regime from the
     # swing engine's own run history (data/history.json) — the regime in
@@ -2771,10 +3245,20 @@ def main():
             name_by_sym[s] = c.get('name') or s
     # Cycle entries grade over 24h/7d horizons, so theirs fetch days=2
     # (24h) or days=8 (7d — a 7d horizon needs an 8-day lookback).
-    # Fetched BEFORE the main loop so the span check below keeps the
-    # longer chart instead of overwriting it with a days=1/2 refetch.
+    # CMI entries grade over the same spans (regime 24h/7d, confluence
+    # and trap 6h/24h), so their fetches join the same map — days=8
+    # for a 7d CMI row, days=2 otherwise. Fetched BEFORE the main
+    # loop so the span check below keeps the longer chart instead of
+    # overwriting it with a days=1/2 refetch.
     cycle_days_by_sym = {}
     for e in cycle_record:
+        if e.get('status') != 'open':
+            continue
+        _sym = e['asset']
+        _need = 8 if e.get('horizon') == '7d' else 2
+        cycle_days_by_sym[_sym] = max(cycle_days_by_sym.get(_sym, 0),
+                                      _need)
+    for e in list(cmi_record):
         if e.get('status') != 'open':
             continue
         _sym = e['asset']
@@ -2813,6 +3297,24 @@ def main():
             charts_by_sym[sym] = ch['prices']
     proof_grade(proof, mkt_by_sym, charts_by_sym, proof_now)
     proof_grade(cycle_record, mkt_by_sym, charts_by_sym, proof_now)
+    # CMI grading: the confluence exit trigger walks a CMI series
+    # built from the shared pattern_candles store (fail-open: a
+    # missing series degrades to plain fixed-level grading).
+    cmi_series_by_sym = {}
+    if cmi_feed is not None:
+        try:
+            _conf_syms = {e['asset'] for e in cmi_record
+                          if e.get('status') == 'open'
+                          and e.get('kind') == 'cmi_confluence'}
+            for _sym in sorted(_conf_syms):
+                _series = cmi_feed.cmi_series(
+                    (pattern_candles or {}).get(_sym) or [])
+                if _series:
+                    cmi_series_by_sym[_sym] = _series
+        except Exception:
+            cmi_series_by_sym = {}
+    proof_grade(cmi_record, mkt_by_sym, charts_by_sym, proof_now,
+                cmi_by_sym=cmi_series_by_sym)
     n_pe_done = proof_track_post_exit(proof, mkt_by_sym, charts_by_sym,
                                       proof_now)
     if n_pe_done:
@@ -2881,6 +3383,29 @@ def main():
                                              cap=CYCLE_RECORD_CAP)
     cycle_cumulative = proof_roll_cycle_cumulative(
         prior_cycle_cumulative, cycle_dropped)
+    # Manipulation track, Phase 2 (shadow grading only): one regime
+    # row per asset-day per horizon (24h + 7d; MANIP rows twice —
+    # LONG and SHORT-bias), one confluence row per flip + CMI < 0.30
+    # per horizon (6h + 24h), one trap row per flip + CMI >= 0.30 per
+    # horizon (6h + 24h). Universe is the CMI map itself — already
+    # bounded by the pattern track's 30-symbol OHLC cap. No gate, no
+    # alert, no confidence input — the book just gains rows.
+    n_cmi_cands = 0
+    if cmi:
+        _cmi_cands = (
+            proof_cmi_regime_candidates(
+                cmi, list(cmi.keys()), mkt_by_sym, name_by_sym,
+                proof_now, regime_tag)
+            + proof_cmi_confluence_candidates(
+                cmi, mkt_by_sym, name_by_sym, proof_now, regime_tag)
+            + proof_cmi_trap_candidates(
+                cmi, mkt_by_sym, name_by_sym, proof_now, regime_tag))
+        n_cmi_cands = len(_cmi_cands)
+        proof_record_cmi(cmi_record, _cmi_cands, proof_now)
+    cmi_record, cmi_dropped = _proof_trim(cmi_record,
+                                         cap=CMI_RECORD_CAP)
+    cmi_cumulative = proof_roll_cmi_cumulative(
+        prior_cmi_cumulative, cmi_dropped)
     n_added = proof_record_new(proof, proof_cands, proof_now)
     proof, dropped = _proof_trim(proof)
     cumulative = proof_roll_cumulative(prior_cumulative, dropped)
@@ -2893,8 +3418,11 @@ def main():
         proof, pattern_cumulative)
     pstats['cycle_scoreboard'] = cycle_scoreboard(
         cycle_record, cycle_cumulative)
+    pstats['cmi_scoreboard'] = cmi_scoreboard(
+        cmi_record, cmi_cumulative)
     print(f"  Proof book: +{n_added} new calls "
-          f"({n_pattern_cands} pattern, {n_cycle_cands} cycle), "
+          f"({n_pattern_cands} pattern, {n_cycle_cands} cycle, "
+          f"{n_cmi_cands} CMI), "
           f"{pstats['open']} open, "
           f"{pstats['graded']} graded, paper P&L ${pstats['paper_pnl_total']:+.2f}")
 
@@ -2928,10 +3456,20 @@ def main():
         'cycle_btc_daily': cycle_btc_daily,
         'cycle_cache': cycle_cache,
         'cycle_dom_history': cycle_dom_history,
+        # Manipulation research track, Phase 1/2 (display-only
+        # research): per-asset CMI + SuperTrend, the aggregate regime
+        # pulse, and a small run diagnostic. The candles behind it
+        # are the shared pattern_candles store above — no second
+        # fetch, no second store.
+        'cmi': cmi,
+        'cmi_pulse': cmi_pulse,
+        'cmi_diag': cmi_diag,
         'proof': {'record': proof, 'stats': pstats, 'cumulative': cumulative,
                   'pattern_cumulative': pattern_cumulative,
                   'cycle_record': cycle_record,
-                  'cycle_cumulative': cycle_cumulative},
+                  'cycle_cumulative': cycle_cumulative,
+                  'cmi_record': cmi_record,
+                  'cmi_cumulative': cmi_cumulative},
         'coins_scanned': len(mkts),
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
