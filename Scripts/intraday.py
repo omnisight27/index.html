@@ -618,9 +618,14 @@ def strong_day(chg24, chg1, vol_ratio, vol_med):
 #
 # Conventions: every call is graded as if $1,000 rode it (paper money).
 # A call that touches its target first is 'won' (+expected_return_pct);
-# one that touches its stop first is 'lost' (-max_loss_pct); one that
-# reaches its exit time + 2h grace untouched is 'expired' and graded at
-# the actual price drift. Anything unresolved after 7 days expires too.
+# one that touches its stop first is 'lost' (-max_loss_pct) — EXCEPT a
+# stop trailed to breakeven or better: the Oct 30 ride-the-win trail
+# can put the stop past entry (max_loss_pct <= 0), so a stop touch
+# there locks a profit (or a scratch) and grades 'won' at the locked-in
+# result. The W/L label must agree with the P&L column: a profitable
+# exit is never a loss. One that reaches its exit time + 2h grace
+# untouched is 'expired' and graded at the actual price drift. Anything
+# unresolved after 7 days expires too.
 # Grading walks the hourly price path SINCE ENTRY (main() tops up chart
 # fetches so every open call's asset has one, not just the top-50 signal
 # universe); first touch in time order decides. If no chart is
@@ -2008,6 +2013,15 @@ def proof_grade(record, mkt_by_sym, charts_by_sym, now,
                 result = e['expected_return_pct']
             elif status == 'lost':
                 result = -e['max_loss_pct']
+                if result >= 0:
+                    # The stop was trailed to breakeven or better, so
+                    # touching it locks a profit (or a scratch), not a
+                    # loss — the W/L label follows the realized result
+                    # (same rule as the fixed-level graders' expired
+                    # branch: result >= 0 is a win). A7A5 2026-11-06
+                    # exited +0.41% via a ratcheted stop and was
+                    # recorded as a loss before this fix.
+                    status = 'won'
         if status is None:
             exit_by = _iso_parse(e.get('exit_by') or '')
             age_days = (now - opened).total_seconds() / 86400 if opened else 99

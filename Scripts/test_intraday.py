@@ -1106,12 +1106,42 @@ def test_trailed_stop_grades_breakeven():
     mkt = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
     intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
     assert e['status'] == 'open' and e['trail_count'] == 1
-    # Falls back to the breakeven stop -> lost at 0, not at -2%.
+    # Falls back to the breakeven stop -> a scratch, not a loss: the
+    # W/L label follows the realized result (2026-11-07 fix — A7A5
+    # exited +0.41% via a ratcheted stop and was recorded 'lost').
     charts2 = {'RIDE': chart_from(BASE, [(7, 100.8), (8, 100.0)])}
     mkt2 = {'RIDE': {'price': 100.0, 'high_24h': 101.0, 'low_24h': 99.8}}
     intraday.proof_grade(rec, mkt2, charts2, BASE + _dt.timedelta(hours=9))
-    assert e['status'] == 'lost'
+    assert e['status'] == 'won'
     assert e['result_pct'] == 0.0
+
+
+def test_ratcheted_stop_locks_profit_as_win():
+    # A7A5 2026-11-06: green at exit twice, stop ratcheted above entry,
+    # then touched — a profitable exit, graded 'won' at the locked-in
+    # profit, not 'lost'.
+    e = _open_plain()
+    rec = [e]
+    charts = {'RIDE': chart_from(BASE, [(1, 100.5), (4, 101.0), (6, 101.2)])}
+    mkt = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt, charts, BASE + _dt.timedelta(hours=6))
+    assert e['status'] == 'open' and e['trail_count'] == 1
+    assert e['stop_loss'] == 100.0
+    # Still green past the extended exit -> trail #2 ratchets the stop
+    # to entry + half the open profit (100.60).
+    charts2 = {'RIDE': chart_from(BASE, [(7, 101.0), (33, 101.2)])}
+    mkt2 = {'RIDE': {'price': 101.2, 'high_24h': 102.0, 'low_24h': 99.0}}
+    intraday.proof_grade(rec, mkt2, charts2, BASE + _dt.timedelta(hours=33))
+    assert e['status'] == 'open' and e['trail_count'] == 2
+    assert e['stop_loss'] == 100.6
+    assert e['max_loss_pct'] == -0.6
+    # Falls back to the ratcheted stop -> won at +0.6%, not lost.
+    charts3 = {'RIDE': chart_from(BASE, [(34, 101.0), (40, 100.6)])}
+    mkt3 = {'RIDE': {'price': 100.6, 'high_24h': 101.0, 'low_24h': 100.6}}
+    intraday.proof_grade(rec, mkt3, charts3, BASE + _dt.timedelta(hours=40))
+    assert e['status'] == 'won'
+    assert e['result_pct'] == 0.6
+    assert e['paper_pnl'] == 6.0
 
 
 def test_trail_promotes_stretch_target():
