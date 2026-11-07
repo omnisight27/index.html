@@ -37,6 +37,18 @@ try:
     import stock_feed  # Stocks research track, Phase 1 (display only)
 except ImportError:
     stock_feed = None
+try:
+    import okx_feed  # OKX derivatives track, Phase 1 (display only)
+except ImportError:
+    okx_feed = None
+try:
+    import deribit_feed  # Deribit options track, Phase 1 (display only)
+except ImportError:
+    deribit_feed = None
+try:
+    import defillama_feed  # DeFiLlama stablecoin/TVL track (display only)
+except ImportError:
+    defillama_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -2736,6 +2748,28 @@ def main():
             prior_oi_history = (json.load(f) or {}).get('oi_history') or {}
     except Exception:
         pass
+    # OKX derivatives track, Phase 1: OI-USD history rides in the feed
+    # the same way (last 30 hourly points per coin).
+    prior_okx_oi_history = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_okx_oi_history = \
+                (json.load(f) or {}).get('okx_oi_history') or {}
+    except Exception:
+        pass
+    # DeFiLlama stablecoin/TVL track, Phase 1: the USDT+USDC supply
+    # history (no per-asset history endpoint exists — the store warms
+    # up over the first week) and the day-cache for the heavy history
+    # endpoints (stablecoin charts + TVL history, once a day).
+    prior_defillama_history = {}
+    prior_defillama_cache = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_defillama_history = _prior.get('defillama_history') or {}
+            prior_defillama_cache = _prior.get('defillama_cache') or {}
+    except Exception:
+        pass
     # Milestone 2 cross-run memory: funding-score history (for fund_mom) and
     # the day-cached macro snapshot (for real_yield / fed_stance).
     prior_fund_history = {}
@@ -3322,6 +3356,142 @@ def main():
             pattern_candles = prior_pattern_candles
             print(f'  [warn] pattern feed failed (fail-open): {e}')
 
+    # --- OKX derivatives track, Phase 1 (display-only research) ---
+    # Second funding/OI venue (Binance 451s / Bybit 403s from here) +
+    # the long/short account ratio the engine has never had. Per-coin
+    # funding (+z vs its own 33d history), OI (+1h/24h changes from
+    # the cross-run store), L/S ratio, and OKX-vs-Kraken funding
+    # dispersion. Fail-open throughout: no data -> no OKX section,
+    # no exceptions — and this block NEVER records a gate event
+    # (diagnostic-only; it must never trip the circuit breaker).
+    okx_map = {}
+    okx_oi_hist = prior_okx_oi_history
+    okx_diag = {'coins_requested': 0, 'coins_with_funding': 0,
+                'dispersion': {}, 'error': None}
+    if okx_feed is not None:
+        try:
+            _syms = []
+            for _src in (longs, shorts, movers, watch, accum):
+                for _it in _src:
+                    _s = (_it or {}).get('asset')
+                    if _s and _s not in _syms:
+                        _syms.append(_s)
+            _syms = _syms[:okx_feed.MAX_COINS_PER_RUN]
+            okx_diag['coins_requested'] = len(_syms)
+            okx_map = okx_feed.fetch_all(fetch_json, _syms)
+            okx_oi_hist = okx_feed.update_oi_history(
+                prior_okx_oi_history, okx_map, run_ts)
+            _disp = okx_feed.dispersion_map(okx_map, fund_map)
+            okx_diag['dispersion'] = _disp
+            for _asset, _row in okx_map.items():
+                _chg = okx_feed.oi_changes(_asset, okx_oi_hist, run_ts)
+                if _chg:
+                    _row.update(_chg)
+                if _asset in _disp:
+                    _row['funding_dispersion_pct'] = _disp[_asset]
+            okx_diag['coins_with_funding'] = sum(
+                1 for r in okx_map.values()
+                if (r or {}).get('funding_rate') is not None)
+            # Display-only OKX entries ride on the cards that carry
+            # the asset (the Picks page reads intraday.json['okx']).
+            for _coll in (longs, shorts, movers, watch, accum):
+                for _it in _coll:
+                    _ok = okx_map.get((_it or {}).get('asset'))
+                    if _ok:
+                        _it['okx'] = _ok
+            print(f"  {okx_feed.pulse_line(okx_map)}")
+        except Exception as e:
+            # Diagnostic only — a broken OKX feed degrades to
+            # "no OKX data", never a dead run, never a gate event.
+            okx_diag['error'] = str(e)[:200]
+            okx_map = {}
+            okx_oi_hist = prior_okx_oi_history
+            print(f'  [warn] OKX feed failed (fail-open): {e}')
+
+    # --- Deribit options track, Phase 1 (display-only research) ---
+    # The engine's only volatility data: BTC/ETH options from
+    # Deribit's public book summary (keyless). 30-day ATM IV,
+    # 25-delta put-call skew, put/call OI, and max-pain distance.
+    # The DVOL index endpoints 400 from here, so ATM IV is computed
+    # from the book (see deribit_feed). Fail-open throughout: no
+    # data -> no Deribit section, no exceptions — and this block
+    # NEVER records a gate event (diagnostic-only; it must never
+    # trip the circuit breaker).
+    deribit_map = {}
+    deribit_diag = {'currencies_requested': 0, 'currencies_ok': 0,
+                    'error': None}
+    if deribit_feed is not None:
+        try:
+            deribit_map = deribit_feed.fetch_all(
+                fetch_json, deribit_feed.CURRENCIES)
+            deribit_diag['currencies_requested'] = len(
+                deribit_feed.CURRENCIES)
+            deribit_diag['currencies_ok'] = sum(
+                1 for r in deribit_map.values()
+                if (r or {}).get('atm_iv') is not None)
+            # Display-only Deribit entries ride on the cards that
+            # carry the currency (the Picks page reads
+            # intraday.json['deribit']).
+            for _coll in (longs, shorts, movers, watch, accum):
+                for _it in _coll:
+                    _db = deribit_map.get((_it or {}).get('asset'))
+                    if _db:
+                        _it['deribit'] = _db
+            print(f"  {deribit_feed.pulse_line(deribit_map)}")
+        except Exception as e:
+            # Diagnostic only — a broken Deribit feed degrades to
+            # "no Deribit data", never a dead run, never a gate event.
+            deribit_diag['error'] = str(e)[:200]
+            deribit_map = {}
+            print(f'  [warn] Deribit feed failed (fail-open): {e}')
+
+    # --- DeFiLlama stablecoin / TVL track, Phase 1 (display-only research) ---
+    # The liquidity proxy the engine has never had: circulating
+    # stablecoin supply ("dry powder") + DeFi TVL. Current values
+    # come from two small calls every run; the 7d/24h changes come
+    # from the heavy daily history endpoints, fetched at most once a
+    # day and cached (same day-cache trick as the cycle track). The
+    # USDT+USDC change rides the cross-run history store — no
+    # per-asset history endpoint exists, so it warms up over the
+    # first week and reads "no data" until then. Fail-open
+    # throughout: no data -> no DeFiLlama section, no exceptions —
+    # and this block NEVER records a gate event (diagnostic-only; it
+    # must never trip the circuit breaker).
+    defillama_snapshot = {'current': {}, 'daily': {}, 'usdt_usdc': {}}
+    defillama_hist = prior_defillama_history
+    defillama_cache = (prior_defillama_cache
+                       if isinstance(prior_defillama_cache, dict) else {})
+    defillama_diag = {'daily_cached': False, 'error': None}
+    if defillama_feed is not None:
+        try:
+            _today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            _cur = defillama_feed.fetch_current(fetch_json)
+            if defillama_cache.get('date') != _today:
+                _daily = defillama_feed.fetch_daily_changes(fetch_json)
+                defillama_cache = {'date': _today, 'daily': _daily}
+            else:
+                defillama_diag['daily_cached'] = True
+            defillama_hist = defillama_feed.update_supply_history(
+                prior_defillama_history, _cur.get('usdt_usdc'), run_ts)
+            _usdt_usdc = defillama_feed.usdt_usdc_changes(
+                defillama_hist, run_ts)
+            defillama_snapshot = {
+                'current': _cur,
+                'daily': defillama_cache.get('daily') or {},
+                'usdt_usdc': _usdt_usdc}
+            defillama_diag['error'] = _cur.get('error')
+            print(f"  {defillama_feed.pulse_line(defillama_snapshot)}")
+        except Exception as e:
+            # Diagnostic only — a broken DeFiLlama feed degrades to
+            # "no DeFiLlama data", never a dead run, never a gate event.
+            defillama_diag['error'] = str(e)[:200]
+            defillama_snapshot = {'current': {}, 'daily': {},
+                                  'usdt_usdc': {}}
+            defillama_hist = prior_defillama_history
+            defillama_cache = (prior_defillama_cache if isinstance(
+                prior_defillama_cache, dict) else {})
+            print(f'  [warn] DeFiLlama feed failed (fail-open): {e}')
+
     # --- Cycle research track, Phase 1 (display-only research) ---
     # Today's cycle state: BTC daily closes via Kraken public OHLC
     # (interval=1440, forming day dropped), dominance via CoinGecko
@@ -3738,6 +3908,26 @@ def main():
         'cycle_btc_daily': cycle_btc_daily,
         'cycle_cache': cycle_cache,
         'cycle_dom_history': cycle_dom_history,
+        # OKX derivatives track, Phase 1 (display-only research):
+        # per-coin funding (+z vs its own 33d history), OI (+1h/24h
+        # changes), L/S ratio, funding dispersion vs Kraken, the OI
+        # history store, and a small run diagnostic.
+        'okx': okx_map,
+        'okx_diag': okx_diag,
+        'okx_oi_history': okx_oi_hist,
+        # DeFiLlama stablecoin/TVL track, Phase 1 (display-only
+        # research): current supplies + TVL, the day-cached 7d/24h
+        # changes, the USDT+USDC change from the cross-run store,
+        # and a small run diagnostic.
+        'defillama': defillama_snapshot,
+        'defillama_diag': defillama_diag,
+        'defillama_history': defillama_hist,
+        'defillama_cache': defillama_cache,
+        # Deribit options track, Phase 1 (display-only research):
+        # per-currency 30d ATM IV, 25-delta skew, put/call OI,
+        # max-pain distance, and a small run diagnostic.
+        'deribit': deribit_map,
+        'deribit_diag': deribit_diag,
         # Manipulation research track, Phase 1/2 (display-only
         # research): per-asset CMI + SuperTrend, the aggregate regime
         # pulse, and a small run diagnostic. The candles behind it
