@@ -1040,6 +1040,35 @@ def test_gate_stamped_on_candidate():
     assert e2['gate']['pass'] is False  # only 3 evaluable checks
 
 
+def test_gate_non_list_tradable_is_unknown():
+    # 2026-11-06 intraday crash: a stock signal's `tradable: True`
+    # reached proof_gate_checks and `any(... for v in True)` raised
+    # TypeError, killing the whole run on the first market-hours run
+    # that produced stock candidates. A non-list tradable is unknown,
+    # never a crash — and a bare string is not a venue list either
+    # (iterating it would test single characters).
+    g = intraday.proof_gate(**gate_signal(tradable=True))
+    assert g['checks']['tradable'] is None
+    g = intraday.proof_gate(**gate_signal(tradable='coinbase'))
+    assert g['checks']['tradable'] is None
+    # Real venue lists still decide the check.
+    g = intraday.proof_gate(**gate_signal(tradable=['coinbase']))
+    assert g['checks']['tradable'] is True
+
+
+def test_gate_stock_candidate_bool_tradable_no_crash():
+    # Replay of the 2026-11-06 failure path: a market-hours stock
+    # candidate whose gate_src carries the stock feed's bool.
+    plan = {'entry': 250.0, 'take_profit': 260.0, 'stop_loss': 240.0,
+            'expected_return_pct': 4.0, 'max_loss_pct': 4.0}
+    e = intraday._proof_candidate(
+        'stock', 'AAPL', 'AAPL', 'LONG', dict(plan), BASE, 2,
+        tags={'band': '70s', 'regime': 'unknown'},
+        gate_src={'confidence': 80, 'tradable': True})
+    assert e is not None
+    assert e['gate']['checks']['tradable'] is None
+
+
 def test_gate_stats_aggregation():
     def rec(gate, status, pnl):
         e = {'kind': 'signal', 'direction': 'LONG', 'status': status,

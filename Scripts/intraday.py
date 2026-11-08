@@ -2358,7 +2358,10 @@ def proof_stats(record):
 #                No swing-sourced records exist in this ledger, so
 #                the swing tf_align string is never read here.
 #   tradable     the source's tradable list (built by tradable_on at
-#                creation) names coinbase and/or cryptocom.
+#                creation) names coinbase and/or cryptocom. A value
+#                that is not a list (stock signals stamp True —
+#                equities trade via brokerage) reads None: the
+#                crypto-venue check does not apply to stocks.
 #   news_clean   news_flag false or ABSENT. The intraday engine has
 #                no news_flag field at all (it exists only on swing
 #                picks in nexintel.py), so every intraday record
@@ -2400,8 +2403,16 @@ def proof_gate_checks(kind, direction, entry, take_profit, stop_loss,
         checks['alignment'] = None
     if tradable is None:
         checks['tradable'] = None
-    else:
+    elif isinstance(tradable, (list, tuple, set)):
         checks['tradable'] = any(v in GATE_VENUES for v in tradable)
+    else:
+        # Not a venue list (a stock signal stamps `tradable: True` —
+        # equities trade via brokerage, not on crypto venues): the
+        # check is unknown, never guessed. Without this guard a bool
+        # here crashes the whole run (2026-11-06 intraday failure:
+        # TypeError 'bool' object is not iterable, on the first
+        # market-hours run that produced stock candidates).
+        checks['tradable'] = None
     checks['news_clean'] = not news_flag
     try:
         e = float(entry)
@@ -3848,7 +3859,11 @@ def main():
             tags={'band': conf_band(s.get('confidence')),
                   'regime': 'unknown'},
             gate_src={'confidence': s.get('confidence'),
-                      'tradable': s.get('tradable')}))
+                      # Stocks are equities: the crypto-venue tradable
+                      # check does not apply (same exemption as the
+                      # swing engine's equity branch) — never hand the
+                      # gate the stock signal's `tradable: True`.
+                      'tradable': None}))
     n_stock_added = proof_record_new(stock_record, stock_cands, proof_now)
     stock_record, stock_dropped = _proof_trim(
         stock_record, cap=STOCK_RECORD_CAP)
