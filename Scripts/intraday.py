@@ -2633,9 +2633,26 @@ def _proof_trim(record, cap=100):
     return trimmed, dropped
 
 
+def sparkline_prices(spark, run_ts, hours=24):
+    """Hourly [[ts_ms, price], ...] for the last `hours` of a CoinGecko
+    7d sparkline (flat hourly closes, ~168 points, already inside the
+    markets payload — zero extra API calls). The last point is stamped
+    at run_ts (seconds); earlier points step back one hour each.
+    Returns None when the sparkline is too short to cover `hours`.
+    Used by the shadow scan so ranks 201-500 can be scored without a
+    per-coin market_chart fetch (see _scan_coin prices=)."""
+    pts = [p for p in (spark or []) if p is not None]
+    if len(pts) < hours:
+        return None
+    last = pts[-hours:]
+    end_ms = int(run_ts * 1000)
+    return [[end_ms - (len(last) - 1 - i) * 3600000, p]
+            for i, p in enumerate(last)]
+
+
 def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
                btc_chg24, econ_feed, run_ts, tradable_on, blocked,
-               min_mcap=100_000_000):
+               min_mcap=100_000_000, prices=None):
     """One coin of the signal scan: hourly chart (24h) -> features ->
     balance/econ (display only) -> score -> thesis. Returns the signal
     dict or None (filtered, failed fetch, weak score, or fee floor).
@@ -2648,6 +2665,9 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
     2026-11-05) for the shadow scan — the shadow universe is wider
     than the live one by design, and the floor is the only difference
     between the two scans.
+    prices: optional pre-fetched hourly [[ts_ms, price], ...] (24h) —
+    the shadow scan passes sparkline_prices() so no market_chart fetch
+    is made; None (live scan) fetches the chart as before.
     charts_by_sym is mutated: the chart is retained for Proof Book
     grading (hourly points). Fail-open throughout: a failed fetch or
     econ pack just skips the coin, never the run."""
@@ -2658,9 +2678,13 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
     mcap = c.get('market_cap') or 0
     if mcap < min_mcap:
         return None
-    # Hourly chart (24h)
-    chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
-        '?vs_currency=usd&days=1&interval=hourly')
+    # Hourly chart (24h) — supplied (shadow: sparkline prices, zero
+    # extra calls) or fetched per coin (live scan).
+    if prices is not None:
+        chart = {'prices': prices}
+    else:
+        chart = fetch_json(f'https://api.coingecko.com/api/v3/coins/{cid}/market_chart'
+            '?vs_currency=usd&days=1&interval=hourly')
     if not chart or not chart.get('prices'):
         return None
     f = hourly_features(chart['prices'])
@@ -3024,8 +3048,15 @@ def main():
     # so live results are in hand before any throttling risk. Shadow
     # signals NEVER join longs/shorts (no cards, no bar, no alerts, no
     # pattern symbols) — the top 5 each way are graded in the Proof
-    # Book only, in a separate shadow ledger. Fail-open: a throttled
-    # shadow scan just means fewer shadow coins that run.
+    # Book only, in a separate shadow ledger.
+    # 2026-11-09 FIX: the shadow scan used to fetch one market_chart
+    # per coin AFTER the live scan had already spent ~200 of them —
+    # CoinGecko's free tier throttled the rest, so the shadow scan
+    # scored 0 coins in EVERY production run since launch (Nov 6) and
+    # the shadow ledger stayed empty. The shadow scan now scores from
+    # the 7d sparkline already in the markets payload (last 24 hourly
+    # closes, zero extra calls); a coin without a usable sparkline is
+    # skipped, never fetched. Live scan unchanged.
     shadow_signals = []
     shadow_coins_scanned = 0
     for c in universe[SHADOW_UNIVERSE_START:SHADOW_UNIVERSE_END]:
@@ -3034,10 +3065,16 @@ def main():
             # Same symbol already scanned live (bigger coin wins the
             # symbol) — the live chart already covers it for grading.
             continue
+        _prices = sparkline_prices(
+            (c.get('sparkline_in_7d') or {}).get('price'), run_ts)
+        if _prices is None:
+            # No usable sparkline — skip, never fetch (shadow is
+            # display-only; a missing chart is not worth API budget).
+            continue
         sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                          macro_snap, btc_chg24, econ_feed, run_ts,
                          tradable_on, BLOCKED,
-                         min_mcap=SHADOW_MCAP_FLOOR)
+                         min_mcap=SHADOW_MCAP_FLOOR, prices=_prices)
         if _sym in charts_by_sym:
             shadow_coins_scanned += 1
         if sig:

@@ -49,10 +49,12 @@ def coin(cid, sym, mcap=500_000_000):
             'sparkline_in_7d': {'price': spark_7d()}}
 
 
-def scan(c, fetch, charts=None, blocked=None, min_mcap=100_000_000):
+def scan(c, fetch, charts=None, blocked=None, min_mcap=100_000_000,
+         prices=None):
     """Run _scan_coin with a stubbed fetch_json and no econ feed.
     min_mcap defaults to the LIVE floor ($100M); pass
-    intraday.SHADOW_MCAP_FLOOR for the shadow scan."""
+    intraday.SHADOW_MCAP_FLOOR for the shadow scan. prices= passes
+    pre-fetched hourly prices (sparkline path) instead of fetching."""
     if charts is None:
         charts = {}
     monkey = {'calls': []}
@@ -62,7 +64,7 @@ def scan(c, fetch, charts=None, blocked=None, min_mcap=100_000_000):
         return intraday._scan_coin(
             c, charts, {}, {}, {}, None, None, None, 0.0,
             lambda sym: [], blocked or {'XMR', 'USDT'},
-            min_mcap=min_mcap)
+            min_mcap=min_mcap, prices=prices)
     finally:
         intraday.fetch_json = orig
 
@@ -191,6 +193,77 @@ def test_scan_coin_one_chart_call_per_coin():
     assert calls['n'] == 5
     assert all('market_chart' in u for u in calls['urls'])
     assert len(charts) == 5
+
+
+# ------------------------------------------------- sparkline prices= path
+# 2026-11-09: the shadow scan scored 0 coins in EVERY production run
+# since launch (Nov 6) — the live scan's ~200 market_chart fetches
+# exhaust CoinGecko's free tier before the shadow scan runs, and the
+# shadow fetch then fails. The shadow scan now scores from the 7d
+# sparkline already in the markets payload (zero extra calls).
+
+def test_sparkline_prices_last_24_hourly():
+    spark = spark_7d(drift=0.05)
+    run_ts = 1_800_000_000.0
+    out = intraday.sparkline_prices(spark, run_ts)
+    assert out is not None and len(out) == 24
+    # Hourly spacing, last point stamped at run_ts.
+    assert out[-1][0] == int(run_ts * 1000)
+    assert all(out[i + 1][0] - out[i][0] == 3600000 for i in range(23))
+    # Values are the sparkline's last 24 closes, in order.
+    assert [p for _, p in out] == spark[-24:]
+
+
+def test_sparkline_prices_too_short_returns_none():
+    assert intraday.sparkline_prices(spark_7d(n=10), 1_800_000_000.0) is None
+    assert intraday.sparkline_prices(None, 1_800_000_000.0) is None
+    assert intraday.sparkline_prices([], 1_800_000_000.0) is None
+
+
+def test_scan_coin_prices_param_scores_without_fetch():
+    # Strong trend supplied as prices: scored, LONG, ZERO HTTP calls.
+    calls = {'n': 0}
+
+    def _fetch(url, timeout=30):
+        calls['n'] += 1
+        raise AssertionError('no fetch expected when prices= is given')
+
+    prices = chart_for([4.0] * 24, vols=[1_000_000] * 25)['prices']
+    charts = {}
+    sig = scan(coin('big-mover', 'BIG'), _fetch, charts=charts,
+               prices=prices)
+    assert sig is not None
+    assert sig['direction'] == 'LONG'
+    assert sig['thesis']['take_profit'] > sig['thesis']['entry'] > 0
+    assert calls['n'] == 0
+    # Chart retained for Proof Book grading, same as the fetch path.
+    assert charts['BIG'] == prices
+
+
+def test_scan_coin_prices_param_shadow_floor_no_fetch():
+    # $60M coin under the shadow floor, scored from sparkline prices
+    # with zero fetches — the production shadow path.
+    def _fetch(url, timeout=30):
+        raise AssertionError('no fetch expected when prices= is given')
+
+    prices = chart_for([4.0] * 24)['prices']
+    sig = scan(coin('mid', 'MID', mcap=60_000_000), _fetch,
+               min_mcap=intraday.SHADOW_MCAP_FLOOR, prices=prices)
+    assert sig is not None and sig['direction'] == 'LONG'
+    # Flat sparkline prices still score nothing, still zero fetches.
+    flat = chart_for([0.0] * 24)['prices']
+    assert scan(coin('flat-coin', 'FLAT'), _fetch, prices=flat) is None
+
+
+def test_scan_coin_prices_param_strong_drop_returns_short():
+    def _fetch(url, timeout=30):
+        raise AssertionError('no fetch expected when prices= is given')
+
+    prices = chart_for([-5.0] * 24)['prices']
+    sig = scan(coin('big-drop', 'DROP'), _fetch, prices=prices)
+    assert sig is not None
+    assert sig['direction'] == 'SHORT'
+    assert sig['thesis']['take_profit'] < sig['thesis']['entry']
 
 
 # ---------------------------------------------------------------- universe slices
