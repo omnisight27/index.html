@@ -100,11 +100,15 @@ def test_required_sell_ceiling_binding():
 def test_reward_risk_reported_not_rejecting():
     # Net reward:risk below 2.0 is diagnostic-only (see module docstring):
     # a plan clearing the net floor must still pass even when net rr < 2.
-    g = gm.evaluate_net_gate(100, 112, 94, 'LONG', fees=None,
+    # With 4:1-gross construction a low-vol plan still sits below net 2.0
+    # (entry 100, target 108, stop 98 — 4:1 gross, stop 2% -> net rr ~1.72)
+    # while clearing the 2.8% net floor — so the diagnostic must stay
+    # non-blocking, or those plans would be rejected for clearing the floor.
+    g = gm.evaluate_net_gate(100, 108, 98, 'LONG', fees=None,
                              price_tick=Decimal('0.01'))
     assert g['passed'] is True
     assert g['reward_risk'] is not None
-    assert g['reward_risk'] < 2.0  # documents the asymptote reality
+    assert g['reward_risk'] < 2.0  # low-vol 4:1 plan, net rr ~1.72
     assert 'rr_note' in g
 
 

@@ -5,7 +5,9 @@
    up the model-error MAE when the coin reverted (Q, 2026-10-27:
    expected +545.86%, realized -66.83%, abs error 612.69 — the single
    biggest contributor to MAE rising 12.39 -> 18.68). The daily-move
-   input is now capped at 25%, so expected return tops out at 50%.
+   input is now capped at 12.5%, so expected return tops out at 50%
+   (4:1 — the cap moved from 25% when the ratio went 2:1 -> 4:1, keeping
+   the same 50% bound and keeping a SHORT cover above $0).
 
 2. Intra-crypto symbol collision (remember/price_for): a $0.03 token
    sharing BTC's symbol overwrote Bitcoin's price in the symbol-keyed
@@ -41,9 +43,9 @@ def test_thesis_caps_meme_spike_long():
                               'NEUTRAL', 51, -0.01, 'crypto')
     assert t['direction'] == 'LONG'
     assert t['expected_return_pct'] == 50.0, t
-    assert t['max_loss_pct'] == 25.0, t
+    assert t['max_loss_pct'] == 12.5, t
     assert t['take_profit'] == pytest.approx(0.205159 * 1.5, abs=1e-6), t
-    assert t['stop_loss'] == pytest.approx(0.205159 * 0.75, abs=1e-6), t
+    assert t['stop_loss'] == pytest.approx(0.205159 * 0.875, abs=1e-6), t
 
 
 def test_thesis_caps_meme_crash_short():
@@ -52,15 +54,15 @@ def test_thesis_caps_meme_crash_short():
     assert t['direction'] == 'SHORT'
     assert t['expected_return_pct'] == 50.0, t
     assert t['take_profit'] == pytest.approx(5.0), t
-    assert t['stop_loss'] == pytest.approx(12.5), t
+    assert t['stop_loss'] == pytest.approx(11.25), t
 
 
 def test_thesis_normal_move_unchanged():
-    # A +7.1% day stays exactly as before: vol 7.1 -> +14.2% target.
+    # A +7.1% day stays exactly as before: vol 7.1 -> +28.4% target.
     t = nexintel.build_thesis('ARB', 7.1, 0.7, 100.0, 14.8, 64,
                               'NEUTRAL', 51, 0.0, 'crypto')
-    assert t['expected_return_pct'] == 14.2, t
-    assert t['take_profit'] == pytest.approx(114.2), t
+    assert t['expected_return_pct'] == 28.4, t
+    assert t['take_profit'] == pytest.approx(128.4), t
     assert t['stop_loss'] == pytest.approx(92.9), t
     assert t['max_loss_pct'] == 7.1, t
 

@@ -144,9 +144,9 @@ def test_mover_plans_from_sparkline_no_network(monkeypatch):
                              'exit_by', 'horizon'}
         assert plan['entry'] == c['current_price']
         assert plan['stop_loss'] < plan['entry'] < plan['take_profit']
-        # stop = vol x 0.6, target = vol x 1.2 (2:1 reward:risk)
+        # stop = vol x 0.6, target = vol x 2.4 (4:1 reward:risk)
         assert plan['max_loss_pct'] == round(vol * 0.6, 2)
-        assert plan['expected_return_pct'] == round(vol * 1.2, 2)
+        assert plan['expected_return_pct'] == round(vol * 2.4, 2)
 
 
 def test_mover_plan_subcent_rounding():
@@ -165,7 +165,7 @@ def test_stretch_target_appears_on_strong_momentum():
     plan = intraday.build_mover_plan(90.82, 5.0, chg_1h=1.84,
                                      chg_24h=13.62, rsi=58)
     assert plan['stretch_target'] > plan['take_profit'] > plan['entry'] > plan['stop_loss']
-    assert plan['stretch_return_pct'] == round(5.0 * 2.0, 2)
+    assert plan['stretch_return_pct'] == round(5.0 * 3.2, 2)
     assert 'momentum supports a runner' in plan['stretch_note']
 
 
@@ -317,7 +317,7 @@ def test_missing_sparkline_falls_back_to_median():
     plan = intraday.build_mover_plan(5.0, vol)
     assert plan is not None
     assert plan['max_loss_pct'] == round(median_vol * 0.6, 2)
-    assert plan['expected_return_pct'] == round(median_vol * 1.2, 2)
+    assert plan['expected_return_pct'] == round(median_vol * 2.4, 2)
 
 
 # --------------------- (c) no volatility anywhere -> null plan (honest null)
@@ -396,12 +396,13 @@ def test_thesis_subcent_strict_order():
 def test_fee_floor_gates_low_vol_thesis():
     f = {'vol': 0.5, 'price': 100.0, 'chg_1h': 1.5,
          'rsi': 50.0, 'pos_in_range': 0.5}
-    # 0.5 x 1.2 = 0.6% target < 2.8% floor -> no plan
+    # 0.5 x 2.4 = 1.2% target < 2.8% floor -> no plan
     assert intraday.build_intraday_thesis('LOW', f, 5.0) is None
 
 
 def test_fee_floor_gates_low_vol_mover():
-    # 1.5 x 1.2 = 1.8% target < 2.8% floor -> no plan
+    # 1.5 x 2.4 = 3.6% gross clears the fee floor, but net ~1.96% < 2.8%
+    # -> no plan (the binding net gate, not the gross floor)
     assert intraday.build_mover_plan(100.0, 1.5) is None
 
 
@@ -409,16 +410,17 @@ def test_fee_floor_gates_low_vol_accum():
     # Setting-up plans are still buy cards — a sub-fee target is a
     # guaranteed net loser, so no plan is emitted (2026-11-03: the
     # 2026-11-01 gate missed the accum path; 7 sub-floor cards printed).
-    # 2.0 x 1.2 = 2.4% target < 2.8% floor -> no plan
-    assert intraday.build_accum_plan(5.17, 2.0, range_high=5.30) is None
-    # boundary: 4.0 x 1.2 = 4.8% gross -> 3.14% net >= 2.8% -> plan emitted
+    # 1.5 x 2.4 = 3.6% gross clears the fee floor, but net ~1.96% < 2.8%
+    # -> no plan (the binding net gate, not the gross floor)
+    assert intraday.build_accum_plan(5.17, 1.5, range_high=5.30) is None
+    # boundary: 4.0 x 2.4 = 9.6% gross -> 7.86% net >= 2.8% -> plan emitted
     plan = intraday.build_accum_plan(5.17, 4.0, range_high=5.30)
     assert plan is not None
     assert plan['expected_return_pct'] >= 2.8
 
 
 def test_fee_floor_boundary_passes():
-    # 4.0 x 1.2 = 4.8% gross -> 3.14% net >= 2.8% -> plan emitted
+    # 4.0 x 2.4 = 9.6% gross -> 7.86% net >= 2.8% -> plan emitted
     plan = intraday.build_mover_plan(100.0, 4.0)
     assert plan is not None
     assert plan['take_profit'] > plan['entry'] > plan['stop_loss']
@@ -431,7 +433,8 @@ def test_fee_floor_boundary_passes():
 def test_clears_fee_floor_math():
     assert intraday.FEE_TARGET_FLOOR_PCT == 2.8
     assert intraday.clears_fee_floor(0.3) is False
-    assert intraday.clears_fee_floor(2.34) is True   # 2.34 x 1.2 = 2.808
+    assert intraday.clears_fee_floor(1.16) is False  # 1.16 x 2.4 = 2.784
+    assert intraday.clears_fee_floor(1.17) is True   # 1.17 x 2.4 = 2.808
     assert intraday.clears_fee_floor(None) is False
 
 
@@ -451,8 +454,8 @@ def test_accum_plan_uses_range_high_within_5pct():
     assert plan['trigger_price'] == 5.30  # the breakout level itself
     assert plan['entry'] == plan['trigger_price']
     assert plan['stop_loss'] < plan['trigger_price'] < plan['take_profit']
-    # mover ratios off the trigger: 1.2x / 0.6x of 5.0% hourly vol (2:1)
-    assert plan['expected_return_pct'] == round(5.0 * 1.2, 2)
+    # mover ratios off the trigger: 2.4x / 0.6x of 5.0% hourly vol (4:1)
+    assert plan['expected_return_pct'] == round(5.0 * 2.4, 2)
     assert plan['max_loss_pct'] == round(5.0 * 0.6, 2)
     assert plan['exit_by'].endswith('UTC')
 
@@ -1189,12 +1192,12 @@ def test_trail_promotes_stretch_target():
 # ----------------- Trade Signal Gate v3.0: binding net-return gate
 # (Nic 2026-11-04). The gross 2.8% floor stays as a cheap pre-check; the
 # net gate (2.8% AFTER fees+slippage) is binding — so the effective vol
-# bar moves from ~2.34 to ~3.73.
+# bar moves from ~1.17 to ~1.86.
 
 def test_net_gate_rejects_gross_passing_mover():
-    # vol 3.0 -> 3.6% gross target clears the gross floor, but only
+    # vol 1.5 -> 3.6% gross target clears the gross floor, but only
     # ~1.96% net at the measured cost tier -> no plan.
-    assert intraday.build_mover_plan(100.0, 3.0) is None
+    assert intraday.build_mover_plan(100.0, 1.5) is None
 
 
 def test_net_gate_rejects_gross_passing_thesis():
@@ -1206,7 +1209,9 @@ def test_net_gate_rejects_gross_passing_thesis():
 
 
 def test_net_gate_rejects_gross_passing_accum():
-    assert intraday.build_accum_plan(5.17, 3.0, range_high=5.30) is None
+    # vol 1.5 -> 3.6% gross target clears the gross floor, but only
+    # ~1.96% net at the measured cost tier -> no plan.
+    assert intraday.build_accum_plan(5.17, 1.5, range_high=5.30) is None
 
 
 def test_net_gate_passing_plan_carries_labels():

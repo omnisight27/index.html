@@ -12,15 +12,20 @@ US intro tier, post-Sept-2026 schedule), documented here, not silent.
 When the caller passes an explicit fee config, every required field must
 be present and valid, or the plan is rejected (MISSING_GATE_INPUTS).
 
-REWARD:RISK NOTE (2026-11-04): the v3.0 spec also asks to reject when the
-NET reward:risk ratio is below 2.0. That check is mathematically
-unsatisfiable for our plans: at the 1.4% cost tier, a 2:1-gross plan's net
-reward:risk asymptotes to ~1.99 and never reaches 2.0 (verified: stop 3%
--> 1.04, stop 30% -> 1.86, stop 500% -> 1.98). Enforcing it would reject
-EVERY plan the engine can produce — including perfect ones — so the net
-reward:risk is computed and reported as a diagnostic, but it does NOT
-reject. The gross 2:1 construction (target = 1.2x vol, stop = 0.6x vol)
-remains enforced by the plan builders themselves.
+REWARD:RISK NOTE (2026-11-04, updated 2026-11-10): the v3.0 spec also asks
+to reject when the NET reward:risk ratio is below 2.0. With the old
+2:1-gross construction that check was mathematically unsatisfiable (net
+reward:risk asymptoted to ~1.99 and never reached 2.0). With the 4:1-gross
+construction (Nic 2026-11-10) it is satisfiable — a 4:1-gross plan's net
+reward:risk asymptotes to ~4.0 (verified: stop 3% -> 2.21, stop 30% ->
+3.74) and clears 2.0 once the stop is ~2.5% or wider. It still does NOT
+reject: the binding profitability gate is the 2.8% net-return floor, and
+a low-vol 4:1 plan can clear that floor while its net reward:risk sits
+below 2.0 (a stop under ~2.5% does it) — enforcing 2.0 would reject those
+plans even though they clear the floor. So the net reward:risk is computed
+and reported as a diagnostic. The gross 4:1 construction (intraday
+target = 2.4x vol, stop = 0.6x vol; swing target = 4.0x vol,
+stop = 1.0x vol) remains enforced by the plan builders themselves.
 
 The gate is direction-aware (LONG/SHORT) and labels the required order
 type for human execution: our alerts are placed by Nic, not a bot, so a
@@ -220,11 +225,12 @@ def evaluate_net_gate(entry, target, stop, direction='LONG',
             all_in, net_exit, net_return, required, None))
     rr = reward / risk
     # NOTE: net reward:risk is diagnostic-only (see module docstring) —
-    # enforcing 2.0 here would reject every plan the engine can produce.
+    # enforcing 2.0 here would reject low-vol plans that still clear the
+    # 2.8% net floor (a 4:1 plan needs a ~2.5% stop to clear net 2.0).
     diag = _diag(all_in, net_exit, net_return, required, rr)
     if rr < MIN_REWARD_RISK:
         diag['rr_note'] = ('net reward:risk %.2f below 2.0 — diagnostic only; '
-                           'gross 2:1 construction is enforced by the builders'
+                           'gross 4:1 construction is enforced by the builders'
                            % rr)
     ot, on = order_label(entry, current_price,
                          price_tick if price_tick is not None else tick)

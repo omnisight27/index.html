@@ -1101,18 +1101,20 @@ def build_thesis(asset, chg24, chg7d, price, score, conf, regime, fg_now, geo_ed
     # and it blows up the model-error MAE when the coin reverts (Q,
     # 2026-10-27: expected +545.86%, realized -66.83%, abs error 612.69
     # — the single biggest contributor to MAE rising 12.39 -> 18.68).
-    # 25% caps the expected return at 50% / max loss at 25%.
-    # (Nic 2026-10-30: 1.33:1 was too much risk for the reward — 2:1.)
-    vol = min(max(abs(chg24), 2.0), 25.0)
+    # 12.5% caps the expected return at 50% / max loss at 12.5% — the
+    # same credible bound as the old 25% cap under 2:1. A 25% cap under
+    # 4:1 would project a +100% LONG target and a $0 SHORT cover.
+    # (Nic 2026-11-10: 2:1 was too low — 4:1.)
+    vol = min(max(abs(chg24), 2.0), 12.5)
     if direction == 'LONG':
         stop = price * (1 - vol / 100 * 1.0)
-        target = price * (1 + vol / 100 * 2.0)
+        target = price * (1 + vol / 100 * 4.0)
     else:
         stop = price * (1 + vol / 100 * 1.0)
-        target = price * (1 - vol / 100 * 2.0)
+        target = price * (1 - vol / 100 * 4.0)
     rr_denom = abs(price - stop)
     # No absolute floor: max(..., 0.01) crushed the ratio for sub-cent
-    # coins (2026-11-02: BEAM printed R:R 0.06 on a true 2:1 plan).
+    # coins (2026-11-02: BEAM printed R:R 0.06 on a true 4:1 plan).
     rr = abs(target - price) / rr_denom if rr_denom > 0 else 0
     # Expected return % if target hits
     exp_return_pct = abs(target - price) / price * 100 if price else 0

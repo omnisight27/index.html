@@ -413,21 +413,20 @@ def sparkline_vol_map(universe):
 # --- Fee-aware plan floor (Nic 2026-11-01: a +1.02% gross winner netted
 # -$1.90 after $6.96 round-trip fees on ~$500 — 1.4% cost drag).
 # No plan is emitted whose gross target can't clear twice the round-trip
-# cost (his 2:1 doctrine, applied to the certain cost). Measured from his
-# fills: 0.9% taker entry + 0.5% maker exit on Coinbase Advanced (US intro
-# tier, post-Sept-2026 schedule). If he commits to maker-only entries,
+# cost. Measured from his fills: 0.9% taker entry + 0.5% maker exit on
+# Coinbase Advanced (US intro tier, post-Sept-2026 schedule). If he commits to maker-only entries,
 # drop FEE_ROUNDTRIP_PCT to 1.0.
 FEE_ROUNDTRIP_PCT = 1.4
 FEE_TARGET_MULT = 2.0
 FEE_TARGET_FLOOR_PCT = FEE_ROUNDTRIP_PCT * FEE_TARGET_MULT  # 2.8
 
 def clears_fee_floor(vol):
-    """True when the plan's gross target (vol x 1.2) clears the fee floor.
+    """True when the plan's gross target (vol x 2.4) clears the fee floor.
 
-    vol is hourly RMS %; both plan builders target vol x 1.2. A plan that
+    vol is hourly RMS %; both plan builders target vol x 2.4. A plan that
     can't gross twice its round-trip cost is a guaranteed net loser even
     when the direction call is right — so it is never emitted."""
-    return vol is not None and vol * 1.2 >= FEE_TARGET_FLOOR_PCT
+    return vol is not None and vol * 2.4 >= FEE_TARGET_FLOOR_PCT
 
 # --- Runner / stretch target (Nic 2026-10-29: HYPE printed its +1.6% target
 # then ran to +6% — "a little quick on the sell"). When hourly momentum is
@@ -438,15 +437,17 @@ def clears_fee_floor(vol):
 STRETCH_1H_PCT = 1.5    # hourly momentum strong enough to support a runner
 STRETCH_24H_PCT = 10     # already a genuine mover, not a twitch
 STRETCH_RSI_CAP = 70     # not overbought — no runner into an RSI ceiling
-STRETCH_VOL_MULT = 2.0   # runner sits one more vol-step past the base target
+STRETCH_VOL_MULT = 3.2   # runner sits one more vol-step past the base target
+    # (base 2.4 + 0.8 — the same 0.8-vol gap as the old 1.2 -> 2.0; the
+    # guard below requires the runner to sit strictly above the base
+    # target, so it must track the base target's multiplier)
 
 def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
                      funding_score=None, funding_ann_pct=None,
                      oi_score=None, oi_chg_1h_pct=None):
-    """LONG trade plan for an UP mover, using the same hourly-vol math as
-    build_intraday_thesis (stop = entry x (1 - vol x 0.6), target = entry x
-    (1 + vol x 1.2) — 2:1 reward:risk; Nic 2026-10-30: 1.5:1 was too much
-    risk for the reward). Volatility comes from the markets payload's sparkline
+    """LONG trade plan for an UP mover: stop = entry x (1 - vol x 0.6),
+    target = entry x (1 + vol x 2.4) — 4:1 reward:risk (Nic 2026-11-10:
+    2:1 was too low). Volatility comes from the markets payload's sparkline
     (sparkline_vol_map; the caller applies the universe-median fallback) —
     never a per-coin chart fetch: CoinGecko's free tier throttles those,
     and on 2026-10-20 every UP mover plan silently died that way. Returns
@@ -456,7 +457,7 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
     Runner: when chg_1h/chg_24h/rsi are passed and the stretch gate holds
     (hourly momentum >= STRETCH_1H_PCT, 24h >= STRETCH_24H_PCT, RSI below
     STRETCH_RSI_CAP — a missing RSI fails open, the momentum gates still
-    bind), the plan also carries stretch_target = entry x (1 + vol x 2.0).
+    bind), the plan also carries stretch_target = entry x (1 + vol x 3.2).
     The base take_profit remains the graded target; the runner is bonus.
 
     Funding gate (Feed #2): when funding_score is passed and the longs are
@@ -470,13 +471,13 @@ def build_mover_plan(price, vol, chg_1h=None, chg_24h=None, rsi=None,
     if not price or not vol:
         return None
     if not clears_fee_floor(vol):
-        # Target (vol x 1.2) can't clear twice the round-trip fee — emitting
+        # Target (vol x 2.4) can't clear twice the round-trip fee — emitting
         # it would be a guaranteed net loser. Caller shows the fee note.
         _record_gate_rejection('FEE_FLOOR_GROSS')
         return None
     entry = price
     stop = entry * (1 - vol / 100 * 0.6)
-    target = entry * (1 + vol / 100 * 1.2)
+    target = entry * (1 + vol / 100 * 2.4)
     gate, order_type, order_note = _apply_net_gate(
         entry, target, stop, 'LONG', current_price=price)
     if gate is None:
@@ -542,8 +543,8 @@ def build_accum_plan(price, vol, range_high=None):
     """Trigger plan for a setting-up (accumulation) entry — the levels a
     resting limit buy needs BEFORE the move starts (Nic 2026-10-21: "I
     need to be before the jump up"). Same hourly-vol machinery as mover
-    plans: target = trigger x (1 + vol x 1.2), stop = trigger x
-    (1 - vol x 0.6) — 2:1 reward:risk (Nic 2026-10-30), exit +3h like mover plans.
+    plans: target = trigger x (1 + vol x 2.4), stop = trigger x
+    (1 - vol x 0.6) — 4:1 reward:risk (Nic 2026-11-10), exit +3h like mover plans.
 
     Trigger: the recent range high (24h high) when it sits within 5%
     above spot — a genuine near-term breakout level — otherwise spot x
@@ -551,14 +552,14 @@ def build_accum_plan(price, vol, range_high=None):
     confirmation level. Returns None when no volatility is available
     from anywhere, so the caller ships plan: null and the alert falls
     back to a WATCH card instead of invented numbers. Also returns None
-    when the gross target (vol x 1.2) can't clear the fee floor — same
+    when the gross target (vol x 2.4) can't clear the fee floor — same
     gate as thesis/mover plans (Nic 2026-11-01: a sub-fee target is a
     guaranteed net loser even when the direction call is right)."""
     from datetime import timedelta
     if not price or not vol:
         return None
     if not clears_fee_floor(vol):
-        # Target (vol x 1.2) can't clear twice the round-trip fee —
+        # Target (vol x 2.4) can't clear twice the round-trip fee —
         # emitting it would be a guaranteed net loser. Caller shows WATCH.
         _record_gate_rejection('FEE_FLOOR_GROSS')
         return None
@@ -566,7 +567,7 @@ def build_accum_plan(price, vol, range_high=None):
         trigger = range_high
     else:
         trigger = price * (1 + vol / 100 * 0.5)
-    target = trigger * (1 + vol / 100 * 1.2)
+    target = trigger * (1 + vol / 100 * 2.4)
     stop = trigger * (1 - vol / 100 * 0.6)
     gate, order_type, order_note = _apply_net_gate(
         trigger, target, stop, 'LONG', current_price=price)
