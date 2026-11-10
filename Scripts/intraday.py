@@ -49,6 +49,10 @@ try:
     import defillama_feed  # DeFiLlama stablecoin/TVL track (display only)
 except ImportError:
     defillama_feed = None
+try:
+    import fred_feed  # FRED macro track, Phase 1 (display only)
+except ImportError:
+    fred_feed = None
 
 # Trade Signal Gate v3.0 (Nic 2026-11-04): true-net return math + circuit
 # breaker. First-party modules in this directory — hard import on purpose:
@@ -108,6 +112,30 @@ def fetch_json(url, timeout=30):
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read().decode())
+    except Exception as e:
+        print(f'  [warn] {url[:70]}... failed: {e}')
+        return None
+
+def fetch_text(url, timeout=30):
+    # Plain-text twin of fetch_json for CSV endpoints (FRED).
+    # None on any failure — the caller treats it as "no data".
+    # stlouisfed.org stalls Python urllib (verified 2026-11-10: both
+    # urllib and requests hang until timeout while curl returns in
+    # <1s — the same block the swing engine works around with curl
+    # for the Fed blog RSS), so that host goes straight to curl.
+    if 'stlouisfed.org' in url:
+        try:
+            out = subprocess.run(
+                ['curl', '-sL', '--max-time', str(timeout), url],
+                capture_output=True, text=True, timeout=timeout + 5)
+            return out.stdout or None
+        except Exception as e:
+            print(f'  [warn] {url[:70]}... failed: {e}')
+            return None
+    req = urllib.request.Request(url, headers={'User-Agent': 'NexIntel-Intraday/1.0'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.read().decode()
     except Exception as e:
         print(f'  [warn] {url[:70]}... failed: {e}')
         return None
@@ -2805,6 +2833,15 @@ def main():
             prior_defillama_cache = _prior.get('defillama_cache') or {}
     except Exception:
         pass
+    # FRED macro track, Phase 1: the day-cache for the seven series
+    # (macro moves slowly — at most one fetch per series per day).
+    prior_fred_cache = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            _prior = json.load(f) or {}
+            prior_fred_cache = _prior.get('fred_cache') or {}
+    except Exception:
+        pass
     # Milestone 2 cross-run memory: funding-score history (for fund_mom) and
     # the day-cached macro snapshot (for real_yield / fed_stance).
     prior_fund_history = {}
@@ -3540,6 +3577,37 @@ def main():
                 prior_defillama_cache, dict) else {})
             print(f'  [warn] DeFiLlama feed failed (fail-open): {e}')
 
+    # --- FRED macro track, Phase 1 (display-only research) ---
+    # Yield curve + Fed liquidity + real rate + dollar + HY spread,
+    # from FRED's keyless graph-CSV endpoint (one small date-bounded
+    # CSV per series, day-cached — macro moves slowly). Fail-open
+    # throughout: no state -> no pulse, no candidates, no exceptions
+    # — and this block NEVER records a gate event (diagnostic-only;
+    # it must never trip the circuit breaker).
+    fred_snapshot = {}
+    fred_cache = (prior_fred_cache
+                  if isinstance(prior_fred_cache, dict) else {})
+    fred_diag = {'cached': False, 'error': None}
+    if fred_feed is not None:
+        try:
+            _today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            if fred_cache.get('date') != _today:
+                _series = fred_feed.fetch_all(fetch_text)
+                fred_snapshot = fred_feed.compute_snapshot(_series)
+                fred_cache = {'date': _today, 'snapshot': fred_snapshot}
+                fred_diag['cached'] = True
+            else:
+                fred_snapshot = fred_cache.get('snapshot') or {}
+            print(f"  {fred_feed.pulse_line(fred_snapshot)}")
+        except Exception as e:
+            # Diagnostic only — a broken FRED feed degrades to
+            # "no FRED data", never a dead run, never a gate event.
+            fred_diag['error'] = str(e)[:200]
+            fred_snapshot = {}
+            fred_cache = (prior_fred_cache if isinstance(
+                prior_fred_cache, dict) else {})
+            print(f'  [warn] FRED feed failed (fail-open): {e}')
+
     # --- Cycle research track, Phase 1 (display-only research) ---
     # Today's cycle state: BTC daily closes via Kraken public OHLC
     # (interval=1440, forming day dropped), dominance via CoinGecko
@@ -3975,6 +4043,13 @@ def main():
         'defillama_diag': defillama_diag,
         'defillama_history': defillama_hist,
         'defillama_cache': defillama_cache,
+        # FRED macro track, Phase 1 (display-only research):
+        # yield curve, 10y, fed funds, CPI YoY, real-rate proxy,
+        # dollar, Fed liquidity (WALCL WoW), HY spread, plus the
+        # day-cache and a small run diagnostic.
+        'fred': fred_snapshot,
+        'fred_diag': fred_diag,
+        'fred_cache': fred_cache,
         # Deribit options track, Phase 1 (display-only research):
         # per-currency 30d ATM IV, 25-delta skew, put/call OI,
         # max-pain distance, and a small run diagnostic.
