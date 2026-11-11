@@ -1561,17 +1561,105 @@ CMI_EXIT_TRIGGER = 0.50             # spec §1b: CMI > 0.50 exit trigger
 # the effective shadow universe is ~238 coins (measured in the
 # expansion report). The LIVE floor stays $100M; only the shadow scan
 # passes min_mcap=SHADOW_MCAP_FLOOR to _scan_coin.
+#
+# Phase 2 (Nic, 2026-11-11): the shadow tail widens to rank 10,000.
+# The full 10,000 cannot be fetched every 30-min run inside the
+# CoinGecko free tier (40 pages/run x 48 runs/day), so the tail
+# ROTATES: SHADOW_TAIL_PAGES_PER_RUN fresh pages per run, 36 pages
+# per pass, a full pass every ~9h (~2.6x/day). Each page's coins are
+# scored fresh from that page's sparklines (zero extra calls beyond
+# the page fetches). No market-cap floor at this depth — the $50M
+# floor admits nothing past rank ~500 — so the guards are data
+# quality instead (usable sparkline, price > 0, 24h volume > 0, not
+# pegged/wrapped, not blocked). MEASURED (2026-11-11 live probe):
+# rank 10,000 sits at ~$16k-18k market cap (page 40: min $16,404,
+# median $17,209); 207/250 coins on the last page carry a usable
+# sparkline and 145/250 have volume > 0. The effective floor (the
+# smallest admitted mcap) is reported per run in shadow_tail_diag.
+# Tail signals join the same shadow_signals list and the same top-5
+# shadow ledger as the near shadow — the ledger, the scoreboard and
+# the grading are unchanged; only the universe feeding them widens.
 SIGNAL_UNIVERSE_N = 200             # live signal universe (top N by mcap)
 SHADOW_UNIVERSE_START = 200         # shadow starts where live ends
 SHADOW_UNIVERSE_END = 500           # shadow covers ranks 201-500
 SHADOW_MCAP_FLOOR = 50_000_000      # shadow floor (Nic 2026-11-05);
                                     # live floor stays $100M
+SHADOW_TAIL_END = 10000             # Phase 2: tail covers ranks 501-10,000
+SHADOW_TAIL_FIRST_PAGE = 5          # CoinGecko markets pages, 250/page
+SHADOW_TAIL_LAST_PAGE = 40          # page 40 = ranks 9,751-10,000
+SHADOW_TAIL_PAGES_PER_RUN = 2       # fresh tail pages per 30-min run
+SHADOW_TAIL_MIN_MCAP = 0            # no mcap floor at this depth;
+                                    # data-quality guards instead
 SHADOW_RECORD_CAP = 2000            # separate shadow ledger cap
 
 # Stocks research track, Phase 1: separate stock ledger cap (same
 # pattern as the shadow ledger — stock rows must not flood the
 # 100-entry main ledger).
 STOCK_RECORD_CAP = 2000
+
+
+# --- Shadow tail helpers (Phase 2, pure functions — no network) ---
+_PEGGED_SYMBOLS = {'WBTC', 'WETH', 'STETH', 'WSTETH', 'RETH', 'CBETH',
+                    'WEETH', 'XAUT', 'PAXG'}
+_PEGGED_NAME_MARKERS = ('WRAPPED', 'STABLECOIN', 'STABLE COIN', 'TETHER',
+                        'USD COIN', 'BINANCE USD', 'STAKED ETHER',
+                        'STAKED ETH', 'LIQUID STAKED')
+
+
+def is_pegged_or_wrapped(c):
+    """True when a markets-payload coin is a stablecoin, pegged token
+    or wrapped/staked derivative — cash or a peg, not a trade. Three
+    checks: a known wrapped symbol, a peg/wrapped marker in the name,
+    or the behavior rule (sits within 2% of $1.00 with a 7d range
+    under 1% — a flat $1 coin cannot signal anyway, so the rule is
+    nearly free). Pure function — no network."""
+    sym = (c.get('symbol') or '').upper()
+    if sym in _PEGGED_SYMBOLS:
+        return True
+    name = (c.get('name') or '').upper()
+    if any(m in name for m in _PEGGED_NAME_MARKERS):
+        return True
+    price = c.get('current_price') or 0
+    spark = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
+             if p]
+    if price and abs(price - 1.0) / 1.0 < 0.02 and len(spark) >= 24:
+        lo, hi = min(spark), max(spark)
+        if lo > 0 and (hi - lo) / lo < 0.01:
+            return True
+    return False
+
+
+def tail_coin_eligible(c, blocked):
+    """Data-quality gate for a shadow-tail coin (ranks 501-10,000).
+    No market-cap floor at this depth — instead: a symbol, not
+    blocked, not pegged/wrapped, a positive price, and positive 24h
+    volume (a coin nobody traded has no usable signal). Returns
+    (eligible, reason); reason is None when eligible. Pure function."""
+    sym = (c.get('symbol') or '').upper()
+    if not sym or sym in blocked:
+        return False, 'blocked'
+    if is_pegged_or_wrapped(c):
+        return False, 'pegged_wrapped'
+    if not (c.get('current_price') or 0) > 0:
+        return False, 'no_price'
+    if not (c.get('total_volume') or 0) > 0:
+        return False, 'no_volume'
+    return True, None
+
+
+def shadow_tail_pages(next_page, per_run=SHADOW_TAIL_PAGES_PER_RUN):
+    """Rotating CoinGecko markets pages for the shadow tail (ranks
+    501-10,000 = pages SHADOW_TAIL_FIRST_PAGE..SHADOW_TAIL_LAST_PAGE
+    at 250/page). Returns (pages, new_next_page); wraps to the first
+    tail page after the last. Pure function."""
+    first, last = SHADOW_TAIL_FIRST_PAGE, SHADOW_TAIL_LAST_PAGE
+    if not isinstance(next_page, int) or not (first <= next_page <= last):
+        next_page = first
+    pages, p = [], next_page
+    for _ in range(per_run):
+        pages.append(p)
+        p = p + 1 if p < last else first
+    return pages, p
 
 
 def _proof_grade_cmi_confluence(e, charts_by_sym, cmi_by_sym, now,
@@ -2769,6 +2857,17 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
         'info_url': f'https://www.coingecko.com/en/coins/{cid}',
         'tradable': tradable_on(sym),
         'timestamp': datetime.now(timezone.utc).isoformat(),
+        # Real 24h volume read (display only — never a buy input):
+        # the markets payload's total_volume is a true CoinGecko 24h
+        # USD total. Hourly volumes do NOT exist for the shadow scan
+        # (sparkline-only since the Nov 9 throttle fix), so the
+        # balance volume part and the dead-market veto stay closes-only
+        # for shadow coins — these fields are the liquidity read, not
+        # an hourly series. The movers "volume surge" is a separate
+        # top-quartile volume/mcap proxy, never a true surge.
+        'volume_24h_usd': (c.get('total_volume') or 0),
+        'vol_mcap_ratio': (round((c.get('total_volume') or 0) / mcap, 4)
+                           if mcap else None),
         # Auction-market balance (display only — never a buy input)
         'balance_score': bs, 'balance_parts': bs_parts,
         'coiled': bool(bs is not None and bs >= COILED_THRESHOLD),
@@ -2922,6 +3021,25 @@ def main():
                 (_prior.get('proof') or {}).get('shadow_record') or []
             prior_shadow_cumulative = \
                 (_prior.get('proof') or {}).get('shadow_cumulative') or {}
+    except Exception:
+        pass
+    # Shadow tail, Phase 2: the rotating tail-page pointer rides in
+    # the feed the same way (which CoinGecko markets pages to fetch
+    # this run). A missing/corrupt pointer restarts at the first page.
+    prior_tail_state = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_tail_state = (json.load(f) or {}).get(
+                'shadow_tail_state') or {}
+    except Exception:
+        pass
+    # Stocks research track, Phase 2: the rotating tail-slice offset
+    # rides in the feed the same way.
+    prior_stock_tail_state = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_stock_tail_state = (json.load(f) or {}).get(
+                'stock_tail_state') or {}
     except Exception:
         pass
     # Stocks research track, Phase 1: the separate stock ledger +
@@ -3097,17 +3215,31 @@ def main():
     # skipped, never fetched. Live scan unchanged.
     shadow_signals = []
     shadow_coins_scanned = 0
+    near_diag = {'coins_seen': 0, 'skipped_no_sparkline': 0,
+                 'skipped_pegged_wrapped': 0, 'skipped_no_volume': 0,
+                 'skipped_blocked': 0, 'skipped_no_price': 0,
+                 'skipped_dup': 0}
     for c in universe[SHADOW_UNIVERSE_START:SHADOW_UNIVERSE_END]:
+        near_diag['coins_seen'] += 1
         _sym = (c.get('symbol') or '').upper()
         if _sym in charts_by_sym:
             # Same symbol already scanned live (bigger coin wins the
             # symbol) — the live chart already covers it for grading.
+            near_diag['skipped_dup'] += 1
+            continue
+        _ok, _why = tail_coin_eligible(c, BLOCKED)
+        if not _ok:
+            # Stablecoins / wrapped / pegged stay out (hard rule, Nic
+            # 2026-11-11) and dead coins (no price / no 24h volume)
+            # carry no usable signal — skip before scoring.
+            near_diag['skipped_' + _why] += 1
             continue
         _prices = sparkline_prices(
             (c.get('sparkline_in_7d') or {}).get('price'), run_ts)
         if _prices is None:
             # No usable sparkline — skip, never fetch (shadow is
             # display-only; a missing chart is not worth API budget).
+            near_diag['skipped_no_sparkline'] += 1
             continue
         sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                          macro_snap, btc_chg24, econ_feed, run_ts,
@@ -3117,15 +3249,81 @@ def main():
             shadow_coins_scanned += 1
         if sig:
             shadow_signals.append(sig)
+    # --- Shadow tail, Phase 2 (2026-11-11, Nic): ranks 501-10,000.
+    # Rotating fresh pages (see shadow_tail_pages) — the tail is
+    # scored AFTER the live scan, so live results are in hand before
+    # any throttling risk, same as the near shadow. Tail signals join
+    # the same shadow_signals list and the same top-5 shadow ledger;
+    # the ledger, scoreboard and grading are unchanged.
+    # 95% is a GOAL to read, not a gate (Nic 2026-11-11): the shadow
+    # grading weights cells by how predictive they grade out (win rate
+    # + n, flagged at n>=20 by the win-rate bands in
+    # proof_flagged_cells) — no 95% cutoff anywhere in this path, and
+    # the Wilson 95% lower bound is display-only where shown.
+    tail_diag = {'pages': [], 'coins_seen': 0, 'coins_scanned': 0,
+                 'skipped_no_sparkline': 0, 'skipped_pegged_wrapped': 0,
+                 'skipped_no_volume': 0, 'skipped_blocked': 0,
+                 'skipped_no_price': 0, 'skipped_dup': 0,
+                 'min_mcap_admitted': None}
+    tail_pages, tail_next = shadow_tail_pages(
+        (prior_tail_state or {}).get('next_page', SHADOW_TAIL_FIRST_PAGE))
+    for _page in tail_pages:
+        _mkts_page = fetch_json('https://api.coingecko.com/api/v3/coins/markets'
+            f'?vs_currency=usd&order=market_cap_desc&per_page=250&page={_page}'
+            '&price_change_percentage=1h,24h&sparkline=true')
+        if not _mkts_page:
+            continue
+        tail_diag['pages'].append(_page)
+        for c in _mkts_page:
+            tail_diag['coins_seen'] += 1
+            _sym = (c.get('symbol') or '').upper()
+            if _sym in charts_by_sym:
+                # Same symbol already scanned (bigger coin wins the
+                # symbol) — the live chart already covers it.
+                tail_diag['skipped_dup'] += 1
+                continue
+            _ok, _why = tail_coin_eligible(c, BLOCKED)
+            if not _ok:
+                tail_diag['skipped_' + _why] += 1
+                continue
+            _prices = sparkline_prices(
+                (c.get('sparkline_in_7d') or {}).get('price'), run_ts)
+            if _prices is None:
+                # No usable sparkline — skip, never fetch (shadow is
+                # display-only; a missing chart is not worth API budget).
+                tail_diag['skipped_no_sparkline'] += 1
+                continue
+            sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
+                             macro_snap, btc_chg24, econ_feed, run_ts,
+                             tradable_on, BLOCKED,
+                             min_mcap=SHADOW_TAIL_MIN_MCAP, prices=_prices)
+            if _sym in charts_by_sym:
+                tail_diag['coins_scanned'] += 1
+                _mc = c.get('market_cap') or 0
+                if _mc and (tail_diag['min_mcap_admitted'] is None
+                            or _mc < tail_diag['min_mcap_admitted']):
+                    tail_diag['min_mcap_admitted'] = _mc
+            if sig:
+                shadow_signals.append(sig)
+    shadow_tail_state = {'next_page': tail_next}
+    shadow_coins_scanned += tail_diag['coins_scanned']
     shadow_signals.sort(key=lambda s: -abs(s['score']))
     shadow_longs = [s for s in shadow_signals if s['direction'] == 'LONG'][:5]
     shadow_shorts = [s for s in shadow_signals if s['direction'] == 'SHORT'][:5]
-    print(f'  Shadow scan: {shadow_coins_scanned} coins, '
-          f'{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts')
+    print(f'  Shadow scan: {shadow_coins_scanned} coins '
+          f'({tail_diag["coins_scanned"]} tail), '
+          f'{len(shadow_longs)} shadow longs, {len(shadow_shorts)} shadow shorts; '
+          f'tail pages {tail_diag["pages"]}, '
+          f'min mcap admitted '
+          f'${tail_diag["min_mcap_admitted"] or 0:,.0f}')
 
     # --- Stocks research track, Phase 1 (display-only + shadow
     # grading): 30 liquid US large-caps, Yahoo Finance v8 chart API
-    # (keyless, verified). Runs ONLY during US market hours
+    # (keyless, verified). Phase 2 (2026-11-11, Nic): the universe
+    # widens to the top 1,000 US-listed by market cap (Finviz
+    # screener, day-cached) — the core 30 are scanned every run and
+    # the other 970 rotate through in slices (see stock_feed).
+    # Runs ONLY during US market hours
     # (9:30-16:00 ET, Mon-Fri) — outside hours the scan is skipped
     # entirely, no signals from stale data. Stock signals NEVER join
     # longs/shorts (no cards, no bar, no alerts) — the top 5 each way
@@ -3137,7 +3335,10 @@ def main():
     stock_longs, stock_shorts = [], []
     stock_symbols_scanned = 0
     stock_diag = {'market_open': False, 'scanned': 0, 'signals': 0,
-                  'skipped': None}
+                  'skipped': None, 'universe_size': 0, 'universe_diag': None,
+                  'tail_slice': [], 'tail_scanned': 0}
+    stock_tail_state = {'next_offset':
+                        (prior_stock_tail_state or {}).get('next_offset', 0)}
     if stock_feed is not None:
         try:
             _mkt_open = stock_feed.us_market_open_now()
@@ -3145,13 +3346,36 @@ def main():
             _mkt_open = False
         stock_diag['market_open'] = _mkt_open
         if _mkt_open:
+            # Phase 2 (2026-11-11, Nic): top-1,000 US-listed by market
+            # cap (day-cached Finviz refresh) + the rotating tail
+            # slice. The core 30 are scanned every run; the tail
+            # rotates so the full 1,000 is covered ~1.3x per trading
+            # day. The refresh runs here — after the live scan, so a
+            # slow Finviz day never delays live results.
+            _universe1000, _universe_diag = [], 'not_loaded'
+            try:
+                _universe1000, _universe_diag = \
+                    stock_feed.load_stock_universe_1000(
+                        os.path.join(DATA_DIR, 'stock_universe_1000.json'))
+            except Exception as _e:
+                _universe_diag = f'load_failed: {_e}'
+            _tail = [t for t in _universe1000
+                     if t not in stock_feed.STOCK_UNIVERSE]
+            _slice, _tail_next = stock_feed.stock_tail_slice(
+                _tail, (prior_stock_tail_state or {}).get('next_offset', 0))
+            stock_tail_state = {'next_offset': _tail_next}
+            _scan_syms = list(stock_feed.STOCK_UNIVERSE) + _slice
+            stock_diag['universe_size'] = len(_universe1000)
+            stock_diag['universe_diag'] = _universe_diag
+            stock_diag['tail_slice'] = \
+                ([_slice[0], _slice[-1]] if _slice else [])
+            stock_diag['tail_scanned'] = len(_slice)
             _stock_charts = {}
             # Backstop first: if the first symbol's latest candle is
             # >2h old the market is not really open (holiday list
             # stale, half day) — skip the whole scan rather than
             # scoring stale data.
-            _probe = stock_feed.fetch_stock_candles(
-                stock_feed.STOCK_UNIVERSE[0])
+            _probe = stock_feed.fetch_stock_candles(_scan_syms[0])
             if _probe:
                 _age_h = (datetime.now(timezone.utc).timestamp()
                           - _probe['closes'][-1][0] / 1000) / 3600
@@ -3159,9 +3383,9 @@ def main():
                     stock_diag['skipped'] = 'stale_candles'
                     _probe = None
             if _probe:
-                _stock_charts[stock_feed.STOCK_UNIVERSE[0]] = _probe
+                _stock_charts[_scan_syms[0]] = _probe
                 stock_symbols_scanned += 1
-                for _sym in stock_feed.STOCK_UNIVERSE[1:]:
+                for _sym in _scan_syms[1:]:
                     _cd = stock_feed.fetch_stock_candles(_sym)
                     if not _cd:
                         continue
@@ -3188,7 +3412,9 @@ def main():
                                 if s['direction'] == 'SHORT'][:stock_feed.STOCK_TOP_N]
                 stock_diag['scanned'] = stock_symbols_scanned
                 stock_diag['signals'] = len(_stock_signals)
-            print(f'  Stock scan: {stock_symbols_scanned} symbols, '
+            print(f'  Stock scan: {stock_symbols_scanned} symbols '
+                  f'(universe {stock_diag["universe_size"]}, '
+                  f'tail slice {stock_diag["tail_slice"]}), '
                   f'{len(stock_longs)} stock longs, '
                   f'{len(stock_shorts)} stock shorts')
         else:
@@ -4080,6 +4306,13 @@ def main():
         'shadow_longs': shadow_longs,
         'shadow_shorts': shadow_shorts,
         'shadow_coins_scanned': shadow_coins_scanned,
+        # Shadow tail, Phase 2 (display-only): the rotating tail-page
+        # diagnostic (pages fetched, coins seen/scored, skip reasons,
+        # smallest admitted market cap) and the rotation pointer for
+        # the next run.
+        'shadow_diag': near_diag,
+        'shadow_tail_diag': tail_diag,
+        'shadow_tail_state': shadow_tail_state,
         # Stocks research track, Phase 1 (display-only): top stock
         # longs/shorts, how many tickers got charts, and the run
         # diagnostic (market_open / skipped reason).
@@ -4087,6 +4320,9 @@ def main():
         'stock_shorts': stock_shorts,
         'stock_symbols_scanned': stock_symbols_scanned,
         'stock_diag': stock_diag,
+        # Stocks research track, Phase 2: the rotating tail-slice
+        # offset for the next run.
+        'stock_tail_state': stock_tail_state,
         # Circuit-breaker state (Trade Signal Gate v3.0): merge this
         # run's rejection events with the prior run's carried events,
         # prune, and stamp the computed breaker state — the alert

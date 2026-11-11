@@ -384,3 +384,154 @@ def test_shadow_flagged_cells_use_same_rule():
     flagged = intraday.proof_flagged_cells(cells)
     assert len(flagged) == 1
     assert flagged[0]['type'] == 'signal_shadow'
+
+
+# ---------------------------------------------------------------- Phase 2: shadow tail to 10,000 (Nic 2026-11-11)
+
+def _tail_coin(cid='micro', sym='MIC', mcap=20_000, price=0.05,
+              vol=5_000, name=None, spark=None):
+    c = {'id': cid, 'symbol': sym, 'name': name or sym.title(),
+         'market_cap': mcap, 'current_price': price,
+         'total_volume': vol,
+         'sparkline_in_7d': {'price': spark if spark is not None
+                             else spark_7d()}}
+    return c
+
+
+def test_tail_constants():
+    # Live untouched: top 200, $100M floor. Near shadow untouched:
+    # ranks 201-500, $50M floor. Tail: ranks 501-10,000, no mcap floor.
+    assert intraday.SIGNAL_UNIVERSE_N == 200
+    assert intraday.SHADOW_UNIVERSE_START == 200
+    assert intraday.SHADOW_UNIVERSE_END == 500
+    assert intraday.SHADOW_MCAP_FLOOR == 50_000_000
+    assert intraday.SHADOW_TAIL_END == 10000
+    assert intraday.SHADOW_TAIL_FIRST_PAGE == 5
+    assert intraday.SHADOW_TAIL_LAST_PAGE == 40
+    assert intraday.SHADOW_TAIL_PAGES_PER_RUN == 2
+    assert intraday.SHADOW_TAIL_MIN_MCAP == 0
+
+
+def test_tail_pages_rotate_and_wrap():
+    pages, nxt = intraday.shadow_tail_pages(5)
+    assert pages == [5, 6] and nxt == 7
+    pages, nxt = intraday.shadow_tail_pages(40)
+    assert pages == [40, 5] and nxt == 6
+    pages, nxt = intraday.shadow_tail_pages(39)
+    assert pages == [39, 40] and nxt == 5
+    # Invalid pointer restarts at the first tail page.
+    assert intraday.shadow_tail_pages(1)[0] == [5, 6]
+    assert intraday.shadow_tail_pages(None)[0] == [5, 6]
+    # 18 runs of 2 pages cover all 36 tail pages exactly once.
+    seen, nxt = [], 5
+    for _ in range(18):
+        pages, nxt = intraday.shadow_tail_pages(nxt)
+        seen.extend(pages)
+    assert sorted(seen) == list(range(5, 41))
+
+
+def test_pegged_wrapped_symbols_excluded():
+    for sym in ('WBTC', 'WETH', 'STETH', 'XAUT', 'PAXG'):
+        assert intraday.is_pegged_or_wrapped(_tail_coin(sym=sym))
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='USDT', name='Tether USD', price=1.0,
+                   spark=[1.0] * 168))
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='USDC', name='USD Coin', price=1.0,
+                   spark=[1.0] * 168))
+
+
+def test_pegged_name_markers():
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='WBTC2', name='Wrapped Bitcoin'))
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='STBL', name='Some Stablecoin'))
+    assert not intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='BTC', name='Bitcoin', price=74000.0))
+
+
+def test_pegged_behavior_rule_flat_dollar_only():
+    # $1.00 and flat for 7d -> pegged.
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='FLAT1', price=1.0, spark=[1.0] * 168))
+    # $1.00 but volatile -> not pegged (a real coin at $1).
+    assert not intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='VOL1', price=1.0,
+                   spark=[1.0 + 0.05 * ((i % 7) - 3) for i in range(168)]))
+    # Flat but nowhere near $1 -> not pegged.
+    assert not intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='FLAT50', price=50.0, spark=[50.0] * 168))
+
+
+def test_tail_coin_eligible_gates():
+    ok, why = intraday.tail_coin_eligible(_tail_coin(), {'XMR'})
+    assert (ok, why) == (True, None)
+    assert intraday.tail_coin_eligible(
+        _tail_coin(sym='XMR'), {'XMR'}) == (False, 'blocked')
+    assert intraday.tail_coin_eligible(
+        _tail_coin(sym='USDT', name='Tether USD', price=1.0,
+                   spark=[1.0] * 168), set()) == (False, 'pegged_wrapped')
+    assert intraday.tail_coin_eligible(
+        _tail_coin(price=0.0), set()) == (False, 'no_price')
+    assert intraday.tail_coin_eligible(
+        _tail_coin(vol=0), set()) == (False, 'no_volume')
+
+
+def test_tail_scan_admits_micro_cap_with_real_volume():
+    # A $20k coin with a strong trend and real 24h volume scores
+    # under the tail's zero mcap floor — zero HTTP calls (prices=).
+    def _fetch(url, timeout=30):
+        raise AssertionError('no fetch expected when prices= is given')
+
+    prices = chart_for([4.0] * 24, vols=[1_000_000] * 25)['prices']
+    sig = scan(_tail_coin(mcap=20_000), _fetch,
+               min_mcap=intraday.SHADOW_TAIL_MIN_MCAP, prices=prices)
+    assert sig is not None and sig['direction'] == 'LONG'
+
+
+def test_scan_coin_reports_real_24h_volume():
+    # The markets payload's 24h USD total rides on the signal as a
+    # display-only liquidity read (no hourly volumes exist for the
+    # shadow path — sparkline-only since the Nov 9 throttle fix).
+    def _fetch(url, timeout=30):
+        raise AssertionError('no fetch expected when prices= is given')
+
+    prices = chart_for([4.0] * 24, vols=[1_000_000] * 25)['prices']
+    c = _tail_coin(mcap=20_000, vol=8_000)
+    sig = scan(c, _fetch, min_mcap=intraday.SHADOW_TAIL_MIN_MCAP,
+               prices=prices)
+    assert sig is not None
+    assert sig['volume_24h_usd'] == 8_000
+    assert sig['vol_mcap_ratio'] == round(8_000 / 20_000, 4)
+    # No volume on the payload -> 0 / None, never a crash.
+    c2 = {'id': 'novol', 'symbol': 'NV', 'name': 'NoVol',
+          'market_cap': 20_000, 'sparkline_in_7d': {'price': spark_7d()}}
+    sig2 = scan(c2, _fetch, min_mcap=intraday.SHADOW_TAIL_MIN_MCAP,
+                prices=prices)
+    assert sig2 is not None
+    assert sig2['volume_24h_usd'] == 0
+    assert sig2['vol_mcap_ratio'] == 0.0
+
+
+# ---------------------------------------------------------------- 95% is a goal, not a gate (Nic 2026-11-11)
+
+def test_flagged_cells_use_win_rate_bands_not_95_ci():
+    # The flag rule is n>=20 + win-rate bands (60/35) — no Wilson 95%
+    # cutoff anywhere in this path. A 65% cell flags even though its
+    # Wilson 95% lower bound (~43%) sits far below 95%; a 55% cell
+    # does not flag. 95% stays a displayed target, never a filter.
+    from intraday import wilson_lower
+    hi = [{'type': 'signal_shadow', 'direction': 'LONG', 'band': '60-69',
+           'regime': 'mixed', 'graded': 20, 'wins': 13, 'losses': 7,
+           'win_rate': 65.0, 'expired': 0, 'open': 0}]
+    assert wilson_lower(13, 20) < 0.5  # Wilson lower is ~43% — not 95%
+    flagged = intraday.proof_flagged_cells(hi)
+    assert len(flagged) == 1 and flagged[0]['candidate'] == 'include'
+    mid = [dict(hi[0], wins=11, losses=9, win_rate=55.0)]
+    assert intraday.proof_flagged_cells(mid) == []
+    lo = [dict(hi[0], wins=6, losses=14, win_rate=30.0)]
+    flagged = intraday.proof_flagged_cells(lo)
+    assert len(flagged) == 1 and flagged[0]['candidate'] == 'exclude'
+    # Below n=20 nothing flags, whatever the rate.
+    small = [dict(hi[0], graded=19, wins=19, losses=0, win_rate=100.0)]
+    assert intraday.proof_flagged_cells(small) == []

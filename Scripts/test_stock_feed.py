@@ -9,6 +9,7 @@ never join longs/shorts, never touch a buy gate, never alert.
 
 Run: python3 -m pytest Scripts/test_stock_feed.py
 """
+import json
 import os
 import sys
 from datetime import datetime, timezone
@@ -242,3 +243,87 @@ def test_scan_stock_with_too_few_bars():
     assert stock_feed.scan_stock_with(
         'AAPL', [[1, 100.0], [2, 101.0]], intraday.hourly_features,
         intraday.score_intraday, intraday.balance_score) is None
+
+
+# ---------------------------------------------------------------- tail rotation + universe cache (Phase 2)
+
+def test_tail_slice_rotates_and_wraps():
+    tail = [f'T{i:03d}' for i in range(970)]
+    sl, nxt = stock_feed.stock_tail_slice(tail, 0)
+    assert len(sl) == 100 and sl[0] == 'T000' and sl[-1] == 'T099'
+    assert nxt == 100
+    # Wrap: offset 900 -> last 70 then the first 30.
+    sl, nxt = stock_feed.stock_tail_slice(tail, 900)
+    assert len(sl) == 100
+    assert sl[0] == 'T900' and sl[69] == 'T969'
+    assert sl[70] == 'T000' and sl[-1] == 'T029'
+    assert nxt == 30
+    # Ten slices of 100 cover 970 + 30 of the next pass.
+    seen, off = [], 0
+    for _ in range(10):
+        sl, off = stock_feed.stock_tail_slice(tail, off)
+        seen.extend(sl)
+    assert len(seen) == 1000 and len(set(seen[:970])) == 970
+
+
+def test_tail_slice_empty_and_short_tail():
+    assert stock_feed.stock_tail_slice([], 0) == ([], 0)
+    sl, nxt = stock_feed.stock_tail_slice(['A', 'B'], 0, size=100)
+    assert sl == ['A', 'B'] and nxt == 0
+
+
+def _write_cache(tmp_path, tickers, asof):
+    p = tmp_path / 'u1000.json'
+    p.write_text(json.dumps({'asof': asof, 'tickers': tickers}))
+    return str(p)
+
+
+def test_load_universe_uses_fresh_cache(tmp_path):
+    import json
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).date().isoformat()
+    p = _write_cache(tmp_path, ['AAA', 'BBB'], today)
+
+    def _boom():
+        raise AssertionError('fresh cache must not fetch')
+    tickers, diag = stock_feed.load_stock_universe_1000(p, fetch_fn=_boom)
+    assert tickers == ['AAA', 'BBB']
+    assert diag.startswith('cache asof=')
+
+
+def test_load_universe_refreshes_stale_cache(tmp_path):
+    import json
+    from datetime import datetime, timezone
+    p = _write_cache(tmp_path, ['OLD'], '2026-11-08')
+    tickers, diag = stock_feed.load_stock_universe_1000(
+        p, fetch_fn=lambda: (['NEW1', 'NEW2'], 'stub-ok'))
+    assert tickers == ['NEW1', 'NEW2']
+    assert diag.startswith('refreshed asof=')
+    # Cache file rewritten with today's date and the fresh list.
+    saved = json.loads(open(p).read())
+    assert saved['tickers'] == ['NEW1', 'NEW2']
+    assert saved['asof'] == datetime.now(timezone.utc).date().isoformat()
+
+
+def test_load_universe_falls_back_stale_then_core(tmp_path):
+    import json
+    # Stale cache + failing refresh -> stale cache, not an exception.
+    p = _write_cache(tmp_path, ['STALE'], '2026-11-01')
+    tickers, diag = stock_feed.load_stock_universe_1000(
+        p, fetch_fn=lambda: (_ for _ in ()).throw(RuntimeError('down')))
+    assert tickers == ['STALE']
+    assert 'stale cache' in diag
+    # No cache at all + failing refresh -> the core 30.
+    tickers, diag = stock_feed.load_stock_universe_1000(
+        str(tmp_path / 'missing.json'),
+        fetch_fn=lambda: (_ for _ in ()).throw(RuntimeError('down')))
+    assert tickers == stock_feed.STOCK_UNIVERSE
+    assert 'fallback core-30' in diag
+
+
+def test_load_universe_truncates_to_1000(tmp_path):
+    big = [f'T{i:04d}' for i in range(1200)]
+    tickers, _ = stock_feed.load_stock_universe_1000(
+        str(tmp_path / 'missing.json'),
+        fetch_fn=lambda: (big, 'stub-ok'))
+    assert len(tickers) == 1000

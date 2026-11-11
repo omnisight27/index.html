@@ -53,6 +53,19 @@ STOCK_RECORD_CAP = 2000            # separate stock ledger cap
 STOCK_SCORE_MIN = 1.5              # |score| filter (crypto uses 3.0 — see header)
 STOCK_TOP_N = 5                    # top 5 each way join the book per run
 
+# Phase 2 (Nic 2026-11-11): the shadow universe widens from the fixed
+# 30 to the top 1,000 US-listed by market cap. The list is sourced
+# from the Finviz free screener (no key, no login) and day-cached —
+# the composition moves slowly, so one refresh a day is enough. The
+# core 30 are still scanned every market-hours run; the other 970
+# rotate through in slices of STOCK_TAIL_SLICE, so the full 1,000 is
+# covered ~1.3x per trading day (13 runs x 100). Everything else is
+# unchanged: 2h horizon, |score| >= 1.5, 0.5% net floor, separate
+# stock ledger, 9:30-16:00 ET, delayed (~15 min) Yahoo data.
+STOCK_UNIVERSE_1000_TARGET = 1000
+STOCK_TAIL_SLICE = 100             # tail tickers per market-hours run
+STOCK_UNIVERSE_CACHE_MAX_AGE_DAYS = 1
+
 # Stock shadow fee tier (SHADOW ONLY — see header). Round-trip cost
 # ~= 0.10%; net floor 0.5% is ~5x cost cover.
 STOCK_ENTRY_FEE = 0.0
@@ -91,6 +104,75 @@ def us_market_open_now(now=None):
     if et.strftime('%Y-%m-%d') in US_MARKET_HOLIDAYS:
         return False
     return time(9, 30) <= et.time() < time(16, 0)
+
+
+def stock_tail_slice(tail, next_offset, size=STOCK_TAIL_SLICE):
+    """Rotating slice of the stock tail (pure function). Returns
+    (slice, new_offset); wraps to 0 after the end. Empty tail ->
+    ([], 0). A slice shorter than `size` only happens when the tail
+    itself is shorter."""
+    if not tail:
+        return [], 0
+    n = len(tail)
+    off = next_offset % n if isinstance(next_offset, int) else 0
+    out = [tail[(off + i) % n] for i in range(min(size, n))]
+    return out, (off + len(out)) % n
+
+
+def load_stock_universe_1000(cache_path,
+                              max_age_days=STOCK_UNIVERSE_CACHE_MAX_AGE_DAYS,
+                              fetch_fn=None):
+    """Top-1,000 US-listed tickers by market cap, day-cached.
+    A fresh cache (< max_age_days old) is loaded, never re-fetched.
+    A stale or missing cache triggers one Finviz refresh (fetch_fn,
+    default the Finviz free screener — lazy import, because
+    finviz_feed imports this module's STOCK_UNIVERSE). A failed
+    refresh falls back to the stale cache, then to the core
+    STOCK_UNIVERSE. Returns (tickers, diag). Never raises; never
+    touches a buy gate. Cache file: {'asof': 'YYYY-MM-DD',
+    'tickers': [...]}."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    try:
+        with open(cache_path) as f:
+            cached = json.load(f) or {}
+        tickers = [t for t in (cached.get('tickers') or [])
+                   if isinstance(t, str) and t]
+        asof = cached.get('asof') or ''
+        if tickers and asof:
+            try:
+                age = (datetime.now(timezone.utc).date()
+                       - datetime.strptime(asof, '%Y-%m-%d').date()).days
+            except ValueError:
+                age = max_age_days + 1
+            if age <= max_age_days:
+                return tickers[:STOCK_UNIVERSE_1000_TARGET], \
+                    f'cache asof={asof} tickers={len(tickers)}'
+    except Exception:
+        tickers, asof = [], ''
+    # Stale or missing: one refresh, then write the cache.
+    try:
+        if fetch_fn is None:
+            from finviz_feed import fetch_top1000_by_mcap
+            fetch_fn = fetch_top1000_by_mcap
+        fresh, fetch_diag = fetch_fn()
+        fresh = [t for t in (fresh or []) if isinstance(t, str) and t]
+        if fresh:
+            try:
+                with open(cache_path, 'w') as f:
+                    json.dump({'asof': today,
+                               'tickers': fresh[:STOCK_UNIVERSE_1000_TARGET]},
+                              f)
+            except Exception:
+                pass  # cache write is a nicety, not the result
+            return fresh[:STOCK_UNIVERSE_1000_TARGET], \
+                f'refreshed asof={today} tickers={len(fresh)} ({fetch_diag})'
+    except Exception as e:
+        fetch_diag = f'REFRESH_FAILED: {e}'
+    if tickers:
+        return tickers[:STOCK_UNIVERSE_1000_TARGET], \
+            f'stale cache asof={asof or "?"} tickers={len(tickers)} ({fetch_diag})'
+    return list(STOCK_UNIVERSE), \
+        f'fallback core-30 ({fetch_diag})'
 
 
 def fetch_stock_candles(sym, range_='7d', interval='1h', timeout=30):

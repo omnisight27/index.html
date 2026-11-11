@@ -172,3 +172,62 @@ def test_merge_combines_views_on_ticker(monkeypatch):
     assert len(res['rows']) == 1
     assert res['rows'][0] == {'ticker': 'AAPL', 'price': 100.0, 'rsi': 55.0}
     assert res['diag'].startswith('OK 1/30')
+
+
+# ---------------------------------------------------------------- top-1000 by mcap (Phase 2)
+
+def _top1000_page_html(start_idx, count):
+    rows = ''.join(
+        f'<div data-row-key="T{start_idx + i:04d}">'
+        f'<div data-column-id="price">{100 + i}</div></div>'
+        for i in range(count))
+    return f'<div>{rows}</div>'
+
+
+def test_top1000_paginates_to_target(monkeypatch):
+    # 50 full pages of 20 -> exactly 1,000 tickers, mcap order kept.
+    def fake_fetch(url, timeout=30):
+        import re
+        m = re.search(r'[&?]r=(\d+)', url)
+        start = int(m.group(1)) if m else 1
+        assert 'o=-marketcap' in url
+        assert 'exch_amex' in url and 'exch_nasdaq' in url \
+            and 'exch_nyse' in url
+        return _top1000_page_html(start - 1, 20)
+    monkeypatch.setattr(finviz_feed, '_fetch_url', fake_fetch)
+    monkeypatch.setattr(finviz_feed, 'TOP1000_PACE_S', 0)
+    tickers, diag = finviz_feed.fetch_top1000_by_mcap()
+    assert len(tickers) == 1000
+    assert tickers[0] == 'T0000' and tickers[-1] == 'T0999'
+    assert len(set(tickers)) == 1000
+    assert 'tickers=1000' in diag and 'pages=50' in diag
+
+
+def test_top1000_stops_on_short_page(monkeypatch):
+    def fake_fetch(url, timeout=30):
+        import re
+        m = re.search(r'[&?]r=(\d+)', url)
+        start = int(m.group(1)) if m else 1
+        if start >= 41:
+            return _top1000_page_html(start - 1, 5)  # short page: stop
+        return _top1000_page_html(start - 1, 20)
+    monkeypatch.setattr(finviz_feed, '_fetch_url', fake_fetch)
+    monkeypatch.setattr(finviz_feed, 'TOP1000_PACE_S', 0)
+    tickers, diag = finviz_feed.fetch_top1000_by_mcap()
+    assert len(tickers) == 45
+    assert 'pages=3' in diag
+
+
+def test_top1000_fail_open_midway(monkeypatch):
+    def fake_fetch(url, timeout=30):
+        import re
+        m = re.search(r'[&?]r=(\d+)', url)
+        start = int(m.group(1)) if m else 1
+        if start > 1:
+            return None
+        return _top1000_page_html(0, 20)
+    monkeypatch.setattr(finviz_feed, '_fetch_url', fake_fetch)
+    monkeypatch.setattr(finviz_feed, 'TOP1000_PACE_S', 0)
+    tickers, diag = finviz_feed.fetch_top1000_by_mcap()
+    assert len(tickers) == 20
+    assert 'FETCH_FAILED' in diag

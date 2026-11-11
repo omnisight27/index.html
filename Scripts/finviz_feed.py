@@ -65,6 +65,15 @@ VIEW_TECHNICAL = '171'     # beta/ATR/SMA20/50/200/52w/RSI/price/change/gap
 VIEW_PERFORMANCE = '141'   # perf 1w/4w/YTD/52w, volatility, relative volume
 ROWS_PER_PAGE = 20
 MAX_PAGES = 10             # safety cap (universe is 30 -> 2 pages)
+# Top-1,000 US-listed by market cap (stocks Phase 2, Nic 2026-11-11):
+# the same screener, filtered to the three US exchanges and sorted by
+# market cap descending. 50 pages at 20 rows/page; paced, day-cached
+# by the caller (stock_feed) — the composition moves slowly.
+TOP1000_FILTERS = 'exch_amex,exch_nasdaq,exch_nyse'
+TOP1000_SORT = '-marketcap'
+TOP1000_TARGET = 1000
+TOP1000_MAX_PAGES = 50
+TOP1000_PACE_S = 0.3
 USER_AGENT = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
               'AppleWebKit/537.36 (KHTML, like Gecko) '
               'Chrome/120.0 Safari/537.36')
@@ -271,6 +280,42 @@ def fetch_finviz_view(view, tickers=None, timeout=30):
             break
         start += ROWS_PER_PAGE
     return rows, f'OK view={view} rows={len(rows)} pages={pages}'
+
+
+def fetch_top1000_by_mcap(timeout=30, pace_s=TOP1000_PACE_S):
+    """Top 1,000 US-listed tickers by market cap from the Finviz free
+    screener (no login, no key). One view (overview), 20 rows/page,
+    50 pages, paced so Finviz is not hammered. Returns
+    (tickers_in_mcap_order, diag). Fail-open: a failed page stops the
+    walk and returns what was collected, with a diag that says so.
+    The list is Finviz's US-listed universe (exchanges AMEX/NASDAQ/
+    NYSE, market-cap order) — it includes a few ETFs/ADRs alongside
+    common stock; Yahoo v8 serves them all the same. Display-only /
+    shadow research — never a live signal source."""
+    import time
+    tickers, pages, start = [], 0, 1
+    while len(tickers) < TOP1000_TARGET and pages < TOP1000_MAX_PAGES:
+        url = (f'{FINVIZ_BASE}?v={VIEW_OVERVIEW}'
+               f'&f={TOP1000_FILTERS}&o={TOP1000_SORT}&r={start}')
+        html = _fetch_url(url, timeout=timeout)
+        if html is None:
+            return tickers, (f'FETCH_FAILED r={start} pages={pages} '
+                             f'tickers={len(tickers)}')
+        rows = parse_finviz_html(html)
+        pages += 1
+        if not rows:
+            break
+        for row in rows:
+            t = row.get('ticker')
+            if t and t not in tickers:
+                tickers.append(t)
+        if len(rows) < ROWS_PER_PAGE:
+            break
+        start += ROWS_PER_PAGE
+        if len(tickers) < TOP1000_TARGET:
+            time.sleep(pace_s)
+    return tickers[:TOP1000_TARGET], \
+        f'OK tickers={len(tickers)} pages={pages}'
 
 
 def fetch_finviz_universe(views=(VIEW_OVERVIEW, VIEW_TECHNICAL),

@@ -175,11 +175,14 @@
     el.innerHTML = html;
   }
 
-  // Shadow universe scoreboard (expansion Phase 1): per-cell shadow
-  // results for ranks 201-500 by market cap — same +2h horizon and
+  // Shadow universe scoreboard (expansion Phase 1/2): per-cell shadow
+  // results for ranks 201-10,000 by market cap — same +2h horizon and
   // levels as live signals, graded in a separate ledger. A flagged
   // cell (n >= 20, extreme win rate) is a promotion candidate for
-  // Nic's review — recommendation only, never automatic.
+  // Nic's review — recommendation only, never automatic. No 95%
+  // cutoff anywhere in this path: cells are weighted by how
+  // predictive they grade out (win rate + n), the Wilson 95% lower
+  // bound is display-only where shown.
   function renderShadowScoreboard(st) {
     var rows = ((st && st.shadow_scoreboard) || [])
       .filter(function (c) { return c.graded > 0 || c.open > 0; });
@@ -191,7 +194,7 @@
         (c.win_rate === null || c.win_rate === undefined ? '—' : c.win_rate + '%') +
         '</td></tr>';
     }).join('');
-    var html = '<details style="margin-top:16px;"><summary><strong>Shadow universe scoreboard (expansion)</strong> — shadow-graded signals from ranks 201–500 by market cap, $1,000 paper each</summary>' +
+    var html = '<details style="margin-top:16px;"><summary><strong>Shadow universe scoreboard (expansion)</strong> — shadow-graded signals from ranks 201–10,000 by market cap, $1,000 paper each</summary>' +
       '<p>Top shadow longs/shorts each run, graded like live signals but never alerted. A cell with n &gt;= 20 at an extreme win rate is flagged below as a promotion candidate for Nic\'s review.</p>' +
       '<table class="report-table"><thead><tr><th>Scenario</th><th>Won</th><th>Lost</th>' +
       '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
@@ -223,7 +226,7 @@
         (c.win_rate === null || c.win_rate === undefined ? '—' : c.win_rate + '%') +
         '</td></tr>';
     }).join('');
-    var html = '<details style="margin-top:16px;"><summary><strong>Stocks scoreboard (research)</strong> — shadow-graded stock signals (30 liquid US large-caps, Yahoo 1h), $1,000 paper each</summary>' +
+    var html = '<details style="margin-top:16px;"><summary><strong>Stocks scoreboard (research)</strong> — shadow-graded stock signals (top 1,000 US-listed by market cap: core 30 + rotating tail, Yahoo 1h), $1,000 paper each</summary>' +
       '<p>Top stock longs/shorts each market-hours run, graded like live signals but never alerted. Stock theses use the stock shadow fee tier (commission-free, 0.5% net floor) — see the stocks spec. A cell with n &gt;= 20 at an extreme win rate is flagged below as a promotion candidate for Nic\'s review.</p>' +
       '<table class="report-table"><thead><tr><th>Scenario</th><th>Won</th><th>Lost</th>' +
       '<th>Expired</th><th>Open</th><th>Graded</th><th>Win rate</th></tr></thead>' +
