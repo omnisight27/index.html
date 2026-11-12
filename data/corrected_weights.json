@@ -1,0 +1,36 @@
+{
+  "t": 1,
+  "timestamp": "2026-11-11T19:29:56+00:00",
+  "weights": [
+    -0.003,
+    -0.02,
+    -0.011,
+    -0.013,
+    -0.023,
+    0.003,
+    0.009,
+    0.002,
+    -0.007,
+    0.003,
+    0.009,
+    0.003,
+    0.002,
+    -0.002,
+    0.009,
+    0.002,
+    0.002,
+    0.015,
+    0.003,
+    0.002,
+    -0.02,
+    -0.044
+  ],
+  "source": "50%-rule signed weights from latest grades, folded with gate-log term multipliers",
+  "proof": {
+    "fifty_rule_exp_usd": -3.58,
+    "current_exp_usd": 12.27,
+    "ablation_exp_usd": -7.24,
+    "n_test_picks": 466,
+    "scale": 0.5814
+  }
+}

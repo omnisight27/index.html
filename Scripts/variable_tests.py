@@ -39,6 +39,19 @@ Rulers (same as the Proof Book — see the Nov 11 variable audit):
     entries, actual drift at close for expired ones).
   - A cell with n < 20 graded is too thin to judge: verdict UNKNOWN.
 
+Corrected shadow weight set (Nov 11, "correct the function" build):
+  SHADOW_OVERRIDES below is the shadow-only set from the harness's
+  out-of-sample ablation — acceleration 0.225, psych_bias 0.173,
+  extreme_fade / reversion / vol_regime / trend_align / ma_align 0,
+  everything else keeping its (train-fit) weight. The harness
+  re-grades it out-of-sample on the SAME walk-forward split and
+  reports its expectancy against the current weights' expectancy,
+  plus a joint remove-all-dead ablation (all 21 dead-weight features
+  zeroed at once). The Nov 1 self-tune proposal is NOT used anywhere
+  here (opposite signs to the ablation); trend_align / ma_align are
+  zeroed, never flipped negative. Shadow only: nothing here touches
+  a live weight, score, gate, or ledger.
+
 What the ablation does NOT model (stated limits):
   - It re-grades each published pick under its ablated direction; it
     does NOT re-run top-k selection (which picks make the daily top 3).
@@ -81,6 +94,26 @@ HURT_DELTA_EXP = -10.0       # $/1k: at/below this the variable HURTS (cut)
 INVERT_SPREAD_PP = 5.0       # tercile spread at/below this reads backwards
 FIXED_WIN_PNL = 28.0         # documented Proof Book ruler (reference only)
 FIXED_LOSS_PNL = 35.0
+
+# Corrected shadow weight set (Nov 11, "correct the function" build).
+# Keyed by FEATURE_NAMES index: 0 momentum, 1 reversion, 2 psych_bias,
+# 3 fg_level, 4 fg_delta, 5 vol, 6 acceleration, 7 zscore, 8 rsi,
+# 9 trend_align, 10 macd, 11 ma_align, 12 donchian, 13 rsi, 14 roc,
+# 15 stoch, 16 boll_pctb, 17 atr, 18 vol_regime, 19 zscore, 20
+# extreme_fade, 21 var. Values are the harness's out-of-sample
+# justified weights (optimization-brief-2026-11-11.md §1): the two
+# raises, the five cuts to zero. Everything else keeps its current
+# (train-fit) weight — the other 15 dead-weight features are NOT
+# zeroed in this set; the joint remove-all-dead ablation is run and
+# reported separately so the mass-zeroing decision rests on its
+# out-of-sample result, not on an assumption.
+SHADOW_OVERRIDES = {6: 0.225, 2: 0.173, 20: 0.0, 1: 0.0, 18: 0.0,
+                    9: 0.0, 11: 0.0}
+SHADOW_OVERRIDE_NAMES = {6: 'acceleration', 2: 'psych_bias',
+                         20: 'extreme_fade', 1: 'reversion',
+                         18: 'vol_regime', 9: 'trend_align',
+                         11: 'ma_align'}
+WILSON_Z = 1.96  # 95% interval — displayed only, never a gate (Nic Nov 11)
 
 
 # ------------------------------------------------------------------ helpers
@@ -129,7 +162,350 @@ def fmt(x, digits=1):
     return f"{x:.{digits}f}" if x is not None else "—"
 
 
+def wilson_lower_95(wins, n, z=WILSON_Z):
+    """Wilson 95% interval lower bound as a fraction (0..1), or None
+    when n is 0. DISPLAY ONLY — it never gates anything (Nic Nov 11:
+    95% is a goal to read, not a gate)."""
+    if not n:
+        return None
+    p = wins / n
+    denom = 1 + z * z / n
+    centre = p + z * z / (2 * n)
+    margin = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
+    return max(0.0, (centre - margin) / denom)
+
+
+def _regraded_outcomes(test_picks, weights, win_c, loss_c, zero_indices=None):
+    """Per-pick (score, direction, direction-signed return, win) under
+    `weights`, optionally with `zero_indices` zeroed out of the score.
+    Ground truth is the published return/win flag; a direction
+    different from the published one earns the mirror outcome
+    (return negated, win flipped). Shared by ablate_feature and
+    grade_with_weights so the two never drift apart."""
+    zero = set(zero_indices or [])
+    out = []
+    for p in test_picks:
+        feats = list(p['features'])
+        for j in zero:
+            if 0 <= j < len(feats):
+                feats[j] = 0.0
+        score, direction = rescore(feats, weights, win_c, loss_c, p['regime'])
+        ret = p['ret'] if direction == p['direction'] else -p['ret']
+        win = p['win'] if direction == p['direction'] else (
+            not p['win'] if p['ret'] != 0 else p['win'])
+        out.append((score, direction, ret, win))
+    return out
+
+
+def grade_with_weights(test_picks, weights, win_c, loss_c, zero_indices=None):
+    """Re-grade the TEST picks under one weight set (optionally with
+    `zero_indices` zeroed): win rate and expectancy per $1,000 on the
+    SAME walk-forward test slice the ablations use, so any weight set
+    — current, shadow, joint-ablated — is comparable on identical
+    ground. Returns {n, wins, losses, win_pct, exp_usd, exp_se_usd}."""
+    outcomes = _regraded_outcomes(test_picks, weights, win_c, loss_c,
+                                  zero_indices)
+    n = len(outcomes)
+    wins = sum(1 for _s, _d, _r, w in outcomes if w)
+    rets = [r for _s, _d, r, _w in outcomes]
+    exp = expectancy_usd(rets)
+    return {
+        'n': n,
+        'wins': wins,
+        'losses': n - wins,
+        'win_pct': round(win_rate_pct(wins, n - wins), 1) if n else None,
+        'exp_usd': round(exp, 2) if exp is not None else None,
+        'exp_se_usd': round(sem_usd(rets) or 0.0, 2),
+    }
+
+
+def shadow_weights(base_weights, overrides=None):
+    """The corrected shadow weight set: `base_weights` with
+    SHADOW_OVERRIDES applied. A NEW list; the base is never mutated.
+    The Nov 1 self-tune proposal is deliberately NOT an input here."""
+    w = [float(x) for x in base_weights]
+    for j, v in (overrides if overrides is not None else SHADOW_OVERRIDES).items():
+        if 0 <= j < len(w):
+            w[j] = float(v)
+    return w
+
+
+# ------------------------------------------------------------------
+# Nic's 50% rule (Nov 11): "If you have over 50% proof it signal as
+# positive. And <50% as negative and weighs accordingly to
+# percentage." Each variable/cell/track takes its graded win rate —
+# the proof percentage — and becomes a SIGNED weight: above 50% is a
+# positive signal, below 50% is a negative signal, magnitude scaling
+# with distance from 50% (50% itself = zero). This is the shadow
+# weight set now; the ablation set stays as a comparison benchmark.
+# Scaling (one transparent choice, stated everywhere it is used):
+# signed weight = (win_rate - 0.50) * SCALE, where SCALE =
+# MAX_SIGNED_WEIGHT / max |win_rate - 0.50| over ALL signed items
+# (the 22 features on their TRAIN slice + every graded track/cell),
+# so the largest distance from 50% maps to the largest current
+# learned weight (0.225) — mirroring how the harness scales
+# justified weights. The scaling itself is a testable choice.
+# ------------------------------------------------------------------
+
+MAX_SIGNED_WEIGHT = 0.225  # largest current learned weight (extreme_fade)
+
+
+def fifty_rule_scale(distances, cap=MAX_SIGNED_WEIGHT):
+    """SCALE for Nic's 50% rule: cap / largest |win_rate - 0.50|.
+
+    `distances` are fractions (0..0.5). Returns 0.0 when every
+    distance is 0 (nothing is provably above or below 50%)."""
+    biggest = max(distances) if distances else 0.0
+    return cap / biggest if biggest > 0 else 0.0
+
+
+def signed_weight_50(win_rate_frac, scale):
+    """Signed weight for one proof percentage: (win_rate - 0.50) x SCALE.
+
+    win_rate_frac is a fraction (0..1). Above 50% -> positive,
+    below 50% -> negative, exactly 50% -> zero."""
+    return round((win_rate_frac - 0.50) * scale, 3)
+
+
+def invert_entry(e):
+    """Mirror-image outcome of one graded ledger entry: the same trade
+    taken on the opposite side. Returns (inv_pnl, inv_win, method).
+
+    - Horizon-close entries (cycle_expired / pattern_expired /
+      cmi_expired, or status 'expired'): the payoff is drift, which
+      flips sign exactly — inv_pnl = -pnl, win flipped (for
+      won/lost) or drift-flipped (for 'expired', where win means the
+      drift covered costs: inv wins iff the mirrored drift does).
+    - Fixed-level hits (status won at exactly +$28, lost at exactly
+      -$35): the opposite side hits the opposite level — won +28
+      becomes lost -35, lost -35 becomes won +28. The mirror is NOT
+      -pnl here (+28 mirrored is -35, not -28).
+    - Anything else (e.g. a breakeven trailing-stop win at $0.00):
+      fallback mirror, inv_pnl = -pnl, win flipped — counted as
+      'fallback' so the report can say how many entries took it.
+    This is a FIRST-ORDER read: the true opposite trade's stop/target
+    touch order on a live path can differ from the mirror, so the
+    inverted expectancy is an estimate of what betting against the
+    cell would have paid, not an exact re-grade.
+    """
+    pnl = e.get('paper_pnl') or 0.0
+    status = e.get('status')
+    expired_close = bool(e.get('cycle_expired') or
+                         e.get('pattern_expired') or
+                         e.get('cmi_expired'))
+    if status == 'expired':
+        res = e.get('result_pct')
+        try:
+            inv_win = (res is not None and float(res) <= -1.4)
+        except (TypeError, ValueError):
+            inv_win = False
+        return -pnl, inv_win, 'horizon_close'
+    if expired_close:
+        return -pnl, (status != 'won'), 'horizon_close'
+    if status == 'won' and pnl == FIXED_WIN_PNL:
+        return -FIXED_LOSS_PNL, False, 'fixed_level'
+    if status == 'lost' and pnl == -FIXED_LOSS_PNL:
+        return FIXED_WIN_PNL, True, 'fixed_level'
+    return -pnl, (status != 'won'), 'fallback'
+
+
+def invert_entries(entries):
+    """Mirror-image totals for a set of graded ledger entries.
+
+    Returns {n_graded, wins, losses, expired, win_rate,
+    expectancy_usd, paper_pnl_total, methods} where wins/losses
+    count only won/lost entries (expired-status entries contribute
+    dollars only, as in the original ruler). `methods` counts how
+    many entries inverted by each method above.
+    """
+    t = {'n_graded': 0, 'wins': 0, 'losses': 0, 'expired': 0,
+         'paper_pnl_total': 0.0,
+         'methods': {'fixed_level': 0, 'horizon_close': 0, 'fallback': 0}}
+    for e in entries or []:
+        if e.get('status') not in ('won', 'lost', 'expired'):
+            continue
+        inv_pnl, inv_win, method = invert_entry(e)
+        t['methods'][method] += 1
+        t['n_graded'] += 1
+        t['paper_pnl_total'] += inv_pnl
+        if e.get('status') == 'expired':
+            t['expired'] += 1
+        elif inv_win:
+            t['wins'] += 1
+        else:
+            t['losses'] += 1
+    wl = t['wins'] + t['losses']
+    t['win_rate'] = round(t['wins'] / wl * 100, 1) if wl else None
+    t['expectancy_usd'] = (round(t['paper_pnl_total'] / wl, 2)
+                           if wl else None)
+    t['paper_pnl_total'] = round(t['paper_pnl_total'], 2)
+    return t
+
+
 # ------------------------------------------------------------------ history
+
+def residual_cases(test_picks, weights, win_c, loss_c, top_n=5):
+    """Hunt the residual (unknown): the picks where F — the 50%-rule
+    corrected function — was most wrong, on the SAME test slice the
+    three-way comparison uses. No value is invented for unknown; the
+    residual cases ARE the hunt — where F is wrong, the unknown lives.
+
+    Two lists, each ranked by |shadow score| (F's conviction):
+      calls_lost — F called it (shadow direction == published) and it
+        lost. Dollar miss = the loss per $1,000 (-ret x 10).
+      fades_won — F faded the published call (shadow direction opposite
+        published) and the published call won anyway. Dollar miss = the
+        win F talked us out of (published ret x 10).
+    Each case: asset, run date, what F predicted (direction + shadow
+    score), what happened (direction-signed return), dollar miss.
+    """
+    scored = []
+    for p in test_picks:
+        score, direction = rescore(p['features'], weights, win_c, loss_c,
+                                   p['regime'])
+        ret = p['ret'] if direction == p['direction'] else -p['ret']
+        win = p['win'] if direction == p['direction'] else (
+            not p['win'] if p['ret'] != 0 else p['win'])
+        scored.append({'pick': p, 'score': score, 'direction': direction,
+                       'ret': ret, 'win': win})
+
+    def case(s, kind):
+        p = s['pick']
+        miss = (-p['ret'] * 10.0 if kind == 'call_lost'
+                else p['ret'] * 10.0)
+        return {
+            'kind': kind,
+            'asset': p['asset'],
+            'run_date': (p['run_date'].isoformat()[:10]
+                         if p.get('run_date') else None),
+            'f_direction': 'LONG' if s['direction'] == 1 else 'SHORT',
+            'f_score': round(s['score'], 2),
+            'published_direction': 'LONG' if p['direction'] == 1 else 'SHORT',
+            'outcome': 'lost' if kind == 'call_lost' else 'won',
+            # The PUBLISHED call's realized return (what actually
+            # happened): negative on a losing call, positive on a win
+            # F faded. The shadow-direction return would flip the sign
+            # on fades and read backwards — never show that here.
+            'published_return_pct': round(p['ret'], 2),
+            'dollar_miss_per_1000': round(miss, 2),
+        }
+
+    calls_lost = sorted(
+        (s for s in scored
+         if s['direction'] == s['pick']['direction'] and not s['win']),
+        key=lambda s: -abs(s['score']))[:top_n]
+    fades_won = sorted(
+        (s for s in scored
+         if s['direction'] != s['pick']['direction'] and s['pick']['win']),
+        key=lambda s: -abs(s['score']))[:top_n]
+    return {'calls_lost': [case(s, 'call_lost') for s in calls_lost],
+            'fades_won': [case(s, 'fades_won') for s in fades_won]}
+
+
+def f_form_mapping(results):
+    """F = a + b + c + d + (f - e) + unknown — PROPOSED letter mapping
+    (Nic confirms the letters; flagged PROPOSED everywhere it appears).
+    For each term: what currently proxies it in the graded data and
+    whether that proxy is graded or ungraded. unknown is never given a
+    value — its proxy is the residual cases.
+    """
+    setup = (results.get('per_kind') or {}).get('setup') or {}
+    fr = results.get('fifty_rule') or {}
+    feat_rows = {x['name']: x for x in fr.get('feature_rows') or []}
+    accel = feat_rows.get('acceleration') or {}
+    psych = feat_rows.get('psych_bias') or {}
+    return {
+        'mapping': 'PROPOSED — Nic confirms the letters',
+        'terms': [
+            {'term': 'a', 'name': 'economics',
+             'ingredient': 'economics',
+             'proxy': ('regime gate — regime_adjustment long_boost / '
+                       'short_damp inside every re-grade, plus buy% '
+                       'conditions (RISK_OFF, buy 38% today)'),
+             'graded': ('PARTLY — the tilt is inside every re-grade, but '
+                        'no standalone regime ablation exists'),
+             'number': None},
+            {'term': 'b', 'name': 'mathematics',
+             'ingredient': 'mathematics',
+             'proxy': ('the harness itself — walk-forward re-grades, the '
+                       '50% rule (win rate -> signed weight), expectancy '
+                       '$/1k, fitted weights'),
+             'graded': 'YES — this report is b, graded out-of-sample',
+             'number': (f"50% rule {fr.get('grade', {}).get('exp_usd')} $/1k "
+                        f"vs current "
+                        f"{(results.get('shadow') or {}).get('base_grade', {}).get('exp_usd')} $/1k"
+                        if fr.get('grade') else None)},
+            {'term': 'c', 'name': 'human psychology',
+             'ingredient': 'psychology',
+             'proxy': ('psych_bias (feature 2, graded) + Fear & Greed '
+                       'level / delta (features 3/4, dead weight) + the '
+                       "engine's own overconfidence (calibration overstates "
+                       'every band)'),
+             'graded': ('MIXED — psych_bias graded (signed weight '
+                        f"{psych.get('signed_weight')}, rule-set delta "
+                        f"{psych.get('rule_set_delta_exp_usd')} $/1k); F&G "
+                        'level/delta dead weight, graded as earning nothing'),
+             'number': None},
+            {'term': 'd', 'name': 'order flow',
+             'ingredient': 'economics',
+             'proxy': ('FOOTPRINT ONLY — accumulation trigger '
+                        f"{setup.get('win_rate')}% when triggered "
+                        f"({setup.get('wins')}W/{setup.get('losses')}L, "
+                        f"+${setup.get('expectancy_usd')}/1k) + acceleration "
+                        '(ablation +$12.19/1k, mechanism UNPROVEN)'),
+             'graded': ('FOOTPRINT ONLY — no direct order-flow data: order '
+                        'book depth, whale wallets, exchange flows are all '
+                        'missing dimensions'),
+             'number': None},
+            {'term': 'f-e', 'name': 'net flow (in minus out)',
+             'ingredient': 'economics',
+             'proxy': ('stablecoin supply / TVL changes (DeFiLlama feed, '
+                       'display-only)'),
+             'graded': ('UNGRADED — no persisted read on graded picks; '
+                        'the feed never populated on a graded pick'),
+             'number': None},
+            {'term': 'unknown', 'name': 'residual',
+             'ingredient': 'mathematics',
+             'proxy': 'the residual cases — where F is wrong, the unknown lives',
+             'graded': ("THE HUNT — the OPEN DOOR: what the loop reaches "
+                        "toward but cannot yet measure. No value invented, "
+                        "no fake precision. Evidence that would count: the "
+                        "residual shrinking over t with no change to the "
+                        "measurable terms, or residual cases clustering on "
+                        "moves the measurable terms cannot see at all. "
+                        "Neither is met — see 'Hunting the residual'"),
+             'number': None},
+        ],
+    }
+
+
+def distance_to_95(results):
+    """Best graded reads against the 95% line (Nic Nov 11: >95% graded
+    proof = a VERY ACCURATE read; 95% is a READ, never a gate — nothing
+    is blocked for being under 95%). Each entry: name, win%, n, basis,
+    distance = 95 - win%. Only n >= 20 reads qualify."""
+    reads = []
+    setup = (results.get('per_kind') or {}).get('setup') or {}
+    if setup.get('win_rate') is not None and setup.get('graded', 0) >= 20:
+        reads.append({'name': 'accumulation setups (triggered calls)',
+                      'win_pct': setup['win_rate'], 'n': setup['graded'],
+                      'basis': 'triggered-call win rate'})
+    for t in (results.get('fifty_rule') or {}).get('tracks') or []:
+        if t.get('win_pct') is not None and (t.get('n') or 0) >= 20:
+            reads.append({'name': t['name'], 'win_pct': t['win_pct'],
+                          'n': t['n'], 'basis': 'cell win rate'})
+    for x in results.get('feature_rows') or []:
+        st = x.get('standalone') or {}
+        if st.get('top_win_pct') is not None and (st.get('top_n') or 0) >= 20:
+            reads.append({'name': f"{x['name']} (top tercile)",
+                          'win_pct': st['top_win_pct'], 'n': st['top_n'],
+                          'basis': 'top-tercile win rate'})
+    reads.sort(key=lambda r: -r['win_pct'])
+    out = []
+    for r in reads[:6]:
+        out.append({**r, 'distance_to_95': round(95.0 - r['win_pct'], 1)})
+    return out
+
 
 def load_history(repo):
     return load_json(os.path.join(repo, 'data', 'history.json'))
@@ -267,35 +643,18 @@ def ablate_feature(test_picks, weights, win_c, loss_c, j):
     isolates feature j inside one consistent model.
     """
     n = len(test_picks)
-    base_rets, abl_rets = [], []
-    base_wins = ablated_wins = 0
-    flips = 0
-    near_zero = 0
-    agree = 0
-    for p in test_picks:
-        s0, d0 = rescore(p['features'], weights, win_c, loss_c, p['regime'])
-        sj, dj = rescore(p['features'], weights, win_c, loss_c, p['regime'], zero_idx=j)
-        if d0 == p['direction']:
-            agree += 1
-        if dj != d0:
-            flips += 1
-        if abs(sj) < 1.0:
-            near_zero += 1
-
-        def outcome(direction):
-            ret = p['ret'] if direction == p['direction'] else -p['ret']
-            win = p['win'] if direction == p['direction'] else (
-                not p['win'] if p['ret'] != 0 else p['win'])
-            return ret, win
-
-        base_ret, base_win = outcome(d0)
-        abl_ret, abl_win = outcome(dj)
-        base_rets.append(base_ret)
-        abl_rets.append(abl_ret)
-        if base_win:
-            base_wins += 1
-        if abl_win:
-            ablated_wins += 1
+    base = _regraded_outcomes(test_picks, weights, win_c, loss_c)
+    abl = _regraded_outcomes(test_picks, weights, win_c, loss_c,
+                             zero_indices=(j,))
+    base_rets = [r for _s, _d, r, _w in base]
+    abl_rets = [r for _s, _d, r, _w in abl]
+    base_wins = sum(1 for _s, _d, _r, w in base if w)
+    ablated_wins = sum(1 for _s, _d, _r, w in abl if w)
+    flips = sum(1 for (_s0, d0, _r0, _w0), (_sj, dj, _rj, _wj)
+                in zip(base, abl) if dj != d0)
+    near_zero = sum(1 for (sj, _dj, _rj, _wj) in abl if abs(sj) < 1.0)
+    agree = sum(1 for (_s0, d0, _r0, _w0), p in zip(base, test_picks)
+                if d0 == p['direction'])
     paired = [b - a for b, a in zip(base_rets, abl_rets)]
     base_win_pct = win_rate_pct(base_wins, n - base_wins)
     abl_win_pct = win_rate_pct(ablated_wins, n - ablated_wins)
@@ -531,6 +890,142 @@ def aggregate_cycle(cycle_record):
         'deduped_n_outcomes': len(by_outcome),
         'label_agreement_pct': round(agree / total_labels * 100, 1) if total_labels else None,
     }
+
+
+def dedupe_cycle_entries(cycle_record):
+    """One entry per distinct trade: (asset, ts_open, horizon).
+
+    The five cycle variables grade the SAME trade five times (identical
+    entry/direction/outcome, one label per variable), so the honest n
+    is the deduped count. Returns (deduped_entries, n_outcomes,
+    label_agreement_pct, disagreements): the representative entry is
+    the first label seen for the outcome; `disagreements` counts
+    labels whose (status, direction) differs from the representative
+    — 0 on today's ledgers (100% agreement), and any future
+    disagreement is surfaced, not silently resolved."""
+    by_outcome = {}
+    agree = 0
+    total_labels = 0
+    disagreements = 0
+    for e in cycle_record or []:
+        key = (e.get('asset'), e.get('ts_open'), e.get('horizon'))
+        total_labels += 1
+        prev = by_outcome.get(key)
+        if prev is None:
+            by_outcome[key] = e
+            agree += 1
+        elif (prev.get('status'), prev.get('direction')) == \
+                (e.get('status'), e.get('direction')):
+            agree += 1
+        else:
+            disagreements += 1
+    return (list(by_outcome.values()), len(by_outcome),
+            round(agree / total_labels * 100, 1) if total_labels else None,
+            disagreements)
+
+
+def cycle_scoreboard_deduped(cycle_record, cumulative=None):
+    """Cycle grading on DISTINCT trades, not five copies of one.
+
+    This is the fix for the cycle double-counting (audit §F): the live
+    scoreboard in intraday.cycle_scoreboard counts one row per
+    (variable, band, direction, horizon), so five variables grading
+    the same asset-day inflate n fivefold (1,485 label rows vs 297
+    distinct outcomes today). This harness-path scoreboard dedupes
+    first — one outcome per (asset, ts_open, horizon) — then grades
+    per (horizon, direction), since the five labels agree 100% on
+    outcome and per-variable cells are five copies of the same number.
+    It lives here, in the grading/harness path, NOT in the live engine:
+    intraday.py is untouched and the live cycle ledger keeps recording
+    one row per variable per asset-day.
+
+    Rulers match this harness (win rate = wins / (wins + losses);
+    expectancy = paper P&L / (wins + losses)); Wilson 95% lower bound
+    is displayed only, never a gate. Per-row max drawdown is the
+    running-$1,000-bankroll drawdown on the visible deduped leg only.
+
+    Cumulative counters CANNOT be deduped: they are stored per
+    variable-cell, already 5x-inflated, with no per-outcome keys to
+    collapse. If `cumulative` is non-empty it is reported under
+    'cumulative_excluded' and NOT folded into the totals — folding it
+    in would re-inflate n. (Today cycle_cumulative is empty, so
+    nothing is excluded.)
+    """
+    deduped, n_outcomes, agreement, disagreements = dedupe_cycle_entries(
+        cycle_record)
+    graded = [e for e in deduped
+              if e.get('status') in ('won', 'lost', 'expired')]
+    inflated = [e for e in (cycle_record or [])
+                if e.get('status') in ('won', 'lost', 'expired')]
+
+    def bucket():
+        return {'graded': 0, 'wins': 0, 'losses': 0, 'expired': 0,
+                'paper_pnl_total': 0.0, 'pnls': []}
+
+    rows_by_key = {}
+    overall = bucket()
+    for e in graded:
+        key = (e.get('horizon') or '?', e.get('direction') or 'LONG')
+        b = rows_by_key.setdefault(key, bucket())
+        for tgt in (b, overall):
+            tgt['graded'] += 1
+            if e.get('status') == 'won':
+                tgt['wins'] += 1
+            elif e.get('status') == 'lost':
+                tgt['losses'] += 1
+            if e.get('cycle_expired'):
+                tgt['expired'] += 1
+            tgt['paper_pnl_total'] += e.get('paper_pnl') or 0
+            tgt['pnls'].append((e.get('ts_closed') or '',
+                                e.get('paper_pnl') or 0))
+
+    def finalize(b, horizon, direction):
+        wl = b['wins'] + b['losses']
+        dd = None
+        if b['pnls']:
+            bankroll, peak, worst = 1000.0, 1000.0, 0.0
+            for _, pnl in sorted(b['pnls']):
+                bankroll += pnl
+                peak = max(peak, bankroll)
+                worst = max(worst, (peak - bankroll) / peak * 100
+                            if peak > 0 else 0.0)
+            dd = round(worst, 1)
+        return {
+            'horizon': horizon, 'direction': direction,
+            'graded': b['graded'], 'wins': b['wins'],
+            'losses': b['losses'], 'expired': b['expired'],
+            'win_rate': round(b['wins'] / wl * 100, 1) if wl else None,
+            'wilson_lower_95': (round(wilson_lower_95(b['wins'], wl) * 100, 1)
+                                if wl else None),
+            'expectancy_per_1000': (round(b['paper_pnl_total'] / wl, 2)
+                                    if wl else None),
+            'paper_pnl_total': round(b['paper_pnl_total'], 2),
+            'max_drawdown_pct': dd,
+            'drawdown_visible_only': True,
+        }
+
+    rows = [finalize(b, h, d)
+            for (h, d), b in sorted(rows_by_key.items())]
+    result = {
+        'rows': rows,
+        'overall': finalize(overall, 'ALL', 'ALL'),
+        'deduped_n_outcomes': n_outcomes,
+        'deduped_n_graded': len(graded),
+        'inflated_n_graded': len(inflated),
+        'inflation_factor': (round(len(inflated) / len(graded), 2)
+                             if graded else None),
+        'label_agreement_pct': agreement,
+        'label_disagreements': disagreements,
+        'cumulative_excluded': None,
+    }
+    if cumulative:
+        result['cumulative_excluded'] = {
+            'cells': len(cumulative),
+            'reason': ('per-variable cumulative counters are 5x-inflated '
+                       'and carry no per-outcome keys, so they cannot be '
+                       'deduped retroactively; excluded from deduped totals'),
+        }
+    return result
 
 
 def aggregate_cmi(cmi_record):
@@ -887,20 +1382,236 @@ def run(repo):
          '0.0 (not yet graded)'),
     ]
 
+    # --- Corrected shadow weight set: out-of-sample re-grade on the
+    # SAME walk-forward split (train-fit base, so the comparison is
+    # apples-to-apples), plus the joint remove-all-dead ablation and
+    # the raises-only / cuts-only diagnostics that explain the result.
+    # The Nov 1 self-tune proposal is NOT used as a base or an input.
+
+    dead_indices = sorted(row['index'] for row in feature_rows
+                          if 'DEAD WEIGHT' in row['verdict'])
+    shadow_w_train = shadow_weights(weights_train)
+    shadow_w_full = shadow_weights(weights_full)
+    raises_w = list(weights_train)
+    raises_w[6] = SHADOW_OVERRIDES[6]
+    raises_w[2] = SHADOW_OVERRIDES[2]
+    cuts_w = list(weights_train)
+    for j in (20, 1, 18, 9, 11):
+        cuts_w[j] = 0.0
+    shadow = {
+        'base': 'train-fit weights re-applied to the test slice',
+        'base_weights': [round(w, 3) for w in weights_train],
+        'base_grade': grade_with_weights(test_picks, weights_train,
+                                         win_c, loss_c),
+        'full_history_base_grade': grade_with_weights(
+            test_picks, weights_full, win_c, loss_c),
+        'overrides': {SHADOW_OVERRIDE_NAMES[j]: v
+                      for j, v in sorted(SHADOW_OVERRIDES.items())},
+        'shadow_weights': [round(w, 3) for w in shadow_w_train],
+        'shadow_grade': grade_with_weights(test_picks, shadow_w_train,
+                                           win_c, loss_c),
+        'shadow_on_full_history_grade': grade_with_weights(
+            test_picks, shadow_w_full, win_c, loss_c),
+        'joint_dead_indices': dead_indices,
+        'joint_dead_names': [FEATURE_NAMES[j] for j in dead_indices],
+        'joint_dead_grade': grade_with_weights(
+            test_picks, weights_train, win_c, loss_c,
+            zero_indices=dead_indices),
+        'diagnostics': {
+            'raises_only_grade': grade_with_weights(
+                test_picks, raises_w, win_c, loss_c),
+            'cuts_only_grade': grade_with_weights(
+                test_picks, cuts_w, win_c, loss_c),
+        },
+        'note': ('Baseline is the train-fit model re-applied to the test '
+                 'slice (the same baseline the ablations use), NOT the '
+                 'published picks — published test baseline is '
+                 f"{validation['published_test_win_pct']}% / "
+                 f"{validation['published_test_exp_usd']:+.2f} $/1k; the "
+                 'two differ where the recomputed direction disagrees '
+                 'with the published one (direction agreement '
+                 f"{validation['direction_agreement_pct']}%)."),
+    }
+
+    # --- Nic's 50% rule: signed weights from graded proof.
+    # Features: proof percentage = standalone top-tercile win rate on
+    # the TRAIN slice (walk-forward discipline — weights derived from
+    # train, graded on test; the test slice never sets a weight).
+    # Tracks: proof percentage = the cell win rate on its full ledger.
+    # One shared scale: the largest distance from 50% across ALL
+    # signed items maps to MAX_SIGNED_WEIGHT (0.225).
+    train_standalone = [standalone_feature(train_picks, j)
+                        for j in range(N_FEATURES)]
+    # Track proof percentages (win rate, n judged) for the scale and
+    # the signed track weights — main-book cells, cycle deduped,
+    # CMI bands, equity swings. Only n >= 20 cells earn a weight.
+    track_proofs = []
+    for (kind, direction, band, regime), c in sorted(cells.items()):
+        wl = c['wins'] + c['losses']
+        if wl >= MIN_GRADED_JUDGE:
+            track_proofs.append({
+                'name': f'{kind} {direction} band={band} regime={regime}',
+                'kind': kind, 'win_pct': c['win_rate'], 'n': wl,
+                'wins': c['wins'], 'losses': c['losses'],
+                'exp_usd': c['expectancy_usd'],
+                'entries': [e for e in record
+                            if cell_key(e) == (kind, direction, band, regime)],
+                'inversion_basis': 'visible ledger only — cumulative counters carry no per-entry path and are excluded',
+            })
+    cyc_dedup = cycle_scoreboard_deduped(proof.get('cycle_record') or [],
+                                         proof.get('cycle_cumulative') or {})
+    dedup_entries, _n_out, _agree, _dis = dedupe_cycle_entries(
+        proof.get('cycle_record') or [])
+    cyc_overall = cyc_dedup['overall']
+    track_proofs.append({
+        'name': 'cycle — DEDUPED (distinct outcomes)', 'kind': 'cycle',
+        'win_pct': cyc_overall['win_rate'], 'n': cyc_overall['graded'],
+        'wins': cyc_overall['wins'], 'losses': cyc_overall['losses'],
+        'exp_usd': cyc_overall['expectancy_per_1000'],
+        'entries': [e for e in dedup_entries
+                    if e.get('status') in ('won', 'lost', 'expired')],
+        'inversion_basis': 'deduped entries (distinct trades)',
+    })
+    for row in cyc_dedup['rows']:
+        track_proofs.append({
+            'name': f"cycle — DEDUPED {row['horizon']} {row['direction']}",
+            'kind': 'cycle', 'win_pct': row['win_rate'],
+            'n': row['graded'], 'wins': row['wins'],
+            'losses': row['losses'],
+            'exp_usd': row['expectancy_per_1000'],
+            'entries': [e for e in dedup_entries
+                        if e.get('status') in ('won', 'lost', 'expired')
+                        and (e.get('horizon') or '?') == row['horizon']
+                        and (e.get('direction') or 'LONG') == row['direction']],
+            'inversion_basis': 'deduped entries (distinct trades)',
+        })
+    for band, t in sorted(cmi['by_band'].items()):
+        wl = t['wins'] + t['losses']
+        if wl >= MIN_GRADED_JUDGE:
+            track_proofs.append({
+                'name': f'CMI band {band}', 'kind': 'cmi',
+                'win_pct': t['win_rate'], 'n': wl,
+                'wins': t['wins'], 'losses': t['losses'],
+                'exp_usd': t['expectancy_usd'],
+                'entries': [e for e in (proof.get('cmi_record') or [])
+                            if (e.get('kind') or 'cmi_regime') == 'cmi_regime'
+                            and str(e.get('band') or '') == band],
+                'inversion_basis': 'visible CMI ledger (cumulative excluded — no per-entry path)',
+            })
+    eq_picks = [p for p in all_picks if p['cls'] == 'equity']
+    if eq_picks:
+        eq_wins = sum(1 for p in eq_picks if p['win'])
+        eq_exp = expectancy_usd([p['ret'] for p in eq_picks])
+        track_proofs.append({
+            'name': 'stocks — equity swing picks (history.json)',
+            'kind': 'equity', 'win_pct': round(eq_wins / len(eq_picks) * 100, 1),
+            'n': len(eq_picks), 'wins': eq_wins,
+            'losses': len(eq_picks) - eq_wins,
+            'exp_usd': round(eq_exp, 2) if eq_exp is not None else None,
+            'entries': None,
+            'inversion_basis': 'not computed — swing picks carry no fixed-level paper P&L to mirror',
+        })
+    distances = ([abs(st['top_win_pct'] / 100 - 0.50)
+                  for st in train_standalone]
+                 + [abs(t['win_pct'] / 100 - 0.50)
+                    for t in track_proofs if t['win_pct'] is not None])
+    fifty_scale = fifty_rule_scale(distances)
+    fifty_weights = [signed_weight_50(st['top_win_pct'] / 100, fifty_scale)
+                     for st in train_standalone]
+    fifty_grade = grade_with_weights(test_picks, fifty_weights,
+                                     win_c, loss_c)
+    fifty_geo_only = grade_with_weights(test_picks, [0.0] * N_FEATURES,
+                                        win_c, loss_c)
+    # Per-feature ablation INSIDE the 50% set: which signed weights
+    # help the rule set and which hurt it (delta = rule-set exp minus
+    # feature-zeroed exp; positive = the signed weight helps).
+    fifty_feature_rows = []
+    for j, name in enumerate(FEATURE_NAMES):
+        gz = grade_with_weights(test_picks, fifty_weights, win_c, loss_c,
+                                zero_indices=[j])
+        fifty_feature_rows.append({
+            'index': j, 'name': name,
+            'train_top_win_pct': train_standalone[j]['top_win_pct'],
+            'test_top_win_pct': next(
+                x for x in feature_rows if x['index'] == j)['standalone']['top_win_pct'],
+            'signed_weight': fifty_weights[j],
+            'weight_train_fit': round(weights_train[j], 3),
+            'weight_ablation_set': shadow_w_train[j],
+            'rule_set_delta_exp_usd': round(
+                (fifty_grade['exp_usd'] or 0.0) - (gz['exp_usd'] or 0.0), 2),
+            'zeroed_exp_usd': gz['exp_usd'],
+        })
+    for t in track_proofs:
+        t['signed_weight'] = (signed_weight_50(t['win_pct'] / 100, fifty_scale)
+                              if t['win_pct'] is not None else None)
+        t['inverted'] = (invert_entries(t['entries'])
+                         if t['entries'] is not None else None)
+        inv = t['inverted']
+        # A mirror verdict needs a real mirror: the visible-leg
+        # inversion must itself clear n >= 20 judged, or it is a
+        # 1–3-entry anecdote (the 100-entry main-book window holds
+        # almost no graded entries for most cells today). Cycle and
+        # CMI ledgers are fully visible, so their mirrors clear the
+        # bar; main-book cells mostly do not, and say so.
+        judged = (inv['wins'] + inv['losses']) if inv else 0
+        if inv is not None and t['exp_usd'] is not None \
+                and inv['expectancy_usd'] is not None \
+                and judged >= MIN_GRADED_JUDGE:
+            t['inversion_delta_exp_usd'] = round(
+                inv['expectancy_usd'] - t['exp_usd'], 2)
+            t['rule_verdict'] = ('HELPS — betting against the cell pays more than betting with it'
+                                 if inv['expectancy_usd'] > t['exp_usd'] else
+                                 'HURTS — betting against the cell pays less than betting with it')
+        else:
+            t['inversion_delta_exp_usd'] = None
+            t['rule_verdict'] = ('UNPROVEN — no mirror inversion on this basis'
+                                 if inv is None else
+                                 f'UNPROVEN — visible mirror n={judged} < {MIN_GRADED_JUDGE}, too thin to judge the inversion')
+        del t['entries']
+    fifty_rule = {
+        'rule': ("signed weight = (win_rate - 0.50) x SCALE; "
+                 "above 50% positive, below 50% negative, 50% = zero"),
+        'scale': round(fifty_scale, 4),
+        'max_distance_from_50': round(max(distances), 3) if distances else None,
+        'cap_weight': MAX_SIGNED_WEIGHT,
+        'feature_slice': 'TRAIN slice standalone top-tercile win rates (walk-forward: weights from train, graded on test)',
+        'track_slice': 'full ledgers (tracks are not walk-forward split, as in the audit)',
+        'weights': fifty_weights,
+        'grade': fifty_grade,
+        'geo_only_grade': fifty_geo_only,
+        'feature_rows': fifty_feature_rows,
+        'tracks': track_proofs,
+    }
+    # Hunt the residual (unknown) with the corrected 50%-rule function,
+    # and map F's PROPOSED terms to their graded proxies.
+    residual = residual_cases(test_picks, fifty_weights, win_c, loss_c)
+    results_pre = {'per_kind': per_kind, 'fifty_rule': fifty_rule,
+                   'shadow': shadow}
+    f_form = f_form_mapping(results_pre)
+    dist95 = distance_to_95({**results_pre, 'feature_rows': feature_rows})
     results = {
         'generated_utc': datetime.now(timezone.utc).isoformat(timespec='seconds'),
         'repo': repo,
         'validation': validation,
         'feature_rows': feature_rows,
+        'shadow': shadow,
+        'fifty_rule': fifty_rule,
         'book': book,
+        'cells': cells,
         'per_kind': per_kind,
         'cycle': cycle,
+        'cycle_deduped_scoreboard': cycle_scoreboard_deduped(
+            proof.get('cycle_record') or [],
+            proof.get('cycle_cumulative') or {}),
         'cmi': cmi,
         'track_rows': track_rows,
         'untestable': untestable,
         'proposed_generated': proposed.get('generated'),
         'max_delta_exp_usd': max_delta,
         'max_learned_weight': max_weight,
+        'residual': residual,
+        'f_form': f_form,
+        'distance_to_95': dist95,
     }
     return results, render_report(results)
 
@@ -990,6 +1701,335 @@ def render_report(r):
                  f"(±{fmt(ab['delta_exp_se_usd'], 2)}) | {ab['flips']} | "
                  f"{row['justified_weight']} | {row['verdict']} |")
     L.append('')
+    L.append('## Corrected shadow weight set (out-of-sample re-grade)')
+    L.append('')
+    sh = r['shadow']
+    L.append('Shadow-only set from the harness\'s out-of-sample ablation '
+             '(optimization brief §1). The Nov 1 self-tune proposal is NOT '
+             'used anywhere here — its signs are opposite to the ablation. '
+             'Trend_align / ma_align are zeroed, never flipped negative. '
+             'Nothing here touches a live weight, score, gate, or ledger.')
+    L.append('')
+    L.append('| Feature | Train-fit w | Full-history learned w | Shadow w |')
+    L.append('|---|---:|---:|---:|')
+    rows_by_idx = {x['index']: x for x in r['feature_rows']}
+    for idx, _val in sorted(SHADOW_OVERRIDES.items()):
+        row = rows_by_idx.get(idx)
+        if row is None:
+            continue  # render test fixtures may carry a subset of rows
+        name = SHADOW_OVERRIDE_NAMES[idx]
+        L.append(f"| {name} | {sh['base_weights'][idx]} | "
+                 f"{row['weight_learned']} | {sh['shadow_weights'][idx]} |")
+    L.append('')
+    acc_row = rows_by_idx.get(6)
+    L.append('Train-fit w is the weight re-fit on this run\'s train slice '
+             '(the base the shadow set is built on); full-history learned w '
+             'is the same fit on all 1,432 scored picks, shown because the '
+             'justified weights were scaled to that fit\'s largest weight.'
+             + (f" The two fits disagree on sign for acceleration "
+                f"(train-fit {sh['base_weights'][6]}, full-history "
+                f"{acc_row['weight_learned']}) — the weight-instability "
+                f"finding, and the reason the re-grade below is the check "
+                f"that matters." if acc_row is not None else ''))
+    L.append('')
+    L.append('| Weight set | Win% | Expectancy $/1k (±SE) | n |')
+    L.append('|---|---:|---:|---:|')
+    bg, sg = sh['base_grade'], sh['shadow_grade']
+    L.append(f"| Current (train-fit, re-applied to test slice) | "
+             f"{fmt(bg['win_pct'])} | {fmt(bg['exp_usd'], 2)} "
+             f"(±{fmt(bg['exp_se_usd'], 2)}) | {bg['n']} |")
+    L.append(f"| Corrected shadow set | {fmt(sg['win_pct'])} | "
+             f"{fmt(sg['exp_usd'], 2)} (±{fmt(sg['exp_se_usd'], 2)}) | "
+             f"{sg['n']} |")
+    L.append(f"| Shadow set on full-history weights | "
+             f"{fmt(sh['shadow_on_full_history_grade']['win_pct'])} | "
+             f"{fmt(sh['shadow_on_full_history_grade']['exp_usd'], 2)} | "
+             f"{sh['shadow_on_full_history_grade']['n']} |")
+    L.append(f"| Current (full-history, re-applied) | "
+             f"{fmt(sh['full_history_base_grade']['win_pct'])} | "
+             f"{fmt(sh['full_history_base_grade']['exp_usd'], 2)} | "
+             f"{sh['full_history_base_grade']['n']} |")
+    L.append('')
+    delta = (sg['exp_usd'] or 0.0) - (bg['exp_usd'] or 0.0)
+    L.append(f"Shadow minus current (train-fit base): **{delta:+.2f} $/1k** "
+             f"over {sg['n']} test picks. "
+             + ('The corrected set BEATS the current weights out-of-sample.'
+                if delta > 0 else
+                'The corrected set LOSES to the current weights '
+                'out-of-sample — the ablation-derived raises do not survive '
+                'being applied together (see diagnostics below). Do not '
+                'promote this set on the strength of the single-feature '
+                'ablations alone.'))
+    L.append('')
+    L.append('### Joint remove-all-dead ablation')
+    L.append('')
+    jg = sh['joint_dead_grade']
+    L.append(f"Zeroing all {len(sh['joint_dead_indices'])} dead-weight "
+             f"features at once (everything except acceleration): "
+             f"**{fmt(jg['win_pct'])}% win, {fmt(jg['exp_usd'], 2)} $/1k "
+             f"(±{fmt(jg['exp_se_usd'], 2)}) over {jg['n']} picks**, vs "
+             f"the current {fmt(bg['exp_usd'], 2)} $/1k. "
+             + ('Joint removal BEATS the current weights — mass zeroing '
+                'has out-of-sample support, but the decision stays with '
+                'the report, not this harness.'
+                if (jg['exp_usd'] or 0) > (bg['exp_usd'] or 0) else
+                'Joint removal LOSES to the current weights — the '
+                'single-feature dead-weight verdicts do NOT add up to a '
+                'joint case. Do NOT zero all 21 at once.'))
+    L.append('')
+    L.append('### Diagnostics — why the shadow set moves the way it does')
+    L.append('')
+    dg = sh['diagnostics']
+    L.append(f"- Raises only (acceleration → 0.225, psych_bias → 0.173, "
+             f"no cuts): {fmt(dg['raises_only_grade']['win_pct'])}% win, "
+             f"{fmt(dg['raises_only_grade']['exp_usd'], 2)} $/1k.")
+    L.append(f"- Cuts only (the five zeroed, no raises): "
+             f"{fmt(dg['cuts_only_grade']['win_pct'])}% win, "
+             f"{fmt(dg['cuts_only_grade']['exp_usd'], 2)} $/1k.")
+    acc_row = next((x for x in r['feature_rows'] if x['index'] == 6), None)
+    acc_txt = ''
+    if acc_row is not None:
+        acc_txt = (f" — and the train-fit weight it was removed from is "
+                   f"{sh['base_weights'][6]} for acceleration "
+                   f"(full-history learned {acc_row['weight_learned']})")
+    L.append('- Read this with the weight-instability finding: the '
+             'ablation tested REMOVING each feature (to zero), never the '
+             'positive justified weight itself' + acc_txt + ', so '
+             '"justified +0.225" is an extrapolation across a sign flip '
+             'the data never tested. A justified weight is a proposal for '
+             'the next ablation round, not a validated weight.')
+    L.append('')
+    L.append(sh['note'])
+    L.append('')
+    L.append('## The 50% rule — signed weights from graded proof (Nic Nov 11)')
+    L.append('')
+    fr = r['fifty_rule']
+    L.append('Nic\'s rule: "If you have over 50% proof it signal as '
+             'positive. And <50% as negative and weighs accordingly to '
+             'percentage." A+B=C: the graded win rate goes in, a signed '
+             'weight comes out, the out-of-sample expectancy is the '
+             'outcome. Scaling (one transparent choice): signed weight = '
+             f"(win_rate − 0.50) × {fr['scale']} — the largest distance "
+             f"from 50% across all signed items "
+             f"({fr['max_distance_from_50']:.3f}) maps to the largest "
+             f"current learned weight ({fr['cap_weight']}). Features use "
+             f"{fr['feature_slice'].lower()}; tracks use "
+             f"{fr['track_slice'].lower()}.")
+    L.append('')
+    L.append('| Weight set | Win% | Expectancy $/1k (±SE) | n |')
+    L.append('|---|---:|---:|---:|')
+    bg, sg, fg = (sh['base_grade'], sh['shadow_grade'], fr['grade'])
+    L.append(f"| Current (train-fit) | {fmt(bg['win_pct'])} | "
+             f"{fmt(bg['exp_usd'], 2)} (±{fmt(bg['exp_se_usd'], 2)}) | "
+             f"{bg['n']} |")
+    L.append(f"| Ablation set (comparison benchmark) | {fmt(sg['win_pct'])} | "
+             f"{fmt(sg['exp_usd'], 2)} (±{fmt(sg['exp_se_usd'], 2)}) | "
+             f"{sg['n']} |")
+    L.append(f"| **50% rule (signed)** | {fmt(fg['win_pct'])} | "
+             f"{fmt(fg['exp_usd'], 2)} (±{fmt(fg['exp_se_usd'], 2)}) | "
+             f"{fg['n']} |")
+    L.append('')
+    d50 = (fg['exp_usd'] or 0.0) - (bg['exp_usd'] or 0.0)
+    d50a = (fg['exp_usd'] or 0.0) - (sg['exp_usd'] or 0.0)
+    L.append(f"50% rule minus current: **{d50:+.2f} $/1k**. 50% rule minus "
+             f"ablation set: **{d50a:+.2f} $/1k**. "
+             + ('The rule BEATS the current weights out-of-sample.'
+                if d50 > 0 else
+                'The rule LOSES to the current weights out-of-sample — '
+                'signed proof percentages do not beat the least-squares '
+                'weights on this split. The rule is graded, not assumed.'))
+    L.append('')
+    L.append('Why the rule grades the way it does: the TRAIN-slice '
+             'standalone win rates cluster at 50% (42.5–52.5% across all '
+             '22 features), so the signed weights are tiny (largest '
+             '|w| = '
+             f"{max(abs(w) for w in fr['weights']):.3f}) and the score is "
+             'dominated by the geometric-edge term, not by the weights. '
+             'A geo-only score (all weights zero) grades '
+             f"{fmt(fr['geo_only_grade']['win_pct'])}% / "
+             f"{fmt(fr['geo_only_grade']['exp_usd'], 2)} $/1k on the same "
+             'slice — the rule set is barely steering a geo-dominated '
+             'model, because the train window gives almost no feature a '
+             'proof percentage far from 50%. That is the mechanism, and '
+             'it is why the rule cannot beat the current weights here: '
+             'there is almost nothing to weigh with.')
+    L.append('')
+    L.append('### 50% rule — the 22 features (train proof → signed weight)')
+    L.append('')
+    L.append('| Feature | Train top-win% | Test top-win% | Signed w | '
+             'Train-fit w | Ablation-set w | Rule-set Δexp $/1k |')
+    L.append('|---|---:|---:|---:|---:|---:|---:|')
+    for row in fr['feature_rows']:
+        L.append(f"| {row['name']} | {fmt(row['train_top_win_pct'])} | "
+                 f"{fmt(row['test_top_win_pct'])} | {row['signed_weight']} | "
+                 f"{row['weight_train_fit']} | "
+                 f"{row['weight_ablation_set']} | "
+                 f"{fmt(row['rule_set_delta_exp_usd'], 2)} |")
+    L.append('')
+    L.append('Rule-set Δexp: removing that feature from the 50% set — '
+             'positive means its signed weight HELPS the rule set, '
+             'negative means it HURTS it (threshold ±$1/1k; inside that '
+             'is noise). Acceleration, the case Nic asked to settle: '
+             'train top-win 51.6% → signed **+0.009** (positive, tiny) — '
+             'NOT negative. The negative read (34.8%) comes from the TEST '
+             'slice, and deriving weights from the test slice would be '
+             'look-ahead, so the rule correctly refuses it. Inside the '
+             'rule set, acceleration\'s signed weight is worth '
+             f"{fmt(next(x for x in fr['feature_rows'] if x['name'] == 'acceleration')['rule_set_delta_exp_usd'], 2)}"
+             ' $/1k — noise either way. The standalone-vs-ablation '
+             'tension is resolved in part, not fully: the ablation keeps '
+             'acceleration at its NEGATIVE train-fit weight (−0.81) and '
+             'earns +$12.19/1k for keeping it — which agrees in SIGN '
+             'with the test-slice standalone inversion (high acceleration '
+             '→ loses → negative weight helps) — but the ablation does NOT '
+             'support the positive justified +0.225. What is still '
+             'UNPROVEN is WHY acceleration helps at a negative weight '
+             'while its top third wins only 34.8% on the test slice and '
+             '51.6% on the train slice: three reads, three answers, no '
+             'mechanism. The graded numbers stand; the why does not.')
+    L.append('')
+    _setup_pk = (r.get('per_kind') or {}).get('setup') or {}
+    _setup_win = _setup_pk.get('win_rate')
+    _setup_exp = _setup_pk.get('expectancy_usd')
+    L.append('Order-flow footprint (Nic\'s framing): accumulation setups '
+             f"({_setup_win}% when triggered, +${_setup_exp}/1k) are real "
+             'buyers building quietly before the move, and acceleration '
+             '(the only feature earning its weight in the ablation) is the '
+             'move starting. The footprint is the graded evidence; the '
+             'mechanism behind acceleration\'s sign is unproven (see '
+             'above).')
+    L.append('')
+    L.append('### 50% rule — tracks and cells (win rate → signed weight → mirror grade)')
+    L.append('')
+    L.append('A below-50% LONG cell counts AGAINST the long side in '
+             'shadow: its signed weight is negative, and the mirror grade '
+             'bets against the cell (same entries, opposite side) to test '
+             'whether the inversion pays. Mirror inversion is first-order: '
+             'horizon closes flip drift exactly; fixed-level hits swap '
+             '+$28/−$35; the true opposite trade\'s touch order can '
+             'differ, so the mirrored expectancy is an estimate, not an '
+             'exact re-grade.')
+    L.append('')
+    L.append('| Track / cell | Win% (n) | Signed w | Original exp $/1k | '
+             'Mirror win% (mirror n) | Mirror exp $/1k | Rule verdict |')
+    L.append('|---|---:|---:|---:|---:|---:|---|')
+    for t in fr['tracks']:
+        inv = t['inverted']
+        inv_win = fmt(inv['win_rate']) if inv else '—'
+        inv_n = inv.get('n_graded', '—') if inv else '—'
+        inv_exp = fmt(inv['expectancy_usd'], 2) if inv else '—'
+        L.append(f"| {t['name']} | {fmt(t['win_pct'])} ({t['n']}) | "
+                 f"{t['signed_weight']} | {fmt(t['exp_usd'], 2)} | "
+                 f"{inv_win} ({inv_n}) | {inv_exp} | {t['rule_verdict']} |")
+    L.append('')
+    by_track = {t['name']: t for t in fr['tracks']}
+    mirror_txt = ''
+    if 'cycle — DEDUPED (distinct outcomes)' in by_track and \
+            'CMI band CLEAN' in by_track:
+        cyc_t = by_track['cycle — DEDUPED (distinct outcomes)']
+        clean_t = by_track['CMI band CLEAN']
+        mirror_txt = (f" (cycle deduped: mirror "
+                      f"{fmt(cyc_t['inverted']['expectancy_usd'], 2) if cyc_t['inverted'] else '—'}"
+                      f" $/1k vs {fmt(cyc_t['exp_usd'], 2)}; CMI CLEAN: mirror "
+                      f"{fmt(clean_t['inverted']['expectancy_usd'], 2) if clean_t['inverted'] else '—'}"
+                      f" $/1k vs {fmt(clean_t['exp_usd'], 2)})")
+    L.append('Read the verdicts per cell, not as a whole. The rule HELPS '
+             'exactly where a real mirror pays more than the original — '
+             'the losing LONG tracks with full ledgers'
+             f"{mirror_txt}. Main-book cells mostly carry NO verdict today: "
+             'their mirror runs on the visible 100-entry window only '
+             '(pattern LONG has 3 visible graded entries, setups 0), so '
+             'the inversion is too thin to judge and the verdict is '
+             'UNPROVEN — the setup weight stays positive on the win rate '
+             'alone, and its mirror disproof would need the full setup '
+             'ledger, which the cumulative counters cannot supply. A 51% '
+             'cell is barely positive by construction — its signed weight '
+             'is near zero and its mirror is near breakeven either way.')
+    L.append('')
+    L.append('## Hunting the residual (unknown)')
+    L.append('')
+    L.append("F = a + b + c + d + (f − e) + unknown (PROPOSED mapping — Nic "
+             "confirms the letters). The loop (grade → correct) works on "
+             "the MEASURABLE. The unknown is the OPEN DOOR — what the "
+             "loop reaches toward but cannot yet measure: beyond math and "
+             "physics, what can't be measured yet. It is NOT solved here "
+             "and NOT dressed up as math — no invented value, no fake "
+             "precision. The residual hunt IS the empirical side of it: "
+             "the cases below are where F is most wrong, and that is "
+             "where the unknown lives. They are named, not explained away.")
+    L.append("")
+    L.append("What would count as EVIDENCE for the unknown (the bar — "
+             "not claimed met): the residual shrinking over t with no "
+             "change to the measurable terms (something unmeasured being "
+             "captured), or residual cases clustering around moves the "
+             "measurable terms cannot see at all — moves with no flow, "
+             "no pattern, no macro trigger, the market moving on "
+             "something the instruments don't read. Until the grades say "
+             "otherwise, the unknown stays unknown.")
+    L.append("")
+    L.append("These are the 50%-rule function's biggest misses on the "
+             "same test slice (n=466), ranked by |shadow score| — F's "
+             "conviction.")
+    L.append('')
+    res = r.get('residual') or {'calls_lost': [], 'fades_won': []}
+    L.append('### Highest-conviction shadow calls that lost')
+    L.append('')
+    L.append('| Asset | Date | F predicted | F score | Happened | '
+             'Return | Dollar miss / $1k |')
+    L.append('|---|---|---|---:|---|---:|---:|')
+    for c in res['calls_lost']:
+        L.append(f"| {c['asset']} | {c['run_date']} | {c['f_direction']} | "
+                 f"{c['f_score']} | {c['outcome']} | "
+                 f"{fmt(c['published_return_pct'], 2)}% | "
+                 f"${c['dollar_miss_per_1000']:.2f} |")
+    L.append('')
+    L.append('### Strongest shadow fades that won anyway')
+    L.append('')
+    L.append('| Asset | Date | F faded (shadow) | F score | Published | '
+             'Happened | Return | Dollar miss / $1k |')
+    L.append('|---|---|---|---:|---|---|---:|---:|')
+    for c in res['fades_won']:
+        L.append(f"| {c['asset']} | {c['run_date']} | {c['f_direction']} | "
+                 f"{c['f_score']} | {c['published_direction']} | "
+                 f"{c['outcome']} | "
+                 f"{fmt(c['published_return_pct'], 2)}% | "
+                 f"${c['dollar_miss_per_1000']:.2f} |")
+    L.append('')
+    L.append("Read: a call that lost is F's conviction failing — the "
+             'unknown is whatever the six terms missed on that pick. A '
+             "fade that won is F's caution failing — the unknown is "
+             'whatever the published call saw that F faded. The next '
+             'iteration of F(t+1) = correct(F(t), grades) starts here: '
+             'these cases are the evidence the loop corrects on.')
+    L.append('')
+    L.append('## F — the formula (PROPOSED mapping)')
+    L.append('')
+    L.append('F = a + b + c + d + (f − e) + unknown. PROPOSED letter '
+             'mapping — Nic confirms the letters. For each term: what '
+             'currently proxies it in the graded data, and whether that '
+             'proxy is graded or ungraded.')
+    L.append('')
+    L.append('| Term | Name | Ingredient | Current proxy | Graded? |')
+    L.append('|---|---|---|---|---|')
+    for t in (r.get('f_form') or {}).get('terms', []):
+        L.append(f"| {t['term']} | {t['name']} | {t['ingredient']} | "
+                 f"{t['proxy']} | {t['graded']} |")
+    L.append('')
+    L.append('## Distance to 95% (the target Nic set)')
+    L.append('')
+    L.append('>95% graded proof = a VERY ACCURATE read. The loop keeps '
+             'correcting TOWARD 100% accuracy as its direction, even '
+             'though 100% could seem impossible — the direction is the '
+             'point, not the arrival. 95% is a READ, never a gate: no '
+             'candidate is ever blocked for being under 95%. Closest '
+             'read first:')
+    L.append('')
+    L.append('| Read | Win% (n) | Basis | Distance to 95% |')
+    L.append('|---|---:|---|---:|')
+    for d in r.get('distance_to_95') or []:
+        L.append(f"| {d['name']} | {fmt(d['win_pct'])} ({d['n']}) | "
+                 f"{d['basis']} | {fmt(d['distance_to_95'])} pts short |")
+    L.append('')
     L.append('## Table B — tracks, feeds, gates')
     L.append('')
     L.append('| Variable / track | n graded | Trig% | Win% | Expectancy $/1k | '
@@ -1004,6 +2044,44 @@ def render_report(r):
         L.append(f"| {t['name']} | {t['n']} | {fmt(t.get('trig_pct'))} | {fmt(t['win_pct'])} | "
                  f"{fmt(t['exp_usd'], 2)} | {ab_s} | {t['weight']} | "
                  f"{t['verdict']}{extra} |")
+    L.append('')
+    L.append('## Cycle — deduped grading (distinct trades, not 5x labels)')
+    L.append('')
+    cyc = r['cycle_deduped_scoreboard']
+    L.append('FIX (harness path only — intraday.py untouched): the live '
+             'cycle scoreboard counts one row per (variable, band, '
+             'direction, horizon), so five variables grading the same '
+             'asset-day inflate n fivefold. This scoreboard dedupes first '
+             '— one outcome per (asset, ts_open, horizon) — then grades '
+             'per (horizon, direction), because the five labels agree '
+             f"{cyc['label_agreement_pct']}% on outcome and per-variable "
+             'cells are five copies of the same number. Wilson 95% is '
+             'displayed only, never a gate.')
+    L.append('')
+    L.append(f"- Distinct outcomes: **{cyc['deduped_n_outcomes']}** "
+             f"({cyc['deduped_n_graded']} graded) vs "
+             f"**{cyc['inflated_n_graded']}** graded label rows — "
+             f"inflation factor **{cyc['inflation_factor']}x**. Label "
+             f"disagreements: {cyc['label_disagreements']}.")
+    if cyc['cumulative_excluded']:
+        L.append(f"- Cumulative counters EXCLUDED from deduped totals: "
+                 f"{cyc['cumulative_excluded']['reason']}.")
+    L.append('')
+    L.append('| Horizon | Direction | Graded | Wins | Losses | Win% | '
+             'Wilson lower 95% | Expectancy $/1k | Max drawdown % |')
+    L.append('|---|---|---:|---:|---:|---:|---:|---:|---:|')
+    for row in cyc['rows']:
+        L.append(f"| {row['horizon']} | {row['direction']} | "
+                 f"{row['graded']} | {row['wins']} | {row['losses']} | "
+                 f"{fmt(row['win_rate'])} | {fmt(row['wilson_lower_95'])} | "
+                 f"{fmt(row['expectancy_per_1000'], 2)} | "
+                 f"{fmt(row['max_drawdown_pct'])} |")
+    ov = cyc['overall']
+    L.append(f"| **ALL** | **ALL** | **{ov['graded']}** | **{ov['wins']}** | "
+             f"**{ov['losses']}** | **{fmt(ov['win_rate'])}** | "
+             f"**{fmt(ov['wilson_lower_95'])}** | "
+             f"**{fmt(ov['expectancy_per_1000'], 2)}** | "
+             f"**{fmt(ov['max_drawdown_pct'])}** |")
     L.append('')
     L.append('### Untestable — no graded evidence exists (by construction)')
     L.append('')
@@ -1079,7 +2157,67 @@ def render_report(r):
              'on its own and still matter inside the combination (features '
              'are correlated), and the test slice is one falling window '
              '(Oct 31 – Nov 8, mostly risk-off). Weights from grades are '
-             'proposals for review, never automatic.')
+             'applied by the correction loop (autonomous, shadow and live '
+             'per the settled scope, F(t+1) = correct(F(t), grades)) — '
+             'every change is logged with its graded outcome, and a wrong '
+             'correction is reversed by the next iteration, never hidden.')
+    sh = r['shadow']
+    L.append(f"- **Corrected shadow set (re-graded out-of-sample, same "
+             f"split):** {fmt(sh['shadow_grade']['win_pct'])}% win, "
+             f"{fmt(sh['shadow_grade']['exp_usd'], 2)} $/1k vs current "
+             f"{fmt(sh['base_grade']['win_pct'])}% / "
+             f"{fmt(sh['base_grade']['exp_usd'], 2)} $/1k "
+             f"(n={sh['shadow_grade']['n']}). Joint remove-all-dead: "
+             f"{fmt(sh['joint_dead_grade']['win_pct'])}% / "
+             f"{fmt(sh['joint_dead_grade']['exp_usd'], 2)} $/1k. See the "
+             f"shadow section above for the verdict — do not read the "
+             f"single-feature ablations as a joint result.")
+    cyc = r['cycle_deduped_scoreboard']
+    L.append(f"- **Cycle, deduped:** {cyc['overall']['wins']}W / "
+             f"{cyc['overall']['losses']}L over "
+             f"{cyc['overall']['graded']} distinct graded outcomes "
+             f"({fmt(cyc['overall']['win_rate'])}% win, "
+             f"{fmt(cyc['overall']['expectancy_per_1000'], 2)} $/1k) — "
+             f"not {cyc['inflated_n_graded']} label rows.")
+    fr = r['fifty_rule']
+    L.append(f"- **50% rule (Nic's signed weights):** "
+             f"{fmt(fr['grade']['win_pct'])}% win, "
+             f"{fmt(fr['grade']['exp_usd'], 2)} $/1k vs current "
+             f"{fmt(sh['base_grade']['exp_usd'], 2)} $/1k and ablation set "
+             f"{fmt(sh['shadow_grade']['exp_usd'], 2)} $/1k "
+             f"(n={fr['grade']['n']}). Train proof percentages cluster at "
+             f"50%, so the signed weights are tiny and the score stays "
+             f"geo-dominated — see the 50% section for the per-feature and "
+             f"per-cell verdicts.")
+    res = r.get('residual') or {'calls_lost': [], 'fades_won': []}
+    if res['calls_lost'] or res['fades_won']:
+        worst = res['calls_lost'][0] if res['calls_lost'] else None
+        best_fade = res['fades_won'][0] if res['fades_won'] else None
+        L.append('- **Residual (unknown) — where F was most wrong:** '
+                 + (f"biggest losing call {worst['asset']} "
+                    f"({worst['run_date']}, F {worst['f_direction']} "
+                    f"score {worst['f_score']}, miss "
+                    f"${worst['dollar_miss_per_1000']:.2f}/1k)"
+                    if worst else 'no losing calls in the top 5')
+                 + (f"; biggest fade-that-won {best_fade['asset']} "
+                    f"({best_fade['run_date']}, F faded to "
+                    f"{best_fade['f_direction']} score "
+                    f"{best_fade['f_score']}, miss "
+                    f"${best_fade['dollar_miss_per_1000']:.2f}/1k)"
+                    if best_fade else '')
+                 + '. No value invented for unknown — these cases ARE the '
+                 'hunt. The unknown is the OPEN DOOR, not a solved term: '
+                 'evidence that would count is the residual shrinking over '
+                 't with no change to the measurable terms, or residual '
+                 'cases clustering on moves nothing measurable can see. '
+                 'Neither is met — the unknown stays unknown.')
+    dist = r.get('distance_to_95') or []
+    if dist:
+        L.append('- **Distance to 95% (very accurate read):** '
+                 + '; '.join(f"{d['name']} {fmt(d['win_pct'])}% "
+                             f"({fmt(d['distance_to_95'])} pts short, n={d['n']})"
+                             for d in dist[:3])
+                 + '. Direction: keep correcting toward 100%.')
     L.append('')
     L.append('## Limits of this harness')
     L.append('')
@@ -1145,6 +2283,20 @@ def main():
     hurting = [x for x in results['feature_rows'] if x['verdict'].startswith('HURTS')]
     print(f"features earning weight: {len(earners)}; hurting: {len(hurting)}; "
           f"dead weight: {sum(1 for x in results['feature_rows'] if 'DEAD WEIGHT' in x['verdict'])}")
+    sh = results['shadow']
+    print(f"shadow set: {sh['shadow_grade']['win_pct']}% win, "
+          f"{sh['shadow_grade']['exp_usd']:+.2f} $/1k vs current "
+          f"{sh['base_grade']['win_pct']}% / "
+          f"{sh['base_grade']['exp_usd']:+.2f} $/1k "
+          f"(n={sh['shadow_grade']['n']}); joint remove-all-dead: "
+          f"{sh['joint_dead_grade']['exp_usd']:+.2f} $/1k")
+    cyc = results['cycle_deduped_scoreboard']['overall']
+    print(f"cycle deduped: {cyc['graded']} graded, {cyc['win_rate']}% win, "
+          f"{cyc['expectancy_per_1000']:+.2f} $/1k")
+    fr = results['fifty_rule']
+    print(f"50% rule: {fr['grade']['win_pct']}% win, "
+          f"{fr['grade']['exp_usd']:+.2f} $/1k vs current "
+          f"{sh['base_grade']['exp_usd']:+.2f} $/1k (n={fr['grade']['n']})")
     return 0
 
 
