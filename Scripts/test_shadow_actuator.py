@@ -255,17 +255,26 @@ def test_run_on_real_repo(tmp_path):
     assert 0 <= cyc['new_shadow_multiplier'] <= 1
     # Feature corrections move the large train-fit weights — pin presence
     # and range, not the snapshot values (macd 0.204→0.186, roc
-    # 0.201→0.195 on the day pinned).
+    # 0.201→0.195 on the day pinned). Presence itself is live-record
+    # dependent: when no feature is currently losing, feature_changes is
+    # legitimately empty (2026-11-12: 0 feature corrections, 18 too thin)
+    # — then assert the check ran instead of failing on the empty list.
     by_feat = {f['feature']: f for f in proposal['feature_changes']}
-    for feat in ('macd', 'roc'):
-        assert feat in by_feat
-        assert 0 <= by_feat[feat]['old_shadow_weight'] <= 1
-        assert 0 <= by_feat[feat]['new_shadow_weight'] <= 1
+    if by_feat:
+        for feat in ('macd', 'roc'):
+            assert feat in by_feat
+            assert 0 <= by_feat[feat]['old_shadow_weight'] <= 1
+            assert 0 <= by_feat[feat]['new_shadow_weight'] <= 1
+    else:
+        assert proposal['checked']['features'] > 0
     assert len(proposal['feature_immaterial']) > 0
     # 50%-rule shadow set rides in the proposal too.
     fr = proposal['fifty_rule_shadow_set']
     assert fr is not None
-    assert fr['grade_vs_current']['n'] == 466
+    # Graded-pick count grows as picks are scored (466 on the day pinned,
+    # 471 on 2026-11-12) — assert shape, not the snapshot.
+    assert isinstance(fr['grade_vs_current']['n'], int)
+    assert fr['grade_vs_current']['n'] > 0
     fr_tracks = {t['name']: t for t in fr['tracks']}
     assert fr_tracks['cycle — DEDUPED (distinct outcomes)']['signed_weight'] < 0
     setup50 = next(t for t in fr['tracks'] if t['name'].startswith('setup LONG'))

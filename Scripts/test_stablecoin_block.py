@@ -82,8 +82,12 @@ def test_flat_short_window_but_real_30d_move_can_pick():
              _coin('ccc', 'CCC', -8.0, -12.0, [-2, -8, -12, -15, -18]),
              _coin('slow', 'SLOW', 0.1, 0.2, [0.0, 0, 0, 3.0, 8.0])]
     signals = _think(coins)
-    longs = [p['asset'] for p in signals['longs']]
-    assert 'SLOW' in longs, f'real 30d mover wrongly filtered: {longs}'
+    picked = [p['asset'] for p in signals['longs'] + signals['shorts']]
+    # Guard the filter, not the score sign: SLOW's tiny +0.1%/+0.2%
+    # momentum can land on either side as weights drift (2026-11-12 the
+    # corrected F t=1 weights put it short at score -0.0) — what matters
+    # is that the flat-coin filter did not drop it.
+    assert 'SLOW' in picked, f'real 30d mover wrongly filtered: {picked}'
 
 
 if __name__ == '__main__':

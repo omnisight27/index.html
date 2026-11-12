@@ -67,6 +67,36 @@ def fetch_text(url, timeout=20):
         print(f'  [warn] {url[:60]}... failed: {e}')
         return None
 
+def fetch_google_news_rss(query='markets stocks crypto', size=10):
+    """Keyless wire-headline fallback: Google News RSS.
+
+    freenewsapi.ai went key-gated (401 api_key_required, 2026-11-12) and
+    the headlines panel was running on the newsletter digest alone.
+    Returns [{'title', 'source'}] — the same shape the news-risk
+    cross-reference and the frontend expect.
+    """
+    import urllib.parse as _up
+    import xml.etree.ElementTree as _et
+    url = ('https://news.google.com/rss/search?q=' + _up.quote(query) +
+           '&hl=en-US&gl=US&ceid=US:en')
+    raw = fetch_text(url)
+    if not raw:
+        return []
+    try:
+        root = _et.fromstring(raw)
+    except Exception as e:
+        print(f'  [warn] Google News RSS parse failed: {e}')
+        return []
+    out = []
+    for item in root.iter('item'):
+        title = (item.findtext('title') or '').strip()
+        source = (item.findtext('source') or '').strip() or 'Google News'
+        if title:
+            out.append({'title': title, 'source': source})
+        if len(out) >= size:
+            break
+    return out
+
 def sam_agency(o):
     """Agency name for a SAM.gov opportunity record.
 
@@ -481,6 +511,7 @@ def ingest():
                     'symbol': (c['symbol'] or '').upper(),
                     'name': c.get('name') or '',
                     'market_cap': c.get('market_cap') or 0,
+                    'volume_24h': c.get('total_volume') or 0,
                 }
         print(f"  crypto: {len(d['crypto'])} coins ingested")
     except Exception as e:
@@ -574,6 +605,12 @@ def ingest():
     # Headlines
     news = fetch_json('https://freenewsapi.ai/v1/search?q=markets%20stocks%20crypto&date=2d&lang=en&size=10&sort=date')
     d['headlines'] = (news or {}).get('results', [])[:10]
+    if not d['headlines']:
+        # freenewsapi.ai went key-gated (401 api_key_required, 2026-11-12)
+        # — fall back to keyless Google News RSS so the wire panel and
+        # the news-risk cross-reference keep running on real market news.
+        d['headlines'] = fetch_google_news_rss()
+        print(f"  Headlines: Google News RSS fallback ({len(d['headlines'])} items)")
 
     # Morning newsletters — merge the daily digest's headlines into the
     # news feed, tagged with the newsletter name as source, so the
@@ -961,6 +998,22 @@ def f_terms_for(feats, weights, g_edge, raw_pre_tilt, tilted):
         why = 'b'
     return {'a': round(a, 3), 'b': round(b, 3), 'c': round(c, 3),
             'd': round(d, 3), 'fe': None, 'unknown': None, 'why': why}
+
+
+def is_feed_artifact(chg24, chg7d):
+    """True when a CoinGecko move is too extreme to be a tradeable move.
+
+    A $100M+ coin does not really move >500% in a day or >1000% in a
+    week — a print that large is a redenomination / contract migration /
+    bad feed row. 2026-11-12: Quantix Finance (QFI) showed +76,833% (24h)
+    and +86,837% (7d) after the QAI -> QFI contract migration, while 24h
+    volume was ~$19K on a $411M market cap and the old contract still
+    traded ~$69. Without this guard it became the #1 long (score 285.9,
+    confidence 78) because extract_features() uses the raw move.
+    Genuine parabolic runs stay eligible: the bounds sit far above any
+    real 24h/7d move a liquid coin makes.
+    """
+    return abs(chg24 or 0) > 500 or abs(chg7d or 0) > 1000
 
 
 def extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta):
@@ -1530,6 +1583,11 @@ def think(data, history):
         windows = [info.get('usd_1h_change') or 0, chg24, chg7d,
                    info.get('usd_14d_change') or 0, info.get('usd_30d_change') or 0]
         if max(abs(w) for w in windows) < 1.0:
+            continue
+        # Feed-artifact guard: a redenomination / migration print (QFI,
+        # 2026-11-12) is not a trade — skip before it can dominate scoring.
+        if is_feed_artifact(chg24, chg7d):
+            print(f'  skip feed artifact: {sym} chg24={chg24:+.0f}% chg7d={chg7d:+.0f}%')
             continue
         # Skip dust / illiquid: no price, or market cap under $100M (only liquid, tradable assets)
         if not price or price <= 0:
