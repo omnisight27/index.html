@@ -22,7 +22,7 @@
       if (topLong) setText('hint-picks', 'Top long right now: ' + topLong.asset + ' at ' + topLong.confidence + '% confidence.');
       var nF = (d.foresight && d.foresight.length) || 0;
       setText('hint-foresight', nF ? nF + ' long-horizon signals being tracked — newest first.' : 'Foresight is watching the Federal Register and CBO feeds.');
-      if (d.buy_text) setText('hint-money', d.buy_text + '.');
+      if (d.buy_text) setText('hint-money', d.buy_text + '.' + (d.buy_text_v2 ? ' Regime v2 (shadow): ' + d.buy_text_v2 + '.' : ''));
       if (window.nxStampInto) {
         var stamp = document.getElementById('data-stamp');
         if (stamp) window.nxStampInto(stamp, d);

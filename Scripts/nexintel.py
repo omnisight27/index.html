@@ -892,6 +892,77 @@ HEURISTIC_W = ([1.0, 1.0, 0.6, 8.0, 4.0, -0.5, 0.8, -1.2, 0.3, 2.0] +
 FEATURE_NAMES = (['momentum', 'reversion', 'psych_bias', 'fg_level', 'fg_delta', 'vol',
                   'acceleration', 'zscore', 'rsi', 'trend_align'] + MODEL_NAMES)
 
+# ------------------------------------------------------- CORRECTED WEIGHTS (F(t))
+# The correction loop (Scripts/shadow_actuator.py, F(t+1) = correct(F(t),
+# grades) writes the live weight state to data/corrected_weights.json each
+# grading run. The live scoring path reads it here and uses it INSTEAD of
+# the least-squares fit — the 50%-rule signed weights ARE the live weights
+# (settled scope, Nic Nov 11: autonomous correction includes live).
+# Fail-open: a missing, malformed, or wrong-length file changes nothing —
+# scoring falls back to learn_weights() and says so in the payload.
+# NEVER places an order: this only changes the SCORING weights the engine
+# uses to CALL a buy; Nic executes every trade himself.
+CORRECTED_WEIGHTS_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'data', 'corrected_weights.json')
+
+
+def load_corrected_weights(path=None):
+    """Load the live corrected weight state. Returns (weights, info) or
+    (None, reason) when the file is absent or invalid — the caller falls
+    back to learn_weights(). `path` is injectable for tests."""
+    import math as _math
+    p = path or CORRECTED_WEIGHTS_FILE
+    try:
+        with open(p) as f:
+            payload = json.load(f)
+    except (OSError, ValueError) as e:
+        return None, f'no corrected weights ({type(e).__name__})'
+    w = payload.get('weights') if isinstance(payload, dict) else None
+    if (not isinstance(w, list) or len(w) != N_FEATURES
+            or not all(isinstance(x, (int, float))
+                       and _math.isfinite(x) for x in w)):
+        return None, (f'invalid corrected weights '
+                      f'(need {N_FEATURES} finite numbers)')
+    return [float(x) for x in w], {
+        't': payload.get('t'),
+        'timestamp': payload.get('timestamp'),
+        'source': payload.get('source'),
+        'proof': payload.get('proof') or {},
+    }
+
+
+# F-term indices in the 22-feature vector (see the order comment above).
+F_TERM_PSYCH_IDX = (2, 3, 4)   # c: psych_bias, fg_level, fg_delta
+F_TERM_ORDERFLOW_IDX = 6       # d: acceleration (order-flow footprint)
+
+
+def f_terms_for(feats, weights, g_edge, raw_pre_tilt, tilted):
+    """Decompose one pick's tilted score into F's PROPOSED terms
+    (a=economics, b=mathematics, c=psychology, d=order flow;
+    (f-e) and unknown are null — no net-flow term is scored and the
+    residual is never invented). The parts sum to the tilted score:
+    a = regime-tilt delta, c = psych features' contribution,
+    d = acceleration's contribution, b = the rest of the math
+    (remaining weighted features + geometric edge x 10).
+    `why` is the term that carried the verdict: the largest
+    contribution in the verdict's direction."""
+    c = sum(weights[j] * feats[j] for j in F_TERM_PSYCH_IDX)
+    d = weights[F_TERM_ORDERFLOW_IDX] * feats[F_TERM_ORDERFLOW_IDX]
+    dot = sum(w * x for w, x in zip(weights, feats))
+    b = (dot - c - d) + g_edge * 10.0
+    a = tilted - raw_pre_tilt
+    parts = {'a': a, 'b': b, 'c': c, 'd': d}
+    if tilted > 0:
+        why = max(parts, key=lambda k: parts[k])
+    elif tilted < 0:
+        why = min(parts, key=lambda k: parts[k])
+    else:
+        why = 'b'
+    return {'a': round(a, 3), 'b': round(b, 3), 'c': round(c, 3),
+            'd': round(d, 3), 'fe': None, 'unknown': None, 'why': why}
+
+
 def extract_features(chg24, chg7d, psych_bias, fg_now, fg_delta):
     # --- Calculus: velocity (1st derivative) and acceleration (2nd derivative) ---
     velocity = chg24
@@ -1082,6 +1153,133 @@ def detect_regime(fg_now, xau_price, usd_jpy, macro=None):
         buy_text = f'Mixed conditions ({buy_pct}% buy / {100 - buy_pct}% caution)'
     return regime, reasons, buy_pct, buy_text
 
+
+# ------------------------------------------------------- REGIME v2 (shadow)
+# Finer-grained regime gauge (Nic 2026-11-11): v1 only moves in 12-point
+# steps (buy_pct = 50 + 12*score with an integer score), so it read exactly
+# 38% from Oct 24 to Nov 11 while the market moved underneath it. v2 keeps
+# the same inputs but scores each one CONTINUOUSLY in [-1, +1] and blends
+# them with fixed weights, so the number moves with the market.
+# SHADOW / DISPLAY ONLY: nothing in decide.py, the gates, or the alert
+# script reads v2. The v1 fields above stay the live ones.
+REGIME_V2_WEIGHTS = {
+    'fear_greed': 0.25,
+    'gold': 0.10,
+    'usd_jpy': 0.10,
+    'btc_trend': 0.25,
+    'breadth': 0.15,
+    'macro': 0.15,
+}
+
+
+def detect_regime_v2(fg_now, xau_price, usd_jpy, macro=None, market=None):
+    """Continuous regime gauge (shadow).
+
+    Returns (regime, buy_pct, buy_text, components). Each component is
+    scored in [-1, +1] (positive favors buying) and blended with
+    REGIME_V2_WEIGHTS. A component whose input is missing is OMITTED and
+    the remaining weights renormalize — the gauge never invents data and
+    never crashes on a missing feed.
+
+    Components:
+      fear_greed  (fg-50)/50 — 0 -> -1, 50 -> 0, 100 -> +1
+      gold        (4100-xau)/200 clamped — gold above the $4,100
+                  safe-haven line scores negative
+      usd_jpy     (150-jpy)/10 clamped — a strong dollar scores negative
+      btc_trend   tanh(chg_7d_pct/10); falls back to the 24h change when
+                  no 7d change is available
+      breadth     2*(share of the universe up 24h) - 1
+      macro       mean of the available v1 macro flags (CPI band, jobless-
+                  claims direction, consumer spending), each +/-1 when it
+                  has a directional reading, 0 when neutral
+    buy_pct = clamp(round(50*(1+score)), 5, 95). Regime: score >= 0.2
+    RISK_ON, <= -0.2 RISK_OFF, else NEUTRAL. buy_text uses the same
+    bands as v1 (>=65 buying, <=35 caution, else mixed).
+    """
+    macro = macro or {}
+    market = market or {}
+    comps = {}
+
+    def _num(v):
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    fg = _num(fg_now)
+    if fg is not None:
+        comps['fear_greed'] = max(-1.0, min(1.0, (fg - 50.0) / 50.0))
+    xau = _num(xau_price)
+    if xau is not None:
+        comps['gold'] = max(-1.0, min(1.0, (4100.0 - xau) / 200.0))
+    jpy = _num(usd_jpy)
+    if jpy is not None:
+        comps['usd_jpy'] = max(-1.0, min(1.0, (150.0 - jpy) / 10.0))
+    btc_chg = market.get('btc_chg_7d')
+    if btc_chg is None:
+        btc_chg = market.get('btc_chg_24h')
+    btc_chg = _num(btc_chg)
+    if btc_chg is not None:
+        comps['btc_trend'] = math.tanh(btc_chg / 10.0)
+    share = _num(market.get('breadth_up_share'))
+    if share is not None:
+        comps['breadth'] = max(-1.0, min(1.0, 2.0 * share - 1.0))
+    macro_vals = []
+    cpi_yoy = (macro.get('cpi_yoy') or {}).get('value')
+    if cpi_yoy is not None:
+        if cpi_yoy > 4:
+            macro_vals.append(-1.0)
+        elif cpi_yoy < 2:
+            macro_vals.append(1.0)
+        else:
+            macro_vals.append(0.0)
+    icsa = macro.get('jobless_claims') or {}
+    if icsa.get('value') is not None and icsa.get('prev') is not None:
+        if icsa['value'] > icsa['prev']:
+            macro_vals.append(-1.0)
+        elif icsa['value'] < icsa['prev']:
+            macro_vals.append(1.0)
+        else:
+            macro_vals.append(0.0)
+    pce = macro.get('consumer_spending') or {}
+    if pce.get('change_pct') is not None:
+        if pce['change_pct'] >= 0.5:
+            macro_vals.append(1.0)
+        elif pce['change_pct'] < 0:
+            macro_vals.append(-1.0)
+        else:
+            macro_vals.append(0.0)
+    if macro_vals:
+        comps['macro'] = sum(macro_vals) / len(macro_vals)
+
+    total_w = sum(REGIME_V2_WEIGHTS[k] for k in comps)
+    if total_w > 0:
+        score = sum(comps[k] * REGIME_V2_WEIGHTS[k] for k in comps) / total_w
+    else:
+        score = 0.0
+    buy_pct = max(5, min(95, round(50 * (1 + score))))
+    if score >= 0.2:
+        regime = 'RISK_ON'
+    elif score <= -0.2:
+        regime = 'RISK_OFF'
+    else:
+        regime = 'NEUTRAL'
+    if buy_pct >= 65:
+        buy_text = f'Conditions favor buying ({buy_pct}%)'
+    elif buy_pct <= 35:
+        buy_text = f'Conditions favor caution ({100 - buy_pct}%)'
+    else:
+        buy_text = f'Mixed conditions ({buy_pct}% buy / {100 - buy_pct}% caution)'
+    components = {
+        'score': round(score, 4),
+        'values': {k: round(v, 4) for k, v in comps.items()},
+        'weights': ({k: round(REGIME_V2_WEIGHTS[k] / total_w, 4) for k in comps}
+                    if total_w > 0 else {}),
+        'omitted': [k for k in REGIME_V2_WEIGHTS if k not in comps],
+    }
+    return regime, buy_pct, buy_text, components
+
+
 def regime_adjustment(regime):
     return {
         'RISK_ON':  {'long_boost': 1.2, 'short_damp': 0.7,
@@ -1180,6 +1378,20 @@ def think(data, history):
 
     # --- Learn optimal weights from history (row echelon form) ---
     weights, winfo = learn_weights(history)
+    # --- Corrected weights (F(t)): the loop's live weight state, when
+    # present, REPLACES the least-squares fit — the 50%-rule signed
+    # weights ARE the live weights (settled scope, Nic Nov 11).
+    # Fail-open: no/invalid file -> the fit above stands. NEVER places
+    # an order — scoring weights only; Nic executes every trade himself.
+    corrected, cinfo = load_corrected_weights()
+    corrected_active = corrected is not None
+    if corrected_active:
+        weights = corrected
+        winfo = {'trained': True, 'samples': winfo.get('samples'),
+                 'note': (f"corrected 50%-rule weights (F t={cinfo.get('t')}, "
+                          f"graded {cinfo.get('proof', {}).get('fifty_rule_exp_usd')} "
+                          f"$/1k OOS vs current "
+                          f"{cinfo.get('proof', {}).get('current_exp_usd')} $/1k)")}
     explanations.append('Weights: ' + winfo['note'])
     print(f"  weights = {[round(w, 3) for w in weights]} ({winfo['note']})")
 
@@ -1192,6 +1404,33 @@ def think(data, history):
     adj = regime_adjustment(regime)
     explanations.append(f'{buy_text} ({", ".join(regime_reasons) or "mixed signals"}) — {adj["note"]}')
     print(f"  regime = {regime} | {buy_text}")
+
+    # --- Regime v2 (shadow): finer-grained gauge, display only ---
+    # Same inputs as v1 plus BTC trend + market breadth from the universe
+    # already ingested. Never touches the gates: the v1 fields above are
+    # the live ones. Fail-open: any problem -> v2 fields stay None and
+    # the run continues.
+    regime_v2 = buy_pct_v2 = buy_text_v2 = None
+    regime_v2_components = {}
+    try:
+        _btc_7d = _btc_24h = None
+        for _cid, _info in crypto.items():
+            if (_info.get('symbol') or _cid).upper() in ('BTC', 'XBT'):
+                _btc_7d = _info.get('usd_7d_change')
+                _btc_24h = _info.get('usd_24h_change')
+                break
+        _up = sum(1 for _i in crypto.values() if (_i.get('usd_24h_change') or 0) > 0)
+        _n = len(crypto)
+        _market = {
+            'btc_chg_7d': _btc_7d,
+            'btc_chg_24h': _btc_24h,
+            'breadth_up_share': (_up / _n) if _n else None,
+        }
+        regime_v2, buy_pct_v2, buy_text_v2, regime_v2_components = detect_regime_v2(
+            fg_now, xau, usd_jpy, data.get('macro'), _market)
+        print(f"  regime v2 (shadow) = {regime_v2} | {buy_text_v2}")
+    except Exception as e:  # never break the run over the shadow gauge
+        print(f"  regime v2 unavailable ({type(e).__name__}: {e})")
 
     # --- Kelly position sizing from track record ---
     stats = history.get('stats', {})
@@ -1302,6 +1541,7 @@ def think(data, history):
         # Geometric layer: fastest pattern match via cosine similarity
         g_edge, g_info = geometric_edge(feats, history)
         score += g_edge * 10.0
+        raw_score = score  # pre-tilt, for the F-term decomposition
         # Regime tilt
         if score > 0: score *= adj['long_boost']
         else: score *= adj['short_damp']
@@ -1329,6 +1569,14 @@ def think(data, history):
                 'econ_features': _econ_vals_for(sym, price, chg24, chg7d, info),
                 'thesis': thesis, 'position_pct': round(kelly * 100, 1),
                 'regime': regime}
+        # F verdict (corrected function only): a LONG under corrected
+        # weights IS F's BUY. The alert path pushes an F-buy through
+        # the gate; a non-F buy still faces the 60% bar + caution gate.
+        if corrected_active:
+            _ft = f_terms_for(feats, weights, g_edge, raw_score, score)
+            pick['f_verdict'] = 'BUY' if score > 0 else 'NO'
+            pick['f_why'] = _ft.pop('why')
+            pick['f_terms'] = _ft
         (longs if score > 0 else shorts).append(pick)
 
     # --- Metals as risk barometer ---
@@ -1401,6 +1649,7 @@ def think(data, history):
         score = sum(w * f for w, f in zip(weights, feats))
         g_edge, _ = geometric_edge(feats, history)
         score += g_edge * 10.0
+        raw_score = score  # pre-tilt, for the F-term decomposition
         if score > 0: score *= adj['long_boost']
         else: score *= adj['short_damp']
         conf = clamp(50 + abs(score) * 2)
@@ -1431,6 +1680,12 @@ def think(data, history):
                 pick['insider_recent'] = ins.get('n_filings', 0)  # back-compat
                 for tag in ins.get('tags', []):
                     pick['reason'] += ' ' + tag
+        # F verdict (corrected function only) — see the crypto loop.
+        if corrected_active:
+            _ft = f_terms_for(feats, weights, g_edge, raw_score, score)
+            pick['f_verdict'] = 'BUY' if score > 0 else 'NO'
+            pick['f_why'] = _ft.pop('why')
+            pick['f_terms'] = _ft
         (longs if score > 0 else shorts).append(pick)
 
     # --- Contracts watch (Contract Intel): flag mega-awards with tickers ---
@@ -1722,9 +1977,14 @@ def think(data, history):
                        'notes': explanations},
         'weights': [round(w, 4) for w in weights],
         'weight_info': winfo,
+        'weights_source': 'corrected' if corrected_active else 'learned',
         'regime': regime,
         'buy_pct': buy_pct,
         'buy_text': buy_text,
+        'regime_v2': regime_v2,
+        'buy_pct_v2': buy_pct_v2,
+        'buy_text_v2': buy_text_v2,
+        'regime_v2_components': regime_v2_components,
         'kelly_pct': round(kelly * 100, 1),
         'contracts_watch': contract_notes,
         'opportunities': data.get('opportunities', []),
@@ -2125,6 +2385,10 @@ def publish(data, signals, history, data_pulled_at=None):
         'regime_label': REGIME_LABELS.get(signals.get('regime'), signals.get('regime')),
         'buy_pct': signals.get('buy_pct'),
         'buy_text': signals.get('buy_text'),
+        'regime_v2': signals.get('regime_v2'),
+        'buy_pct_v2': signals.get('buy_pct_v2'),
+        'buy_text_v2': signals.get('buy_text_v2'),
+        'regime_v2_components': signals.get('regime_v2_components', {}),
         'kelly_pct': signals.get('kelly_pct'),
         'macro': macro,
         'macro_carried': macro_carried,
