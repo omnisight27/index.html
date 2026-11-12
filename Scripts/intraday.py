@@ -2769,7 +2769,7 @@ def sparkline_prices(spark, run_ts, hours=24):
 
 def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
                btc_chg24, econ_feed, run_ts, tradable_on, blocked,
-               min_mcap=100_000_000, prices=None):
+               venues_on=None, min_mcap=100_000_000, prices=None):
     """One coin of the signal scan: hourly chart (24h) -> features ->
     balance/econ (display only) -> score -> thesis. Returns the signal
     dict or None (filtered, failed fetch, weak score, or fee floor).
@@ -2856,6 +2856,10 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
         'name': c.get('name') or sym,
         'info_url': f'https://www.coingecko.com/en/coins/{cid}',
         'tradable': tradable_on(sym),
+        'venues': venues_on(sym) if venues_on else [],
+        # 24h move from the hourly closes (artifact guard: the sim
+        # re-checks is_feed_artifact on this; QFI-class prints trip it).
+        'chg_24h': round(f['chg_24h'], 2),
         'timestamp': datetime.now(timezone.utc).isoformat(),
         # Real 24h volume read (display only — never a buy input):
         # the markets payload's total_volume is a true CoinGecko 24h
@@ -3065,25 +3069,21 @@ def main():
                # Second wave, same morning: SG-FORGE stables (EURCV/USDCV),
                # Origin Dollar (OUSD), Web 3 Dollar (USD3)
                'EURCV', 'USDCV', 'OUSD', 'USD3'}
-    # Exchange listings — which coins Nic can actually trade
-    listings_cb, listings_cdc = set(), set()
-    try:
-        cb_prods = fetch_json('https://api.exchange.coinbase.com/products') or []
-        listings_cb = {p['base_currency'] for p in cb_prods
-            if p.get('quote_currency') == 'USD' and p.get('status') == 'online' and p.get('base_currency')}
-    except Exception:
-        pass
-    try:
-        cdc = fetch_json('https://api.crypto.com/exchange/v1/public/get-instruments') or {}
-        listings_cdc = {i['base_ccy'] for i in (cdc.get('result', {}).get('data', []) or [])
-            if i.get('inst_type') == 'CCY_PAIR' and i.get('quote_ccy') in ('USD', 'USDT') and i.get('base_ccy')}
-    except Exception:
-        pass
+    # Exchange listings — which coins Nic can actually trade (Coinbase +
+    # Crypto.com) plus the widened sim-reporting venues (Kraken, OKX).
+    # `tradable` stays Coinbase/Crypto.com only (live gate); `venues`
+    # carries all four.
+    import venues as _venues
+    _listings = _venues.fetch_venue_listings(fetch_json)
+    listings_cb = _listings['coinbase']
+    listings_cdc = _listings['cryptocom']
     def tradable_on(sym):
-        out = []
-        if sym in listings_cb: out.append('coinbase')
-        if sym in listings_cdc: out.append('cryptocom')
-        return out
+        """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom'].
+        UNCHANGED — the live gate reads exactly this."""
+        return _venues.tradable_on(sym, _listings)
+    def venues_on(sym):
+        """Widened verified venues (sim reporting): subset of VENUE_ORDER."""
+        return _venues.venues_on(sym, _listings)
     # Broad universe for the movers scan: top 1,000 by market cap (4 pages).
     # Page 1 doubles as the top-50 universe for the signal scan below.
     universe = []
@@ -3191,7 +3191,7 @@ def main():
     for c in mkts:
         sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                          macro_snap, btc_chg24, econ_feed, run_ts,
-                         tradable_on, BLOCKED)
+                         tradable_on, BLOCKED, venues_on=venues_on)
         if sig:
             signals.append(sig)
 
@@ -3243,7 +3243,7 @@ def main():
             continue
         sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                          macro_snap, btc_chg24, econ_feed, run_ts,
-                         tradable_on, BLOCKED,
+                         tradable_on, BLOCKED, venues_on=venues_on,
                          min_mcap=SHADOW_MCAP_FLOOR, prices=_prices)
         if _sym in charts_by_sym:
             shadow_coins_scanned += 1
@@ -3295,7 +3295,7 @@ def main():
                 continue
             sig = _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist,
                              macro_snap, btc_chg24, econ_feed, run_ts,
-                             tradable_on, BLOCKED,
+                             tradable_on, BLOCKED, venues_on=venues_on,
                              min_mcap=SHADOW_TAIL_MIN_MCAP, prices=_prices)
             if _sym in charts_by_sym:
                 tail_diag['coins_scanned'] += 1
@@ -3444,6 +3444,7 @@ def main():
             'market_cap': c.get('market_cap') or 0,
             'direction': direction,
             'tradable': tradable_on((c['symbol'] or '').upper()),
+            'venues': venues_on((c['symbol'] or '').upper()),
             'info_url': f"https://www.coingecko.com/en/coins/{c['id']}",
         }
         # Auction-market balance from the 7d sparkline (no hourly volumes on
@@ -3451,6 +3452,10 @@ def main():
         # Display only — never a buy input.
         _spark7 = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
                    if p is not None]
+        # 7d move from the sparkline (artifact guard: the sim re-checks
+        # is_feed_artifact on chg_24h + chg_7d; QFI-class prints trip it).
+        out['chg_7d'] = (round((_spark7[-1] - _spark7[0]) / _spark7[0] * 100, 2)
+                         if len(_spark7) >= 2 and _spark7[0] else None)
         _bs, _bs_parts = balance_score(_spark7[-24:], closes_7d=_spark7)
         out['balance_score'] = _bs
         out['balance_parts'] = _bs_parts

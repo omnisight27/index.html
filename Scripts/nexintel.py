@@ -523,21 +523,10 @@ def ingest():
     # so the three calls were dead weight. Removed, not replaced.
 
     # Exchange listings — which coins Nic can actually trade (Coinbase + Crypto.com)
-    d['listings'] = {'coinbase': set(), 'cryptocom': set()}
-    try:
-        cb_prods = fetch_json('https://api.exchange.coinbase.com/products') or []
-        d['listings']['coinbase'] = {p['base_currency'] for p in cb_prods
-            if p.get('quote_currency') == 'USD' and p.get('status') == 'online' and p.get('base_currency')}
-        print(f"  listings: Coinbase {len(d['listings']['coinbase'])} coins")
-    except Exception as e:
-        print(f'  coinbase listings failed: {e}')
-    try:
-        cdc = fetch_json('https://api.crypto.com/exchange/v1/public/get-instruments') or {}
-        d['listings']['cryptocom'] = {i['base_ccy'] for i in (cdc.get('result', {}).get('data', []) or [])
-            if i.get('inst_type') == 'CCY_PAIR' and i.get('quote_ccy') in ('USD', 'USDT') and i.get('base_ccy')}
-        print(f"  listings: Crypto.com {len(d['listings']['cryptocom'])} coins")
-    except Exception as e:
-        print(f'  cryptocom listings failed: {e}')
+    # plus the widened sim-reporting venues (Kraken, OKX). `tradable` stays
+    # Coinbase/Crypto.com only (live gate); `venues` carries all four.
+    import venues as _venues
+    d['listings'] = _venues.fetch_venue_listings(fetch_json)
 
     # Sentiment (Fear & Greed)
     fg = fetch_json('https://api.alternative.me/fng/?limit=7')
@@ -1503,12 +1492,14 @@ def think(data, history):
                        # (EURCV/USDCV), Origin Dollar (OUSD) and Web 3 Dollar (USD3)
                        'EURCV', 'USDCV', 'OUSD', 'USD3'}
     listings = data.get('listings', {})
+    import venues as _venues
     def tradable_on(sym):
-        """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom']."""
-        out = []
-        if sym in listings.get('coinbase', set()): out.append('coinbase')
-        if sym in listings.get('cryptocom', set()): out.append('cryptocom')
-        return out
+        """Where Nic can trade this coin: subset of ['coinbase', 'cryptocom'].
+        UNCHANGED — the live gate reads exactly this."""
+        return _venues.tradable_on(sym, listings)
+    def venues_on(sym):
+        """Widened verified venues (sim reporting): subset of VENUE_ORDER."""
+        return _venues.venues_on(sym, listings)
     # --- Milestone 2 econ pack: per-pick candidate variables for the
     # significance ranking. DISPLAY + GRADING ONLY — extract_features() and
     # the score line below are untouched; nothing here feeds live scoring.
@@ -1621,6 +1612,7 @@ def think(data, history):
                 'name': info.get('name') or sym,
                 'info_url': f'https://www.coingecko.com/en/coins/{cid}',
                 'tradable': tradable_on(sym),
+                'venues': venues_on(sym),
                 'tf_align': tf_align,
                 'tf_vector': [round(w, 3) for w in tf_windows],
                 'features': [round(f, 3) for f in feats], 'geo_edge': round(g_edge, 3),
