@@ -253,18 +253,20 @@ def test_run_on_real_repo(tmp_path):
     cyc = by_name.get('cycle — DEDUPED (distinct outcomes)')
     assert cyc is not None
     assert 0 <= cyc['new_shadow_multiplier'] <= 1
-    # Feature corrections move the large train-fit weights — pin presence
-    # and range, not the snapshot values (macd 0.204→0.186, roc
-    # 0.201→0.195 on the day pinned). Presence itself is live-record
-    # dependent: when no feature is currently losing, feature_changes is
-    # legitimately empty (2026-11-12: 0 feature corrections, 18 too thin)
-    # — then assert the check ran instead of failing on the empty list.
+    # Feature corrections move the large train-fit weights — assert shape
+    # and range for whichever features are corrected, not the snapshot
+    # names (macd/roc were corrected on the day pinned; on 2026-11-13
+    # the set was rsi/donchian/stoch/atr — membership drifts as picks
+    # are graded). Presence itself is live-record dependent: when no
+    # feature is currently losing, feature_changes is legitimately
+    # empty (2026-11-12: 0 feature corrections, 18 too thin) — then
+    # assert the check ran instead of failing on the empty list.
     by_feat = {f['feature']: f for f in proposal['feature_changes']}
     if by_feat:
-        for feat in ('macd', 'roc'):
-            assert feat in by_feat
-            assert 0 <= by_feat[feat]['old_shadow_weight'] <= 1
-            assert 0 <= by_feat[feat]['new_shadow_weight'] <= 1
+        for feat, f in by_feat.items():
+            assert 0 <= f['old_shadow_weight'] <= 1
+            assert 0 <= f['new_shadow_weight'] <= 1
+            assert f['new_shadow_weight'] <= f['old_shadow_weight']
     else:
         assert proposal['checked']['features'] > 0
     assert len(proposal['feature_immaterial']) > 0

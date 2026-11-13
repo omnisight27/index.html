@@ -505,7 +505,18 @@ def test_run_on_real_repo(tmp_path):
     assert sh['base_grade']['n'] == results['validation']['test_picks']
     assert sh['joint_dead_grade']['n'] == results['validation']['test_picks']
     assert len(sh['joint_dead_indices']) >= 18  # most features jointly dead; was 21 on the day pinned, 20 on 2026-11-12 (feature 2 left the dead set as grading accrued — membership drifts)
-    assert 6 not in sh['joint_dead_indices']  # acceleration earns weight
+    # No pin on which indices are dead: membership churns as picks are
+    # graded. On 2026-11-13 the dead set grew back to 21 with a
+    # different member — acceleration (6) joined after its verdict
+    # flipped EARNS → DEAD WEIGHT (standalone 42.4%, ablation delta
+    # +$6.46/1k, below the +$10 earns bar), leaving only index 2
+    # alive. The shadow-vs-base grade gap on this split is a review
+    # signal for Nic, not a gate — the SHADOW_OVERRIDES constants
+    # below still stand.
+    assert set(sh['joint_dead_indices']) <= set(range(22))
+    assert sh['shadow_grade']['win_pct'] is not None
+    assert 0 <= sh['shadow_grade']['win_pct'] <= 100
+    assert 0 <= sh['base_grade']['win_pct'] <= 100
     assert sh['shadow_weights'][6] == 0.225  # SHADOW_OVERRIDES constant
     assert sh['shadow_weights'][2] == 0.173  # SHADOW_OVERRIDES constant
     for j in (20, 1, 18, 9, 11):
@@ -527,12 +538,15 @@ def test_run_on_real_repo(tmp_path):
     assert max(abs(w) for w in fr['weights']) <= 0.225 + 1e-9
     assert len(fr['feature_rows']) == 22
     acc = next(x for x in fr['feature_rows'] if x['name'] == 'acceleration')
-    # Train slice reads acceleration slightly ABOVE 50% (51.6%), so the
-    # rule gives it a tiny POSITIVE weight — the negative read (34.8%)
-    # is the test slice, which must never set a weight (look-ahead).
-    assert acc['train_top_win_pct'] > 50
+    # The 50% rule sets acceleration's signed weight from the TRAIN
+    # slice only — the test slice (42.4% today) must never set a weight
+    # (look-ahead). Train read 51.6% on the day pinned (tiny positive
+    # weight); on 2026-11-13 it crossed to 49.7%, so the weight flipped
+    # to a tiny negative (-0.002) — the mechanism is the sign of the
+    # train distance from 50% with a small magnitude, not the side.
     assert acc['test_top_win_pct'] < 50
-    assert acc['signed_weight'] > 0 and acc['signed_weight'] < 0.05
+    assert abs(acc['signed_weight']) < 0.05
+    assert (acc['signed_weight'] > 0) == (acc['train_top_win_pct'] > 50) or acc['signed_weight'] == 0
     # The largest distance from 50% is CMI CLEAN (11.3%): it maps to
     # the -0.225 cap, and its mirror pays.
     clean = next(t for t in fr['tracks'] if t['name'] == 'CMI band CLEAN')
