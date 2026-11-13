@@ -1,371 +1,6 @@
 {
   "picks": [
     {
-      "date": "2026-10-19T22:04:46.616349+00:00",
-      "scored": true,
-      "longs": [
-        {
-          "asset": "GRX",
-          "price": 24.68,
-          "score": 40.9,
-          "confidence": 92,
-          "reason": "GRX +38.0% (24h), +16.7% (7d) @ $25. Ensemble score +40.9 (w\u00b7x + geo -0.05 + RISK_OFF).",
-          "class": "crypto",
-          "name": "GRX Chain",
-          "info_url": "https://www.coingecko.com/en/coins/grx-chain",
-          "features": [
-            57.042,
-            -15.211,
-            0.0,
-            0.18,
-            0.3,
-            3.803,
-            7.129,
-            1.0,
-            0.999,
-            1.0,
-            3.0,
-            1.0,
-            3.0,
-            1.999,
-            3.0,
-            3.0,
-            1.5,
-            3.0,
-            2.0,
-            3.0,
-            -2.377,
-            -3.0
-          ],
-          "geo_edge": -0.048,
-          "thesis": {
-            "direction": "LONG",
-            "bull_case": [
-              "strong 24h momentum (+38.0%)",
-              "trend alignment across timeframes"
-            ],
-            "bear_case": [
-              "no strong bearish factors"
-            ],
-            "stop_loss": 10.6,
-            "take_profit": 43.45,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 76.06,
-            "max_loss_pct": 57.04
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 19.19,
-          "return_pct": -22.24,
-          "win": false,
-          "abs_error": 18.66
-        },
-        {
-          "asset": "CARDS",
-          "price": 0.32,
-          "score": 33.9,
-          "confidence": 92,
-          "reason": "CARDS +29.5% (24h), +11.8% (7d) @ $0. Ensemble score +33.9 (w\u00b7x + geo -0.06 + RISK_OFF).",
-          "class": "crypto",
-          "name": "Collector Crypt",
-          "info_url": "https://www.coingecko.com/en/coins/collector-crypt",
-          "features": [
-            44.227,
-            -11.794,
-            0.0,
-            0.18,
-            0.3,
-            2.948,
-            5.561,
-            1.0,
-            0.999,
-            1.0,
-            3.0,
-            1.0,
-            3.0,
-            1.999,
-            3.0,
-            3.0,
-            1.5,
-            3.0,
-            2.0,
-            3.0,
-            -1.843,
-            -3.0
-          ],
-          "geo_edge": -0.06,
-          "thesis": {
-            "direction": "LONG",
-            "bull_case": [
-              "strong 24h momentum (+29.5%)",
-              "trend alignment across timeframes"
-            ],
-            "bear_case": [
-              "no strong bearish factors"
-            ],
-            "stop_loss": 0.18,
-            "take_profit": 0.51,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 58.97,
-            "max_loss_pct": 44.23
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 0.32,
-          "return_pct": 0.59,
-          "win": true,
-          "abs_error": 33.31
-        },
-        {
-          "asset": "BR",
-          "price": 0.68,
-          "score": 30.0,
-          "confidence": 87,
-          "reason": "BR +25.6% (24h), +49.7% (7d) @ $1. Ensemble score +30.0 (w\u00b7x + geo -0.06 + RISK_OFF).",
-          "class": "crypto",
-          "name": "Bedrock",
-          "info_url": "https://www.coingecko.com/en/coins/bedrock-token",
-          "features": [
-            38.333,
-            -10.222,
-            0.0,
-            0.18,
-            0.3,
-            2.556,
-            3.69,
-            1.0,
-            0.999,
-            1.0,
-            3.0,
-            1.0,
-            3.0,
-            1.998,
-            3.0,
-            3.0,
-            1.5,
-            3.0,
-            2.0,
-            3.0,
-            -1.597,
-            -3.0
-          ],
-          "geo_edge": -0.062,
-          "thesis": {
-            "direction": "LONG",
-            "bull_case": [
-              "strong 24h momentum (+25.6%)",
-              "trend alignment across timeframes"
-            ],
-            "bear_case": [
-              "no strong bearish factors"
-            ],
-            "stop_loss": 0.42,
-            "take_profit": 1.03,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 51.11,
-            "max_loss_pct": 38.33
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 0.67,
-          "return_pct": -1.23,
-          "win": false,
-          "abs_error": 28.77
-        }
-      ],
-      "shorts": [
-        {
-          "asset": "BTW",
-          "price": 2.14,
-          "score": -13.7,
-          "confidence": 71,
-          "reason": "BTW -15.1% (24h), +21.7% (7d) @ $2. Ensemble score -13.7 (w\u00b7x + geo +0.25 + RISK_OFF).",
-          "class": "crypto",
-          "name": "Bitway",
-          "info_url": "https://www.coingecko.com/en/coins/bitway",
-          "features": [
-            -10.54,
-            6.023,
-            0.0,
-            0.18,
-            0.3,
-            1.506,
-            -3.63,
-            -1.0,
-            -0.999,
-            -1.0,
-            -3.0,
-            -1.0,
-            -1.882,
-            -1.997,
-            -3.0,
-            -2.51,
-            -0.5,
-            2.269,
-            2.0,
-            -3.0,
-            0.941,
-            -3.0
-          ],
-          "geo_edge": 0.252,
-          "thesis": {
-            "direction": "SHORT",
-            "bull_case": [
-              "pattern matches historical winners"
-            ],
-            "bear_case": [
-              "sharp 24h selloff (-15.1%)",
-              "risk-off regime favors shorts"
-            ],
-            "stop_loss": 2.62,
-            "take_profit": 1.5,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 30.12,
-            "max_loss_pct": 22.59
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 1.72,
-          "return_pct": 19.63,
-          "win": true,
-          "abs_error": 5.93
-        },
-        {
-          "asset": "RAIL",
-          "price": 2.19,
-          "score": -13.6,
-          "confidence": 70,
-          "reason": "RAIL -9.7% (24h), -26.3% (7d) @ $2. Ensemble score -13.6 (w\u00b7x + geo +0.04 + RISK_OFF).",
-          "class": "crypto",
-          "name": "Railgun",
-          "info_url": "https://www.coingecko.com/en/coins/railgun",
-          "features": [
-            -14.524,
-            3.873,
-            0.0,
-            0.18,
-            0.3,
-            0.968,
-            -1.186,
-            -0.646,
-            -0.998,
-            1.0,
-            -1.977,
-            1.0,
-            -1.21,
-            -1.996,
-            -1.482,
-            -1.614,
-            -0.468,
-            1.679,
-            0.937,
-            -1.937,
-            0.605,
-            -3.0
-          ],
-          "geo_edge": 0.04,
-          "thesis": {
-            "direction": "SHORT",
-            "bull_case": [
-              "no strong bullish factors"
-            ],
-            "bear_case": [
-              "sharp 24h selloff (-9.7%)",
-              "trend alignment across timeframes",
-              "risk-off regime favors shorts"
-            ],
-            "stop_loss": 2.51,
-            "take_profit": 1.77,
-            "risk_reward": 1.33,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 19.37,
-            "max_loss_pct": 14.52
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 2.16,
-          "return_pct": 1.37,
-          "win": true,
-          "abs_error": 12.23
-        },
-        {
-          "asset": "HASH",
-          "price": 0.01,
-          "score": -10.9,
-          "confidence": 66,
-          "reason": "HASH -10.9% (24h), +6.5% (7d) @ $0. Ensemble score -10.9 (w\u00b7x + geo +0.26 + RISK_OFF).",
-          "class": "crypto",
-          "name": "Provenance Blockchain",
-          "info_url": "https://www.coingecko.com/en/coins/hash-2",
-          "features": [
-            -7.619,
-            4.354,
-            0.0,
-            0.18,
-            0.3,
-            1.088,
-            -2.364,
-            -0.726,
-            -0.998,
-            -1.0,
-            -3.0,
-            -1.0,
-            -1.361,
-            -1.996,
-            -2.954,
-            -1.814,
-            -0.5,
-            1.477,
-            1.177,
-            -2.177,
-            0.68,
-            -3.0
-          ],
-          "geo_edge": 0.264,
-          "thesis": {
-            "direction": "SHORT",
-            "bull_case": [
-              "pattern matches historical winners"
-            ],
-            "bear_case": [
-              "sharp 24h selloff (-10.9%)",
-              "risk-off regime favors shorts"
-            ],
-            "stop_loss": 0.01,
-            "take_profit": 0.01,
-            "risk_reward": 0.14,
-            "time_horizon": "1-5 days (swing)",
-            "entry_date": "2026-10-19",
-            "projected_exit": "2026-10-22",
-            "expected_return_pct": 21.77,
-            "max_loss_pct": 16.33
-          },
-          "position_pct": 17.6,
-          "regime": "RISK_OFF",
-          "exit": 0.01,
-          "return_pct": 35.15,
-          "win": true,
-          "abs_error": 24.25
-        }
-      ],
-      "fear_greed": 59,
-      "regime": "RISK_OFF"
-    },
-    {
       "date": "2026-10-20T10:10:15.097002+00:00",
       "scored": true,
       "longs": [
@@ -110800,7 +110435,7 @@
     },
     {
       "date": "2026-11-10T01:00:37.227475+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "A7A5",
@@ -110882,7 +110517,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 46,
-          "conf_v2": 46
+          "conf_v2": 46,
+          "exit": 0.011708,
+          "return_pct": -2.11,
+          "win": false,
+          "abs_error": 6.11
         },
         {
           "asset": "JCT",
@@ -110964,7 +110603,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 43,
-          "conf_v2": 43
+          "conf_v2": 43,
+          "exit": 0.00210019,
+          "return_pct": -79.99,
+          "win": false,
+          "abs_error": 87.01
         },
         {
           "asset": "KITE",
@@ -111049,7 +110692,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.124251,
+          "return_pct": 8.87,
+          "win": true,
+          "abs_error": 7.36
         },
         {
           "asset": "ZRO",
@@ -111135,7 +110782,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 1.53,
+          "return_pct": 4.08,
+          "win": true,
+          "abs_error": 10.22
         },
         {
           "asset": "AMD",
@@ -111212,7 +110863,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 41
+          "conf_v2": 41,
+          "exit": 585.3,
+          "return_pct": 15.09,
+          "win": true,
+          "abs_error": 11.43
         },
         {
           "asset": "SENT",
@@ -111298,7 +110953,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.01613,
+          "return_pct": -0.07,
+          "win": false,
+          "abs_error": 10.33
         },
         {
           "asset": "H",
@@ -111383,7 +111042,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.023602,
+          "return_pct": -50.47,
+          "win": false,
+          "abs_error": 61.11
         },
         {
           "asset": "AVGO",
@@ -111484,7 +111147,11 @@
           "insider_recent": 3,
           "conf_raw": 50,
           "calib_band": "50-59",
-          "conf_v2": 41
+          "conf_v2": 41,
+          "exit": 364.36,
+          "return_pct": 14.05,
+          "win": true,
+          "abs_error": 3.51
         },
         {
           "asset": "AVAX",
@@ -111570,7 +111237,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 42,
-          "conf_v2": 42
+          "conf_v2": 42,
+          "exit": 8.08,
+          "return_pct": -6.91,
+          "win": false,
+          "abs_error": 23.53
         },
         {
           "asset": "OKB",
@@ -111653,7 +111324,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 93.67,
+          "return_pct": -3.07,
+          "win": false,
+          "abs_error": 10.19
         }
       ],
       "shorts": [
@@ -111739,7 +111414,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.851788,
+          "return_pct": 14.62,
+          "win": true,
+          "abs_error": 12.95
         },
         {
           "asset": "PIEVERSE",
@@ -111822,7 +111501,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 49,
-          "conf_v2": 49
+          "conf_v2": 49,
+          "exit": 1.6,
+          "return_pct": 23.44,
+          "win": true,
+          "abs_error": 26.56
         },
         {
           "asset": "JUP",
@@ -111908,7 +111591,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.25488,
+          "return_pct": -0.72,
+          "win": false,
+          "abs_error": 15.87
         },
         {
           "asset": "ALGO",
@@ -111994,7 +111681,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.085251,
+          "return_pct": 7.69,
+          "win": true,
+          "abs_error": 3.69
         },
         {
           "asset": "CAKE",
@@ -112079,7 +111770,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 1.71,
+          "return_pct": 8.06,
+          "win": true,
+          "abs_error": 4.06
         },
         {
           "asset": "BDX",
@@ -112162,7 +111857,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.073301,
+          "return_pct": -2.56,
+          "win": false,
+          "abs_error": 6.56
         },
         {
           "asset": "BAT",
@@ -112249,7 +111948,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.118307,
+          "return_pct": 9.49,
+          "win": true,
+          "abs_error": 5.99
         },
         {
           "asset": "BTSE",
@@ -112332,7 +112035,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 1.13,
+          "return_pct": -0.89,
+          "win": false,
+          "abs_error": 4.89
         },
         {
           "asset": "BR",
@@ -112416,7 +112123,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 52
+          "conf_v2": 52,
+          "exit": 0.438301,
+          "return_pct": 3.46,
+          "win": true,
+          "abs_error": 11.54
         },
         {
           "asset": "BC",
@@ -112498,7 +112209,11 @@
           "position_pct": 6.1,
           "regime": "RISK_OFF",
           "conf_raw": 48,
-          "conf_v2": 48
+          "conf_v2": 48,
+          "exit": 0.037833,
+          "return_pct": 2.94,
+          "win": true,
+          "abs_error": 1.06
         }
       ],
       "fear_greed": 32,
@@ -112506,7 +112221,7 @@
     },
     {
       "date": "2026-11-10T13:58:33.140444+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "AAVE",
@@ -112592,7 +112307,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 110.77,
+          "return_pct": -11.43,
+          "win": false,
+          "abs_error": 22.86
         },
         {
           "asset": "VVV",
@@ -112678,7 +112397,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 18.09,
+          "return_pct": -7.28,
+          "win": false,
+          "abs_error": 21.23
         },
         {
           "asset": "Q",
@@ -112761,7 +112484,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.027081,
+          "return_pct": 9.56,
+          "win": true,
+          "abs_error": 3.28
         },
         {
           "asset": "ZEC",
@@ -112846,7 +112573,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 932.17,
+          "return_pct": -19.76,
+          "win": false,
+          "abs_error": 28.49
         },
         {
           "asset": "AVAX",
@@ -112932,7 +112663,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 8.08,
+          "return_pct": -2.65,
+          "win": false,
+          "abs_error": 13.08
         },
         {
           "asset": "PUMP",
@@ -113018,7 +112753,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.00330434,
+          "return_pct": -5.49,
+          "win": false,
+          "abs_error": 14.11
         },
         {
           "asset": "SKY",
@@ -113104,7 +112843,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.057374,
+          "return_pct": -4.25,
+          "win": false,
+          "abs_error": 12.02
         },
         {
           "asset": "STX",
@@ -113190,7 +112933,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 43,
-          "conf_v2": 43
+          "conf_v2": 43,
+          "exit": 0.276752,
+          "return_pct": -10.83,
+          "win": false,
+          "abs_error": 18.33
         },
         {
           "asset": "DCR",
@@ -113273,7 +113020,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 11.29,
+          "return_pct": -4.81,
+          "win": false,
+          "abs_error": 12.42
         },
         {
           "asset": "MANA",
@@ -113359,7 +113110,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.067039,
+          "return_pct": -4.39,
+          "win": false,
+          "abs_error": 11.68
         }
       ],
       "shorts": [
@@ -113448,7 +113203,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 0.145818,
+          "return_pct": 10.86,
+          "win": true,
+          "abs_error": 9.92
         },
         {
           "asset": "HASH",
@@ -113532,7 +113291,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 0.00650778,
+          "return_pct": 12.14,
+          "win": true,
+          "abs_error": 29.09
         },
         {
           "asset": "PI",
@@ -113615,7 +113378,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.068065,
+          "return_pct": 3.02,
+          "win": true,
+          "abs_error": 10.82
         },
         {
           "asset": "STABLE",
@@ -113701,7 +113468,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 48,
-          "conf_v2": 48
+          "conf_v2": 48,
+          "exit": 0.025757,
+          "return_pct": 10.54,
+          "win": true,
+          "abs_error": 4.8
         },
         {
           "asset": "XDC",
@@ -113784,7 +113555,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.028911,
+          "return_pct": 7.58,
+          "win": true,
+          "abs_error": 3.36
         },
         {
           "asset": "CARDS",
@@ -113869,7 +113644,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.190241,
+          "return_pct": 13.82,
+          "win": true,
+          "abs_error": 3.7
         },
         {
           "asset": "KNTQ",
@@ -113952,7 +113731,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.279942,
+          "return_pct": 25.79,
+          "win": true,
+          "abs_error": 18.54
         },
         {
           "asset": "GRAM",
@@ -114037,7 +113820,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 1.15,
+          "return_pct": -5.6,
+          "win": false,
+          "abs_error": 12.46
         },
         {
           "asset": "ONDO",
@@ -114123,7 +113910,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.336284,
+          "return_pct": 9.28,
+          "win": true,
+          "abs_error": 1.81
         },
         {
           "asset": "JUP",
@@ -114209,7 +114000,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.25488,
+          "return_pct": -1.15,
+          "win": false,
+          "abs_error": 11.83
         }
       ],
       "fear_greed": 32,
@@ -114217,7 +114012,7 @@
     },
     {
       "date": "2026-11-10T22:40:28.724165+00:00",
-      "scored": false,
+      "scored": true,
       "longs": [
         {
           "asset": "UNI",
@@ -114303,7 +114098,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 5.76,
+          "return_pct": -13.64,
+          "win": false,
+          "abs_error": 36.61
         },
         {
           "asset": "GRASS",
@@ -114389,7 +114188,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.428265,
+          "return_pct": -8.02,
+          "win": false,
+          "abs_error": 34.71
         },
         {
           "asset": "AAVE",
@@ -114475,7 +114278,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 110.77,
+          "return_pct": -10.55,
+          "win": false,
+          "abs_error": 35.96
         },
         {
           "asset": "QNT",
@@ -114561,7 +114368,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 158.61,
+          "return_pct": -12.64,
+          "win": false,
+          "abs_error": 41.7
         },
         {
           "asset": "BAT",
@@ -114647,7 +114458,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.118307,
+          "return_pct": -1.96,
+          "win": false,
+          "abs_error": 31.32
         },
         {
           "asset": "GEOD",
@@ -114733,7 +114548,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.225756,
+          "return_pct": -0.11,
+          "win": false,
+          "abs_error": 23.38
         },
         {
           "asset": "RAIL",
@@ -114816,7 +114635,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 1.79,
+          "return_pct": -6.77,
+          "win": false,
+          "abs_error": 32.15
         },
         {
           "asset": "SOL",
@@ -114902,7 +114725,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 78.48,
+          "return_pct": -5.39,
+          "win": false,
+          "abs_error": 23.12
         },
         {
           "asset": "AVAX",
@@ -114988,7 +114815,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 8.08,
+          "return_pct": -2.88,
+          "win": false,
+          "abs_error": 17.95
         },
         {
           "asset": "CC",
@@ -115073,7 +114904,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 40,
-          "conf_v2": 40
+          "conf_v2": 40,
+          "exit": 0.086469,
+          "return_pct": -2.8,
+          "win": false,
+          "abs_error": 19.09
         }
       ],
       "shorts": [
@@ -115159,7 +114994,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 1.34,
+          "return_pct": 8.84,
+          "win": true,
+          "abs_error": 32.38
         },
         {
           "asset": "ARB",
@@ -115246,7 +115085,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 0.145818,
+          "return_pct": 9.04,
+          "win": true,
+          "abs_error": 24.54
         },
         {
           "asset": "HASH",
@@ -115330,7 +115173,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 0.00650778,
+          "return_pct": 0.98,
+          "win": true,
+          "abs_error": 47.39
         },
         {
           "asset": "RAY",
@@ -115417,7 +115264,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 1.54,
+          "return_pct": 4.94,
+          "win": true,
+          "abs_error": 27.78
         },
         {
           "asset": "MET",
@@ -115504,7 +115355,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 52,
           "calib_band": "50-59",
-          "conf_v2": 54
+          "conf_v2": 54,
+          "exit": 0.274919,
+          "return_pct": 6.85,
+          "win": true,
+          "abs_error": 28.28
         },
         {
           "asset": "BR",
@@ -115587,7 +115442,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 48,
-          "conf_v2": 48
+          "conf_v2": 48,
+          "exit": 0.438301,
+          "return_pct": 13.44,
+          "win": true,
+          "abs_error": 18.42
         },
         {
           "asset": "PI",
@@ -115670,7 +115529,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.068065,
+          "return_pct": 3.55,
+          "win": true,
+          "abs_error": 17.1
         },
         {
           "asset": "LIT",
@@ -115753,7 +115616,11 @@
           "position_pct": 2.8,
           "regime": "RISK_OFF",
           "conf_raw": 48,
-          "conf_v2": 48
+          "conf_v2": 48,
+          "exit": 3.17,
+          "return_pct": 8.38,
+          "win": true,
+          "abs_error": 15.59
         },
         {
           "asset": "ICP",
@@ -115839,7 +115706,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 2.53,
+          "return_pct": -2.43,
+          "win": false,
+          "abs_error": 15.04
         },
         {
           "asset": "NIGHT",
@@ -115922,7 +115793,11 @@
           "regime": "RISK_OFF",
           "conf_raw": 51,
           "calib_band": "50-59",
-          "conf_v2": 53
+          "conf_v2": 53,
+          "exit": 0.043136,
+          "return_pct": -3.4,
+          "win": false,
+          "abs_error": 18.36
         }
       ],
       "fear_greed": 32,
@@ -123421,21 +123296,1046 @@
       ],
       "fear_greed": 28,
       "regime": "RISK_OFF"
+    },
+    {
+      "date": "2026-11-13T04:12:21.437399+00:00",
+      "scored": false,
+      "longs": [],
+      "shorts": [
+        {
+          "asset": "BTW",
+          "price": 0.851788,
+          "score": -0.5,
+          "confidence": 43,
+          "reason": "BTW -18.8% (24h), -18.5% (7d) @ $0.851788. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "bitway",
+          "name": "Bitway",
+          "info_url": "https://www.coingecko.com/en/coins/bitway",
+          "tradable": [],
+          "venues": [],
+          "tf_align": "5/5 timeframes agree",
+          "tf_vector": [
+            -1.212,
+            -18.833,
+            -18.457,
+            -40.16,
+            -62.106
+          ],
+          "features": [
+            -28.249,
+            7.533,
+            25.0,
+            -0.6,
+            -0.4,
+            1.883,
+            -3.239,
+            -1.0,
+            -0.999,
+            1.0,
+            -3.0,
+            1.0,
+            -2.354,
+            -1.998,
+            -3.0,
+            -3.0,
+            -0.5,
+            2.684,
+            2.0,
+            -3.0,
+            1.177,
+            -3.0
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            0.111,
+            1.0,
+            null,
+            5,
+            null,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "sharp 24h selloff (-18.8%)",
+              "trend alignment across timeframes",
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.958261,
+            "take_profit": 0.425894,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 50.0,
+            "max_loss_pct": 12.5
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.075,
+            "b": -0.09,
+            "c": -0.258,
+            "d": -0.029,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 54,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "JST",
+          "price": 0.145305,
+          "score": -0.5,
+          "confidence": 48,
+          "reason": "JST +0.7% (24h), +3.0% (7d) @ $0.145305. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "just",
+          "name": "JUST",
+          "info_url": "https://www.coingecko.com/en/coins/just",
+          "tradable": [],
+          "venues": [
+            "kraken"
+          ],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            -0.472,
+            0.715,
+            2.976,
+            6.323,
+            4.499
+          ],
+          "features": [
+            1.072,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.071,
+            0.058,
+            0.048,
+            0.972,
+            1.0,
+            0.097,
+            1.0,
+            0.089,
+            1.945,
+            0.072,
+            0.119,
+            0.571,
+            0.142,
+            -0.857,
+            0.143,
+            0.0,
+            -0.236
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            5,
+            0.0,
+            null,
+            1.581,
+            5,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.148211,
+            "take_profit": 0.133681,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.077,
+            "b": -0.127,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 48,
+          "conf_v2": 48
+        },
+        {
+          "asset": "MSFT",
+          "price": 523,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "MSFT +0.36% today @ $523.00. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $6.6M net sold (90d, noisy)",
+          "class": "equity",
+          "market": "stock",
+          "name": "Microsoft Corp.",
+          "info_url": "https://finance.yahoo.com/quote/MSFT",
+          "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=789019&owner=exclude",
+          "cik": 789019,
+          "tf_align": null,
+          "features": [
+            0.54,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.036,
+            0.051,
+            0.024,
+            0.946,
+            1.0,
+            0.086,
+            1.0,
+            0.045,
+            1.892,
+            0.064,
+            0.06,
+            0.536,
+            0.058,
+            -0.928,
+            0.072,
+            0.0,
+            -0.119
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            1.912,
+            0.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 533.46,
+            "take_profit": 481.16,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "insider": {
+            "n_filings": 3,
+            "buyers": 0,
+            "buy_value": 0,
+            "sell_value": 6631633,
+            "net_value": -6631633,
+            "csuite_buy": false,
+            "cluster_buy": false,
+            "score": -0.25,
+            "tags": [
+              "\ud83d\udd75\ufe0f Insider selling: $6.6M net sold (90d, noisy)"
+            ],
+            "features": [
+              -0.25,
+              0.0,
+              -0.663
+            ]
+          },
+          "insider_features": [
+            -0.25,
+            0.0,
+            -0.663
+          ],
+          "insider_recent": 3,
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.078,
+            "b": -0.134,
+            "c": -0.258,
+            "d": 0.0,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "PYTH",
+          "price": 0.0651,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "PYTH +0.8% (24h), +2.8% (7d) @ $0.0651. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "pyth-network",
+          "name": "Pyth Network",
+          "info_url": "https://www.coingecko.com/en/coins/pyth-network",
+          "tradable": [
+            "coinbase",
+            "cryptocom"
+          ],
+          "venues": [
+            "coinbase",
+            "cryptocom",
+            "kraken",
+            "okx"
+          ],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -1.481,
+            0.773,
+            2.795,
+            8.931,
+            -18.337
+          ],
+          "features": [
+            1.16,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.077,
+            0.075,
+            0.052,
+            0.974,
+            1.0,
+            0.125,
+            1.0,
+            0.097,
+            1.949,
+            0.093,
+            0.129,
+            0.577,
+            0.147,
+            -0.845,
+            0.155,
+            0.0,
+            -0.255
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            0.512,
+            0.0,
+            0.497,
+            5,
+            5,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.066402,
+            "take_profit": 0.059892,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.077,
+            "b": -0.125,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "SPCXB",
+          "price": 139.95,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "SPCXB +0.1% (24h), +10.1% (7d) @ $139.95. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "spacex-bstocks-tokenized-stock",
+          "name": "SpaceX (bStocks Tokenized Stock)",
+          "info_url": "https://www.coingecko.com/en/coins/spacex-bstocks-tokenized-stock",
+          "tradable": [],
+          "venues": [],
+          "tf_align": "2/5 timeframes agree",
+          "tf_vector": [
+            -0.574,
+            0.068,
+            10.072,
+            0.405,
+            -11.319
+          ],
+          "features": [
+            0.102,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.007,
+            -0.274,
+            0.005,
+            0.744,
+            1.0,
+            -0.457,
+            1.0,
+            0.009,
+            1.488,
+            -0.343,
+            0.011,
+            0.507,
+            0.188,
+            -0.986,
+            0.014,
+            0.0,
+            -0.023
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            0.119,
+            1.0,
+            null,
+            5,
+            5,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 142.75,
+            "take_profit": 128.75,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.079,
+            "b": -0.137,
+            "c": -0.258,
+            "d": -0.002,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "Q",
+          "price": 0.027081,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "Q +0.2% (24h), +6.5% (7d) @ $0.027081. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "quack-ai",
+          "name": "Quack AI",
+          "info_url": "https://www.coingecko.com/en/coins/quack-ai",
+          "tradable": [],
+          "venues": [
+            "kraken"
+          ],
+          "tf_align": "3/5 timeframes agree",
+          "tf_vector": [
+            -1.958,
+            0.154,
+            6.463,
+            -46.634,
+            -41.583
+          ],
+          "features": [
+            0.231,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.015,
+            -0.154,
+            0.01,
+            0.878,
+            1.0,
+            -0.256,
+            1.0,
+            0.019,
+            1.756,
+            -0.192,
+            0.026,
+            0.515,
+            0.135,
+            -0.969,
+            0.031,
+            0.0,
+            -0.051
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            0.992,
+            0.0,
+            null,
+            5,
+            5,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.027622,
+            "take_profit": 0.024914,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.08,
+            "b": -0.138,
+            "c": -0.258,
+            "d": -0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "BC",
+          "price": 0.037833,
+          "score": -0.5,
+          "confidence": 48,
+          "reason": "BC +0.3% (24h), +0.1% (7d) @ $0.037833. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+          "class": "crypto",
+          "market": "crypto",
+          "coin_id": "bc-token",
+          "name": "BCGame Coin",
+          "info_url": "https://www.coingecko.com/en/coins/bc-token",
+          "tradable": [],
+          "venues": [],
+          "tf_align": "1/5 timeframes agree",
+          "tf_vector": [
+            -0.621,
+            0.344,
+            0.141,
+            9.195,
+            0.914
+          ],
+          "features": [
+            0.516,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.034,
+            0.065,
+            0.023,
+            0.943,
+            1.0,
+            0.108,
+            1.0,
+            0.043,
+            1.887,
+            0.081,
+            0.057,
+            0.534,
+            0.046,
+            -0.931,
+            0.069,
+            0.0,
+            -0.113
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            1.471,
+            0.0,
+            null,
+            2.082,
+            5,
+            0.0,
+            0.0,
+            null,
+            null,
+            null,
+            0.293,
+            0.25,
+            -0.568
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 0.03859,
+            "take_profit": 0.034806,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.078,
+            "b": -0.134,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 48,
+          "conf_v2": 48
+        },
+        {
+          "asset": "AMZN",
+          "price": 267.44,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "AMZN +0.48% today @ $267.44. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $495K (90d, noisy)",
+          "class": "equity",
+          "market": "stock",
+          "name": "Amazon.com Inc.",
+          "info_url": "https://finance.yahoo.com/quote/AMZN",
+          "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=1018724&owner=exclude",
+          "cik": 1018724,
+          "tf_align": null,
+          "features": [
+            0.716,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.048,
+            0.068,
+            0.032,
+            0.959,
+            1.0,
+            0.114,
+            1.0,
+            0.06,
+            1.918,
+            0.085,
+            0.08,
+            0.548,
+            0.077,
+            -0.905,
+            0.095,
+            0.0,
+            -0.157
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            3.191,
+            0.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 272.79,
+            "take_profit": 246.04,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "insider": {
+            "n_filings": 3,
+            "buyers": 0,
+            "buy_value": 0,
+            "sell_value": 494970,
+            "net_value": -494970,
+            "csuite_buy": false,
+            "cluster_buy": false,
+            "score": 0.0,
+            "tags": [
+              "\ud83d\udd75\ufe0f Insider selling: $495K (90d, noisy)"
+            ],
+            "features": [
+              0.0,
+              0.0,
+              -0.049
+            ]
+          },
+          "insider_features": [
+            0.0,
+            0.0,
+            -0.049
+          ],
+          "insider_recent": 3,
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.078,
+            "b": -0.131,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "UNH",
+          "price": 405.13,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "UNH +0.54% today @ $405.13. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f 3 insider filings, no open-market trades (90d)",
+          "class": "equity",
+          "market": "stock",
+          "name": "UnitedHealth Group Inc.",
+          "info_url": "https://finance.yahoo.com/quote/UNH",
+          "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=731766&owner=exclude",
+          "cik": 731766,
+          "tf_align": null,
+          "features": [
+            0.815,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.054,
+            0.078,
+            0.036,
+            0.964,
+            1.0,
+            0.129,
+            1.0,
+            0.068,
+            1.928,
+            0.097,
+            0.091,
+            0.554,
+            0.087,
+            -0.891,
+            0.109,
+            0.0,
+            -0.179
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            4.007,
+            0.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 413.23,
+            "take_profit": 372.72,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "insider": {
+            "n_filings": 3,
+            "buyers": 0,
+            "buy_value": 0,
+            "sell_value": 0,
+            "net_value": 0,
+            "csuite_buy": false,
+            "cluster_buy": false,
+            "score": 0.0,
+            "tags": [
+              "\ud83d\udd75\ufe0f 3 insider filings, no open-market trades (90d)"
+            ],
+            "features": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "insider_features": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insider_recent": 3,
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.077,
+            "b": -0.13,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        },
+        {
+          "asset": "COST",
+          "price": 1092.21,
+          "score": -0.5,
+          "confidence": 42,
+          "reason": "COST +0.42% today @ $1,092.21. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $976K (90d, noisy)",
+          "class": "equity",
+          "market": "stock",
+          "name": "Costco Wholesale Corp.",
+          "info_url": "https://finance.yahoo.com/quote/COST",
+          "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=909832&owner=exclude",
+          "cik": 909832,
+          "tf_align": null,
+          "features": [
+            0.634,
+            0.0,
+            25.0,
+            -0.6,
+            -0.4,
+            0.042,
+            0.06,
+            0.028,
+            0.954,
+            1.0,
+            0.101,
+            1.0,
+            0.053,
+            1.908,
+            0.076,
+            0.07,
+            0.542,
+            0.068,
+            -0.915,
+            0.085,
+            0.0,
+            -0.14
+          ],
+          "geo_edge": -0.013,
+          "econ_features": [
+            2.377,
+            0.0,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "thesis": {
+            "direction": "SHORT",
+            "bull_case": [
+              "extreme fear \u2014 contrarian tailwind"
+            ],
+            "bear_case": [
+              "conditions favor caution, which helps shorts"
+            ],
+            "stop_loss": 1114.05,
+            "take_profit": 1004.83,
+            "risk_reward": 4.0,
+            "time_horizon": "1-5 days (swing)",
+            "entry_date": "2026-11-13",
+            "projected_exit": "2026-11-16",
+            "expected_return_pct": 8.0,
+            "max_loss_pct": 2.0
+          },
+          "position_pct": 1.5,
+          "regime": "RISK_OFF",
+          "insider": {
+            "n_filings": 3,
+            "buyers": 0,
+            "buy_value": 0,
+            "sell_value": 975558,
+            "net_value": -975558,
+            "csuite_buy": false,
+            "cluster_buy": false,
+            "score": 0.0,
+            "tags": [
+              "\ud83d\udd75\ufe0f Insider selling: $976K (90d, noisy)"
+            ],
+            "features": [
+              0.0,
+              0.0,
+              -0.098
+            ]
+          },
+          "insider_features": [
+            0.0,
+            0.0,
+            -0.098
+          ],
+          "insider_recent": 3,
+          "f_verdict": "NO",
+          "f_why": "c",
+          "f_terms": {
+            "a": -0.078,
+            "b": -0.133,
+            "c": -0.258,
+            "d": 0.001,
+            "fe": null,
+            "unknown": null
+          },
+          "conf_raw": 51,
+          "calib_band": "50-59",
+          "conf_v2": 56
+        }
+      ],
+      "fear_greed": 20,
+      "regime": "RISK_OFF"
     }
   ],
   "stats": {
-    "wins": 711,
-    "losses": 761,
-    "total": 1472,
-    "win_rate": 48.3
+    "wins": 739,
+    "losses": 793,
+    "total": 1532,
+    "win_rate": 48.2
   },
   "error": {
-    "sum_abs_err": 10662.328463785772,
-    "n": 914,
-    "within_5pct": 357,
+    "sum_abs_err": 11791.0071493875,
+    "n": 974,
+    "within_5pct": 367,
     "metric": "return_pct_v1",
-    "mae": 11.67,
-    "within_5pct_rate": 39.1
+    "mae": 12.11,
+    "within_5pct_rate": 37.7
   },
   "calibration": [
     {
@@ -123445,18 +124345,18 @@
     },
     {
       "band": "60-69",
-      "n": 73,
-      "win_rate": 45.2
+      "n": 72,
+      "win_rate": 44.4
     },
     {
       "band": "70-79",
-      "n": 354,
-      "win_rate": 52.0
+      "n": 352,
+      "win_rate": 51.7
     },
     {
       "band": "80+",
-      "n": 132,
-      "win_rate": 58.3
+      "n": 129,
+      "win_rate": 58.9
     }
   ],
   "corrections": [
@@ -123760,8 +124660,8 @@
     {
       "direction": "LONG",
       "band": "50-59",
-      "n": 178,
-      "win_rate": 41.0
+      "n": 180,
+      "win_rate": 41.7
     },
     {
       "direction": "LONG",
@@ -123778,26 +124678,26 @@
     {
       "direction": "LONG",
       "band": "80+",
-      "n": 151,
-      "win_rate": 37.7
+      "n": 148,
+      "win_rate": 37.8
     },
     {
       "direction": "SHORT",
       "band": "50-59",
-      "n": 345,
-      "win_rate": 57.1
+      "n": 370,
+      "win_rate": 58.1
     },
     {
       "direction": "SHORT",
       "band": "60-69",
-      "n": 29,
-      "win_rate": 37.9
+      "n": 28,
+      "win_rate": 35.7
     },
     {
       "direction": "SHORT",
       "band": "70-79",
-      "n": 19,
-      "win_rate": 68.4
+      "n": 17,
+      "win_rate": 64.7
     },
     {
       "direction": "SHORT",
@@ -123808,26 +124708,26 @@
     {
       "direction": null,
       "band": "50-59",
-      "n": 523,
-      "win_rate": 51.6
+      "n": 550,
+      "win_rate": 52.7
     },
     {
       "direction": null,
       "band": "60-69",
-      "n": 98,
-      "win_rate": 34.7
+      "n": 97,
+      "win_rate": 34.0
     },
     {
       "direction": null,
       "band": "70-79",
-      "n": 74,
-      "win_rate": 50.0
+      "n": 72,
+      "win_rate": 48.6
     },
     {
       "direction": null,
       "band": "80+",
-      "n": 481,
-      "win_rate": 53.0
+      "n": 478,
+      "win_rate": 53.1
     }
   ]
 }

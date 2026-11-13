@@ -1,69 +1,159 @@
 {
-  "generated": "2026-11-12T22:59:15.410478+00:00",
-  "data_pulled_at": "2026-11-12T22:59:13.443362+00:00",
-  "published_at": "2026-11-12T22:59:15.410478+00:00",
-  "fear_greed": 28,
+  "generated": "2026-11-13T04:12:21.443081+00:00",
+  "data_pulled_at": "2026-11-13T04:11:15.328590+00:00",
+  "published_at": "2026-11-13T04:12:21.443081+00:00",
+  "fear_greed": 20,
   "longs": [],
   "shorts": [
     {
-      "asset": "ETHFI",
-      "price": 0.635227,
+      "asset": "BTW",
+      "price": 0.851788,
       "score": -0.5,
-      "confidence": 48,
-      "reason": "ETHFI +0.1% (24h), +20.1% (7d) @ $0.635227. Ensemble score -0.5 (w\u00b7x + geo -0.03 + RISK_OFF).",
+      "confidence": 43,
+      "reason": "BTW -18.8% (24h), -18.5% (7d) @ $0.851788. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
       "class": "crypto",
       "market": "crypto",
-      "coin_id": "ether-fi",
-      "name": "Ether.fi",
-      "info_url": "https://www.coingecko.com/en/coins/ether-fi",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
+      "coin_id": "bitway",
+      "name": "Bitway",
+      "info_url": "https://www.coingecko.com/en/coins/bitway",
+      "tradable": [],
+      "venues": [],
+      "tf_align": "5/5 timeframes agree",
+      "tf_vector": [
+        -1.212,
+        -18.833,
+        -18.457,
+        -40.16,
+        -62.106
       ],
+      "features": [
+        -28.249,
+        7.533,
+        25.0,
+        -0.6,
+        -0.4,
+        1.883,
+        -3.239,
+        -1.0,
+        -0.999,
+        1.0,
+        -3.0,
+        1.0,
+        -2.354,
+        -1.998,
+        -3.0,
+        -3.0,
+        -0.5,
+        2.684,
+        2.0,
+        -3.0,
+        1.177,
+        -3.0
+      ],
+      "geo_edge": -0.013,
+      "econ_features": [
+        0.111,
+        1.0,
+        null,
+        5,
+        null,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        0.293,
+        0.25,
+        -0.568
+      ],
+      "thesis": {
+        "direction": "SHORT",
+        "bull_case": [
+          "extreme fear \u2014 contrarian tailwind"
+        ],
+        "bear_case": [
+          "sharp 24h selloff (-18.8%)",
+          "trend alignment across timeframes",
+          "conditions favor caution, which helps shorts"
+        ],
+        "stop_loss": 0.958261,
+        "take_profit": 0.425894,
+        "risk_reward": 4.0,
+        "time_horizon": "1-5 days (swing)",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
+        "expected_return_pct": 50.0,
+        "max_loss_pct": 12.5
+      },
+      "position_pct": 1.5,
+      "regime": "RISK_OFF",
+      "f_verdict": "NO",
+      "f_why": "c",
+      "f_terms": {
+        "a": -0.075,
+        "b": -0.09,
+        "c": -0.258,
+        "d": -0.029,
+        "fe": null,
+        "unknown": null
+      },
+      "conf_raw": 54,
+      "calib_band": "50-59",
+      "conf_v2": 56
+    },
+    {
+      "asset": "JST",
+      "price": 0.145305,
+      "score": -0.5,
+      "confidence": 48,
+      "reason": "JST +0.7% (24h), +3.0% (7d) @ $0.145305. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+      "class": "crypto",
+      "market": "crypto",
+      "coin_id": "just",
+      "name": "JUST",
+      "info_url": "https://www.coingecko.com/en/coins/just",
+      "tradable": [],
       "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
+        "kraken"
       ],
       "tf_align": "1/5 timeframes agree",
       "tf_vector": [
-        1.879,
-        0.131,
-        20.081,
-        3.62,
-        -5.936
+        -0.472,
+        0.715,
+        2.976,
+        6.323,
+        4.499
       ],
       "features": [
-        0.197,
+        1.072,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.013,
-        -0.548,
-        0.009,
-        0.858,
+        25.0,
+        -0.6,
+        -0.4,
+        0.071,
+        0.058,
+        0.048,
+        0.972,
         1.0,
-        -0.913,
+        0.097,
         1.0,
-        0.016,
-        1.716,
-        -0.684,
-        0.022,
-        0.513,
-        0.375,
-        -0.974,
-        0.026,
+        0.089,
+        1.945,
+        0.072,
+        0.119,
+        0.571,
+        0.142,
+        -0.857,
+        0.143,
         0.0,
-        -0.043
+        -0.236
       ],
-      "geo_edge": -0.027,
+      "geo_edge": -0.013,
       "econ_features": [
-        2.505,
-        0.0,
-        0.385,
         5,
+        0.0,
+        null,
+        1.581,
         5,
         0.0,
         0.0,
@@ -72,34 +162,34 @@
         null,
         0.293,
         0.25,
-        -0.384
+        -0.568
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 0.647932,
-        "take_profit": 0.584409,
+        "stop_loss": 0.148211,
+        "take_profit": 0.133681,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
         "a": -0.077,
-        "b": -0.279,
-        "c": -0.103,
-        "d": -0.005,
+        "b": -0.127,
+        "c": -0.258,
+        "d": 0.001,
         "fe": null,
         "unknown": null
       },
@@ -107,45 +197,45 @@
       "conf_v2": 48
     },
     {
-      "asset": "PG",
-      "price": 168.03,
+      "asset": "MSFT",
+      "price": 523,
       "score": -0.5,
       "confidence": 42,
-      "reason": "PG +0.21% today @ $168.03. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $11.6M net sold (90d, noisy)",
+      "reason": "MSFT +0.36% today @ $523.00. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $6.6M net sold (90d, noisy)",
       "class": "equity",
       "market": "stock",
-      "name": "Procter & Gamble Co.",
-      "info_url": "https://finance.yahoo.com/quote/PG",
-      "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=80424&owner=exclude",
-      "cik": 80424,
+      "name": "Microsoft Corp.",
+      "info_url": "https://finance.yahoo.com/quote/MSFT",
+      "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=789019&owner=exclude",
+      "cik": 789019,
       "tf_align": null,
       "features": [
-        0.322,
+        0.54,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.021,
-        0.031,
-        0.014,
-        0.911,
-        1.0,
-        0.051,
-        1.0,
-        0.027,
-        1.822,
-        0.038,
+        25.0,
+        -0.6,
+        -0.4,
         0.036,
-        0.521,
-        0.035,
-        -0.957,
-        0.043,
+        0.051,
+        0.024,
+        0.946,
+        1.0,
+        0.086,
+        1.0,
+        0.045,
+        1.892,
+        0.064,
+        0.06,
+        0.536,
+        0.058,
+        -0.928,
+        0.072,
         0.0,
-        -0.071
+        -0.119
       ],
-      "geo_edge": -0.027,
+      "geo_edge": -0.013,
       "econ_features": [
-        3.908,
+        1.912,
         0.0,
         null,
         null,
@@ -162,52 +252,52 @@
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 171.39,
-        "take_profit": 154.59,
+        "stop_loss": 533.46,
+        "take_profit": 481.16,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
       "insider": {
         "n_filings": 3,
         "buyers": 0,
         "buy_value": 0,
-        "sell_value": 11639903,
-        "net_value": -11639903,
+        "sell_value": 6631633,
+        "net_value": -6631633,
         "csuite_buy": false,
         "cluster_buy": false,
         "score": -0.25,
         "tags": [
-          "\ud83d\udd75\ufe0f Insider selling: $11.6M net sold (90d, noisy)"
+          "\ud83d\udd75\ufe0f Insider selling: $6.6M net sold (90d, noisy)"
         ],
         "features": [
           -0.25,
           0.0,
-          -1.0
+          -0.663
         ]
       },
       "insider_features": [
         -0.25,
         0.0,
-        -1.0
+        -0.663
       ],
       "insider_recent": 3,
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.075,
-        "b": -0.273,
-        "c": -0.103,
+        "a": -0.078,
+        "b": -0.134,
+        "c": -0.258,
         "d": 0.0,
         "fe": null,
         "unknown": null
@@ -217,16 +307,16 @@
       "conf_v2": 56
     },
     {
-      "asset": "HYPE",
-      "price": 72.0,
-      "score": -0.4,
+      "asset": "PYTH",
+      "price": 0.0651,
+      "score": -0.5,
       "confidence": 42,
-      "reason": "HYPE +0.6% (24h), -8.0% (7d) @ $72.00. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
+      "reason": "PYTH +0.8% (24h), +2.8% (7d) @ $0.0651. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
       "class": "crypto",
       "market": "crypto",
-      "coin_id": "hyperliquid",
-      "name": "Hyperliquid",
-      "info_url": "https://www.coingecko.com/en/coins/hyperliquid",
+      "coin_id": "pyth-network",
+      "name": "Pyth Network",
+      "info_url": "https://www.coingecko.com/en/coins/pyth-network",
       "tradable": [
         "coinbase",
         "cryptocom"
@@ -237,247 +327,43 @@
         "kraken",
         "okx"
       ],
-      "tf_align": "3/5 timeframes agree",
+      "tf_align": "2/5 timeframes agree",
       "tf_vector": [
-        0.299,
-        0.592,
-        -8.035,
-        -22.358,
-        -11.911
+        -1.481,
+        0.773,
+        2.795,
+        8.931,
+        -18.337
       ],
       "features": [
-        0.415,
+        1.16,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.059,
-        0.348,
-        0.039,
-        0.967,
-        -1.0,
-        0.58,
-        -1.0,
-        0.074,
-        1.934,
-        0.435,
-        0.099,
-        0.559,
-        0.218,
-        -0.882,
-        0.118,
-        0.0,
-        -0.195
-      ],
-      "geo_edge": -0.02,
-      "econ_features": [
-        0,
-        1.0,
-        0.274,
-        5,
-        1.962,
-        0.0,
-        0.0,
-        null,
-        null,
-        null,
-        0.293,
-        0.25,
-        -0.384
-      ],
-      "thesis": {
-        "direction": "SHORT",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "conditions favor caution, which helps shorts"
-        ],
-        "stop_loss": 73.44,
-        "take_profit": 66.24,
-        "risk_reward": 4.0,
-        "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
-        "expected_return_pct": 8.0,
-        "max_loss_pct": 2.0
-      },
-      "position_pct": 1.2,
-      "regime": "RISK_OFF",
-      "f_verdict": "NO",
-      "f_why": "b",
-      "f_terms": {
-        "a": -0.06,
-        "b": -0.199,
-        "c": -0.103,
-        "d": 0.003,
-        "fe": null,
-        "unknown": null
-      },
-      "conf_raw": 51,
-      "calib_band": "50-59",
-      "conf_v2": 56
-    },
-    {
-      "asset": "CRO",
-      "price": 0.047692,
-      "score": -0.4,
-      "confidence": 42,
-      "reason": "CRO +0.4% (24h), -3.1% (7d) @ $0.047692. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
-      "class": "crypto",
-      "market": "crypto",
-      "coin_id": "crypto-com-chain",
-      "name": "Cronos",
-      "info_url": "https://www.coingecko.com/en/coins/crypto-com-chain",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
-      "tf_vector": [
-        0.431,
-        0.429,
-        -3.102,
-        -7.492,
-        -19.642
-      ],
-      "features": [
-        0.301,
-        0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.043,
-        0.175,
-        0.029,
-        0.954,
-        -1.0,
-        0.291,
-        -1.0,
-        0.054,
-        1.909,
-        0.218,
-        0.072,
-        0.543,
-        0.109,
-        -0.914,
-        0.086,
-        0.0,
-        -0.142
-      ],
-      "geo_edge": -0.02,
-      "econ_features": [
-        2.151,
-        0.0,
-        0.221,
-        5,
-        1.43,
-        0.0,
-        0.0,
-        null,
-        null,
-        null,
-        0.293,
-        0.25,
-        -0.384
-      ],
-      "thesis": {
-        "direction": "SHORT",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "conditions favor caution, which helps shorts"
-        ],
-        "stop_loss": 0.048646,
-        "take_profit": 0.043877,
-        "risk_reward": 4.0,
-        "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
-        "expected_return_pct": 8.0,
-        "max_loss_pct": 2.0
-      },
-      "position_pct": 1.2,
-      "regime": "RISK_OFF",
-      "f_verdict": "NO",
-      "f_why": "b",
-      "f_terms": {
-        "a": -0.062,
-        "b": -0.207,
-        "c": -0.103,
-        "d": 0.002,
-        "fe": null,
-        "unknown": null
-      },
-      "conf_raw": 51,
-      "calib_band": "50-59",
-      "conf_v2": 56
-    },
-    {
-      "asset": "WLFI",
-      "price": 0.0473,
-      "score": -0.4,
-      "confidence": 42,
-      "reason": "WLFI +0.6% (24h), +3.2% (7d) @ $0.0473. Ensemble score -0.4 (w\u00b7x + geo -0.03 + RISK_OFF).",
-      "class": "crypto",
-      "market": "crypto",
-      "coin_id": "world-liberty-financial",
-      "name": "World Liberty Financial",
-      "info_url": "https://www.coingecko.com/en/coins/world-liberty-financial",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
-      "tf_vector": [
-        -0.209,
-        0.607,
-        3.161,
-        -7.791,
-        -18.508
-      ],
-      "features": [
-        0.911,
-        0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.061,
-        0.031,
-        0.04,
-        0.968,
-        1.0,
+        25.0,
+        -0.6,
+        -0.4,
+        0.077,
+        0.075,
         0.052,
+        0.974,
         1.0,
-        0.076,
-        1.935,
-        0.039,
-        0.101,
-        0.561,
-        0.132,
-        -0.879,
-        0.121,
+        0.125,
+        1.0,
+        0.097,
+        1.949,
+        0.093,
+        0.129,
+        0.577,
+        0.147,
+        -0.845,
+        0.155,
         0.0,
-        -0.2
+        -0.255
       ],
-      "geo_edge": -0.027,
+      "geo_edge": -0.013,
       "econ_features": [
-        2.116,
+        0.512,
         0.0,
-        0.515,
+        0.497,
         5,
         5,
         0.0,
@@ -487,34 +373,34 @@
         null,
         0.293,
         0.25,
-        -0.384
+        -0.568
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 0.048246,
-        "take_profit": 0.043516,
+        "stop_loss": 0.066402,
+        "take_profit": 0.059892,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.073,
-        "b": -0.262,
-        "c": -0.103,
-        "d": 0.0,
+        "a": -0.077,
+        "b": -0.125,
+        "c": -0.258,
+        "d": 0.001,
         "fe": null,
         "unknown": null
       },
@@ -523,65 +409,57 @@
       "conf_v2": 56
     },
     {
-      "asset": "MORPHO",
-      "price": 2.02,
-      "score": -0.4,
+      "asset": "SPCXB",
+      "price": 139.95,
+      "score": -0.5,
       "confidence": 42,
-      "reason": "MORPHO +0.8% (24h), -3.6% (7d) @ $2.02. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
+      "reason": "SPCXB +0.1% (24h), +10.1% (7d) @ $139.95. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
       "class": "crypto",
       "market": "crypto",
-      "coin_id": "morpho",
-      "name": "Morpho",
-      "info_url": "https://www.coingecko.com/en/coins/morpho",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
+      "coin_id": "spacex-bstocks-tokenized-stock",
+      "name": "SpaceX (bStocks Tokenized Stock)",
+      "info_url": "https://www.coingecko.com/en/coins/spacex-bstocks-tokenized-stock",
+      "tradable": [],
+      "venues": [],
+      "tf_align": "2/5 timeframes agree",
       "tf_vector": [
-        0.718,
-        0.846,
-        -3.554,
-        -6.017,
-        -15.461
+        -0.574,
+        0.068,
+        10.072,
+        0.405,
+        -11.319
       ],
       "features": [
-        0.592,
+        0.102,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.085,
-        0.271,
-        0.056,
-        0.977,
-        -1.0,
-        0.451,
-        -1.0,
-        0.106,
-        1.953,
-        0.338,
-        0.141,
-        0.585,
-        0.169,
-        -0.831,
-        0.169,
+        25.0,
+        -0.6,
+        -0.4,
+        0.007,
+        -0.274,
+        0.005,
+        0.744,
+        1.0,
+        -0.457,
+        1.0,
+        0.009,
+        1.488,
+        -0.343,
+        0.011,
+        0.507,
+        0.188,
+        -0.986,
+        0.014,
         0.0,
-        -0.279
+        -0.023
       ],
-      "geo_edge": -0.02,
+      "geo_edge": -0.013,
       "econ_features": [
-        3.3,
-        0.0,
-        0.7,
+        0.119,
+        1.0,
+        null,
         5,
-        2.797,
+        5,
         0.0,
         0.0,
         null,
@@ -589,34 +467,34 @@
         null,
         0.293,
         0.25,
-        -0.384
+        -0.568
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 2.0604,
-        "take_profit": 1.8584,
+        "stop_loss": 142.75,
+        "take_profit": 128.75,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.06,
-        "b": -0.197,
-        "c": -0.103,
-        "d": 0.002,
+        "a": -0.079,
+        "b": -0.137,
+        "c": -0.258,
+        "d": -0.002,
         "fe": null,
         "unknown": null
       },
@@ -625,160 +503,58 @@
       "conf_v2": 56
     },
     {
-      "asset": "SKY",
-      "price": 0.058422,
-      "score": -0.4,
+      "asset": "Q",
+      "price": 0.027081,
+      "score": -0.5,
       "confidence": 42,
-      "reason": "SKY +0.4% (24h), -9.2% (7d) @ $0.058422. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
+      "reason": "Q +0.2% (24h), +6.5% (7d) @ $0.027081. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
       "class": "crypto",
       "market": "crypto",
-      "coin_id": "sky",
-      "name": "Sky",
-      "info_url": "https://www.coingecko.com/en/coins/sky",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
-      "tf_vector": [
-        0.14,
-        0.435,
-        -9.208,
-        -11.614,
-        -24.16
-      ],
-      "features": [
-        0.305,
-        0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.044,
-        0.35,
-        0.029,
-        0.955,
-        -1.0,
-        0.584,
-        -1.0,
-        0.054,
-        1.91,
-        0.438,
-        0.073,
-        0.544,
-        0.219,
-        -0.913,
-        0.087,
-        0.0,
-        -0.144
-      ],
-      "geo_edge": -0.02,
-      "econ_features": [
-        2.408,
-        0.0,
-        null,
-        5,
-        1.444,
-        0.0,
-        0.0,
-        null,
-        null,
-        null,
-        0.293,
-        0.25,
-        -0.384
-      ],
-      "thesis": {
-        "direction": "SHORT",
-        "bull_case": [
-          "no strong bullish factors"
-        ],
-        "bear_case": [
-          "conditions favor caution, which helps shorts"
-        ],
-        "stop_loss": 0.05959,
-        "take_profit": 0.053748,
-        "risk_reward": 4.0,
-        "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
-        "expected_return_pct": 8.0,
-        "max_loss_pct": 2.0
-      },
-      "position_pct": 1.2,
-      "regime": "RISK_OFF",
-      "f_verdict": "NO",
-      "f_why": "b",
-      "f_terms": {
-        "a": -0.06,
-        "b": -0.201,
-        "c": -0.103,
-        "d": 0.003,
-        "fe": null,
-        "unknown": null
-      },
-      "conf_raw": 51,
-      "calib_band": "50-59",
-      "conf_v2": 56
-    },
-    {
-      "asset": "JST",
-      "price": 0.146525,
-      "score": -0.4,
-      "confidence": 48,
-      "reason": "JST +1.6% (24h), +4.7% (7d) @ $0.146525. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
-      "class": "crypto",
-      "market": "crypto",
-      "coin_id": "just",
-      "name": "JUST",
-      "info_url": "https://www.coingecko.com/en/coins/just",
+      "coin_id": "quack-ai",
+      "name": "Quack AI",
+      "info_url": "https://www.coingecko.com/en/coins/quack-ai",
       "tradable": [],
       "venues": [
         "kraken"
       ],
-      "tf_align": "0/5 timeframes agree",
+      "tf_align": "3/5 timeframes agree",
       "tf_vector": [
-        0.155,
-        1.646,
-        4.746,
-        3.015,
-        6.104
+        -1.958,
+        0.154,
+        6.463,
+        -46.634,
+        -41.583
       ],
       "features": [
-        2.469,
+        0.231,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.165,
-        0.194,
-        0.11,
-        0.988,
+        25.0,
+        -0.6,
+        -0.4,
+        0.015,
+        -0.154,
+        0.01,
+        0.878,
         1.0,
-        0.323,
+        -0.256,
         1.0,
-        0.206,
-        1.976,
-        0.242,
-        0.274,
-        0.665,
-        0.29,
-        -0.671,
-        0.329,
+        0.019,
+        1.756,
+        -0.192,
+        0.026,
+        0.515,
+        0.135,
+        -0.969,
+        0.031,
         0.0,
-        -0.543
+        -0.051
       ],
-      "geo_edge": -0.024,
+      "geo_edge": -0.013,
       "econ_features": [
-        5,
+        0.992,
         0.0,
         null,
-        null,
+        5,
         5,
         0.0,
         0.0,
@@ -787,34 +563,128 @@
         null,
         0.293,
         0.25,
-        -0.384
+        -0.568
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "trend alignment across timeframes"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 0.149455,
-        "take_profit": 0.134803,
+        "stop_loss": 0.027622,
+        "take_profit": 0.024914,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.063,
-        "b": -0.215,
-        "c": -0.103,
-        "d": 0.002,
+        "a": -0.08,
+        "b": -0.138,
+        "c": -0.258,
+        "d": -0.001,
+        "fe": null,
+        "unknown": null
+      },
+      "conf_raw": 51,
+      "calib_band": "50-59",
+      "conf_v2": 56
+    },
+    {
+      "asset": "BC",
+      "price": 0.037833,
+      "score": -0.5,
+      "confidence": 48,
+      "reason": "BC +0.3% (24h), +0.1% (7d) @ $0.037833. Ensemble score -0.5 (w\u00b7x + geo -0.01 + RISK_OFF).",
+      "class": "crypto",
+      "market": "crypto",
+      "coin_id": "bc-token",
+      "name": "BCGame Coin",
+      "info_url": "https://www.coingecko.com/en/coins/bc-token",
+      "tradable": [],
+      "venues": [],
+      "tf_align": "1/5 timeframes agree",
+      "tf_vector": [
+        -0.621,
+        0.344,
+        0.141,
+        9.195,
+        0.914
+      ],
+      "features": [
+        0.516,
+        0.0,
+        25.0,
+        -0.6,
+        -0.4,
+        0.034,
+        0.065,
+        0.023,
+        0.943,
+        1.0,
+        0.108,
+        1.0,
+        0.043,
+        1.887,
+        0.081,
+        0.057,
+        0.534,
+        0.046,
+        -0.931,
+        0.069,
+        0.0,
+        -0.113
+      ],
+      "geo_edge": -0.013,
+      "econ_features": [
+        1.471,
+        0.0,
+        null,
+        2.082,
+        5,
+        0.0,
+        0.0,
+        null,
+        null,
+        null,
+        0.293,
+        0.25,
+        -0.568
+      ],
+      "thesis": {
+        "direction": "SHORT",
+        "bull_case": [
+          "extreme fear \u2014 contrarian tailwind"
+        ],
+        "bear_case": [
+          "conditions favor caution, which helps shorts"
+        ],
+        "stop_loss": 0.03859,
+        "take_profit": 0.034806,
+        "risk_reward": 4.0,
+        "time_horizon": "1-5 days (swing)",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
+        "expected_return_pct": 8.0,
+        "max_loss_pct": 2.0
+      },
+      "position_pct": 1.5,
+      "regime": "RISK_OFF",
+      "f_verdict": "NO",
+      "f_why": "c",
+      "f_terms": {
+        "a": -0.078,
+        "b": -0.134,
+        "c": -0.258,
+        "d": 0.001,
         "fe": null,
         "unknown": null
       },
@@ -822,100 +692,108 @@
       "conf_v2": 48
     },
     {
-      "asset": "ZRO",
-      "price": 1.55,
-      "score": -0.4,
+      "asset": "AMZN",
+      "price": 267.44,
+      "score": -0.5,
       "confidence": 42,
-      "reason": "ZRO +0.6% (24h), -5.4% (7d) @ $1.55. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
-      "class": "crypto",
-      "market": "crypto",
-      "coin_id": "layerzero",
-      "name": "LayerZero",
-      "info_url": "https://www.coingecko.com/en/coins/layerzero",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
-      "tf_vector": [
-        0.632,
-        0.648,
-        -5.427,
-        -2.23,
-        -24.344
-      ],
+      "reason": "AMZN +0.48% today @ $267.44. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $495K (90d, noisy)",
+      "class": "equity",
+      "market": "stock",
+      "name": "Amazon.com Inc.",
+      "info_url": "https://finance.yahoo.com/quote/AMZN",
+      "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=1018724&owner=exclude",
+      "cik": 1018724,
+      "tf_align": null,
       "features": [
-        0.454,
+        0.716,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
-        0.065,
-        0.285,
-        0.043,
-        0.97,
-        -1.0,
-        0.475,
-        -1.0,
-        0.081,
-        1.939,
-        0.356,
-        0.108,
-        0.565,
-        0.178,
-        -0.87,
-        0.13,
+        25.0,
+        -0.6,
+        -0.4,
+        0.048,
+        0.068,
+        0.032,
+        0.959,
+        1.0,
+        0.114,
+        1.0,
+        0.06,
+        1.918,
+        0.085,
+        0.08,
+        0.548,
+        0.077,
+        -0.905,
+        0.095,
         0.0,
-        -0.214
+        -0.157
       ],
-      "geo_edge": -0.02,
+      "geo_edge": -0.013,
       "econ_features": [
-        5,
-        0.0,
-        0.224,
-        5,
-        2.147,
-        0.0,
+        3.191,
         0.0,
         null,
         null,
         null,
-        0.293,
-        0.25,
-        -0.384
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 1.581,
-        "take_profit": 1.426,
+        "stop_loss": 272.79,
+        "take_profit": 246.04,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
+      "insider": {
+        "n_filings": 3,
+        "buyers": 0,
+        "buy_value": 0,
+        "sell_value": 494970,
+        "net_value": -494970,
+        "csuite_buy": false,
+        "cluster_buy": false,
+        "score": 0.0,
+        "tags": [
+          "\ud83d\udd75\ufe0f Insider selling: $495K (90d, noisy)"
+        ],
+        "features": [
+          0.0,
+          0.0,
+          -0.049
+        ]
+      },
+      "insider_features": [
+        0.0,
+        0.0,
+        -0.049
+      ],
+      "insider_recent": 3,
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.06,
-        "b": -0.2,
-        "c": -0.103,
-        "d": 0.003,
+        "a": -0.078,
+        "b": -0.131,
+        "c": -0.258,
+        "d": 0.001,
         "fe": null,
         "unknown": null
       },
@@ -924,100 +802,218 @@
       "conf_v2": 56
     },
     {
-      "asset": "CRV",
-      "price": 0.241829,
-      "score": -0.4,
+      "asset": "UNH",
+      "price": 405.13,
+      "score": -0.5,
       "confidence": 42,
-      "reason": "CRV +0.9% (24h), -5.1% (7d) @ $0.241829. Ensemble score -0.4 (w\u00b7x + geo -0.02 + RISK_OFF).",
-      "class": "crypto",
-      "market": "crypto",
-      "coin_id": "curve-dao-token",
-      "name": "Curve DAO",
-      "info_url": "https://www.coingecko.com/en/coins/curve-dao-token",
-      "tradable": [
-        "coinbase",
-        "cryptocom"
-      ],
-      "venues": [
-        "coinbase",
-        "cryptocom",
-        "kraken",
-        "okx"
-      ],
-      "tf_align": "3/5 timeframes agree",
-      "tf_vector": [
-        0.999,
-        0.908,
-        -5.101,
-        -21.613,
-        -29.009
-      ],
+      "reason": "UNH +0.54% today @ $405.13. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f 3 insider filings, no open-market trades (90d)",
+      "class": "equity",
+      "market": "stock",
+      "name": "UnitedHealth Group Inc.",
+      "info_url": "https://finance.yahoo.com/quote/UNH",
+      "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=731766&owner=exclude",
+      "cik": 731766,
+      "tf_align": null,
       "features": [
-        0.636,
+        0.815,
         0.0,
-        10.0,
-        -0.44,
-        -0.05,
+        25.0,
+        -0.6,
+        -0.4,
+        0.054,
+        0.078,
+        0.036,
+        0.964,
+        1.0,
+        0.129,
+        1.0,
+        0.068,
+        1.928,
+        0.097,
         0.091,
-        0.327,
-        0.061,
-        0.978,
-        -1.0,
-        0.546,
-        -1.0,
-        0.113,
-        1.956,
-        0.409,
-        0.151,
-        0.591,
-        0.205,
-        -0.818,
-        0.182,
+        0.554,
+        0.087,
+        -0.891,
+        0.109,
         0.0,
-        -0.3
+        -0.179
       ],
-      "geo_edge": -0.02,
+      "geo_edge": -0.013,
       "econ_features": [
-        2.521,
-        0.0,
-        0.579,
-        5,
-        3.298,
-        0.0,
+        4.007,
         0.0,
         null,
         null,
         null,
-        0.293,
-        0.25,
-        -0.384
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
       ],
       "thesis": {
         "direction": "SHORT",
         "bull_case": [
-          "no strong bullish factors"
+          "extreme fear \u2014 contrarian tailwind"
         ],
         "bear_case": [
           "conditions favor caution, which helps shorts"
         ],
-        "stop_loss": 0.246666,
-        "take_profit": 0.222483,
+        "stop_loss": 413.23,
+        "take_profit": 372.72,
         "risk_reward": 4.0,
         "time_horizon": "1-5 days (swing)",
-        "entry_date": "2026-11-12",
-        "projected_exit": "2026-11-15",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
         "expected_return_pct": 8.0,
         "max_loss_pct": 2.0
       },
-      "position_pct": 1.2,
+      "position_pct": 1.5,
       "regime": "RISK_OFF",
+      "insider": {
+        "n_filings": 3,
+        "buyers": 0,
+        "buy_value": 0,
+        "sell_value": 0,
+        "net_value": 0,
+        "csuite_buy": false,
+        "cluster_buy": false,
+        "score": 0.0,
+        "tags": [
+          "\ud83d\udd75\ufe0f 3 insider filings, no open-market trades (90d)"
+        ],
+        "features": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "insider_features": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insider_recent": 3,
       "f_verdict": "NO",
-      "f_why": "b",
+      "f_why": "c",
       "f_terms": {
-        "a": -0.059,
-        "b": -0.194,
-        "c": -0.103,
-        "d": 0.003,
+        "a": -0.077,
+        "b": -0.13,
+        "c": -0.258,
+        "d": 0.001,
+        "fe": null,
+        "unknown": null
+      },
+      "conf_raw": 51,
+      "calib_band": "50-59",
+      "conf_v2": 56
+    },
+    {
+      "asset": "COST",
+      "price": 1092.21,
+      "score": -0.5,
+      "confidence": 42,
+      "reason": "COST +0.42% today @ $1,092.21. Ensemble score -0.5 (w\u00b7x + geo + RISK_OFF). \ud83d\udd75\ufe0f Insider selling: $976K (90d, noisy)",
+      "class": "equity",
+      "market": "stock",
+      "name": "Costco Wholesale Corp.",
+      "info_url": "https://finance.yahoo.com/quote/COST",
+      "edgar_url": "https://www.sec.gov/edgar/browse/?CIK=909832&owner=exclude",
+      "cik": 909832,
+      "tf_align": null,
+      "features": [
+        0.634,
+        0.0,
+        25.0,
+        -0.6,
+        -0.4,
+        0.042,
+        0.06,
+        0.028,
+        0.954,
+        1.0,
+        0.101,
+        1.0,
+        0.053,
+        1.908,
+        0.076,
+        0.07,
+        0.542,
+        0.068,
+        -0.915,
+        0.085,
+        0.0,
+        -0.14
+      ],
+      "geo_edge": -0.013,
+      "econ_features": [
+        2.377,
+        0.0,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "thesis": {
+        "direction": "SHORT",
+        "bull_case": [
+          "extreme fear \u2014 contrarian tailwind"
+        ],
+        "bear_case": [
+          "conditions favor caution, which helps shorts"
+        ],
+        "stop_loss": 1114.05,
+        "take_profit": 1004.83,
+        "risk_reward": 4.0,
+        "time_horizon": "1-5 days (swing)",
+        "entry_date": "2026-11-13",
+        "projected_exit": "2026-11-16",
+        "expected_return_pct": 8.0,
+        "max_loss_pct": 2.0
+      },
+      "position_pct": 1.5,
+      "regime": "RISK_OFF",
+      "insider": {
+        "n_filings": 3,
+        "buyers": 0,
+        "buy_value": 0,
+        "sell_value": 975558,
+        "net_value": -975558,
+        "csuite_buy": false,
+        "cluster_buy": false,
+        "score": 0.0,
+        "tags": [
+          "\ud83d\udd75\ufe0f Insider selling: $976K (90d, noisy)"
+        ],
+        "features": [
+          0.0,
+          0.0,
+          -0.098
+        ]
+      },
+      "insider_features": [
+        0.0,
+        0.0,
+        -0.098
+      ],
+      "insider_recent": 3,
+      "f_verdict": "NO",
+      "f_why": "c",
+      "f_terms": {
+        "a": -0.078,
+        "b": -0.133,
+        "c": -0.258,
+        "d": 0.001,
         "fe": null,
         "unknown": null
       },
@@ -1027,15 +1023,16 @@
     }
   ],
   "psychology": {
-    "fear_greed": 28,
-    "delta": -1,
-    "bias": 10,
+    "fear_greed": 20,
+    "delta": -8,
+    "bias": 25,
     "notes": [
-      "Fear (28) \u2014 cautious long bias",
+      "Extreme fear (20) \u2014 capitulation zone, long bias",
+      "Sentiment collapsing (-8) \u2014 fear accelerating",
       "Weights: corrected 50%-rule weights (F t=1, graded -3.58 $/1k OOS vs current 12.27 $/1k)",
       "Conditions favor caution (74%) (fear, strong USD (dollar strength), jobless claims rising, consumer spending strong) \u2014 Conditions favor caution: lean into shorts/hedges, demand stronger long signals",
       "Strong USD (JPY>155) \u2014 headwind for risk assets",
-      "Calibration: PG 51%\u219242% (50-59: n=125, 32.0%); HYPE 51%\u219242% (50-59: n=125, 32.0%); CRO 51%\u219242% (50-59: n=125, 32.0%); WLFI 51%\u219242% (50-59: n=125, 32.0%); MORPHO 51%\u219242% (50-59: n=125, 32.0%); SKY 51%\u219242% (50-59: n=125, 32.0%)"
+      "Calibration: BTW 54%\u219243% (50-59: n=125, 32.0%); MSFT 51%\u219242% (50-59: n=125, 32.0%); PYTH 51%\u219242% (50-59: n=125, 32.0%); SPCXB 51%\u219242% (50-59: n=125, 32.0%); Q 51%\u219242% (50-59: n=125, 32.0%); AMZN 51%\u219242% (50-59: n=125, 32.0%)"
     ]
   },
   "weights": [
@@ -1064,7 +1061,7 @@
   ],
   "weight_info": {
     "trained": true,
-    "samples": 1460,
+    "samples": 1454,
     "note": "corrected 50%-rule weights (F t=1, graded -3.58 $/1k OOS vs current 12.27 $/1k)"
   },
   "contracts_watch": [
@@ -1075,6 +1072,18 @@
     "$42.16B \u2192 LAWRENCE LIVERMORE NATIONAL SECURITY, LLC (Department of Energy)"
   ],
   "opportunities": [
+    {
+      "title": "Department of War Pharmacy Uniform Formulary Blanket Purchase Agreement/Uniform Formulary Additional Discount Program",
+      "agency": "Dept Of Defense",
+      "type": "Solicitation",
+      "posted": "2026-11-12",
+      "deadline": "2026-11-30T12:00:00-06:00",
+      "naics": "325412",
+      "state": "TX",
+      "notice_id": "fe90f9ebb8f44bb798775e53a965c877",
+      "nonprofit": false,
+      "nonprofit_match": null
+    },
     {
       "title": "F-16 - Circuit Card Assembly",
       "agency": "Dept Of Defense",
@@ -1172,6 +1181,18 @@
       "nonprofit_match": "NAICS 562111 \u2014 Solid waste collection"
     },
     {
+      "title": "WAREHOUSE STORAGE AND UPKEEP SERVICES",
+      "agency": "Dept Of Defense",
+      "type": "Solicitation",
+      "posted": "2026-11-12",
+      "deadline": "2026-11-16T15:00:00+09:00",
+      "naics": "493190",
+      "state": "JP-14",
+      "notice_id": "f8374dde33b14dfbb9cff1e6ff8b9432",
+      "nonprofit": false,
+      "nonprofit_match": null
+    },
+    {
       "title": "Rental of load bank equipment for 249th EN BAT",
       "agency": "Dept Of Defense",
       "type": "Solicitation",
@@ -1228,6 +1249,18 @@
       "naics": "335312",
       "state": "NY",
       "notice_id": "efdd09eea67447168c48f5e0eed18e42",
+      "nonprofit": false,
+      "nonprofit_match": null
+    },
+    {
+      "title": "JOHN DAY DAM NAVIGATION LOCK TAINTER VALVE (TV) REPAIRS TV3 AND TV4",
+      "agency": "Dept Of Defense",
+      "type": "Solicitation",
+      "posted": "2026-11-12",
+      "deadline": "2026-11-30T11:00:00-08:00",
+      "naics": "237990",
+      "state": "?",
+      "notice_id": "ef7bf49b5e9f4ed78d6d5dc80a7182e0",
       "nonprofit": false,
       "nonprofit_match": null
     },
@@ -1292,6 +1325,18 @@
       "nonprofit_match": null
     },
     {
+      "title": "Z2DA--654-24-004 | Remediate Old Parking Garage",
+      "agency": "Veterans Affairs, Department Of",
+      "type": "Solicitation",
+      "posted": "2026-11-12",
+      "deadline": "2026-11-20T15:00:00-08:00",
+      "naics": "236220",
+      "state": "?",
+      "notice_id": "ebf23d8ba096416d9f5bca7efe0819ee",
+      "nonprofit": false,
+      "nonprofit_match": null
+    },
+    {
       "title": "Solicitation for subscription to software for pathology laboratory medicine services.",
       "agency": "Veterans Affairs, Department Of",
       "type": "Solicitation",
@@ -1324,54 +1369,6 @@
       "naics": "561730",
       "state": "NH",
       "notice_id": "e5710bca84ce46e69604516635768245",
-      "nonprofit": false,
-      "nonprofit_match": null
-    },
-    {
-      "title": "TTAP SBC",
-      "agency": "Dept Of Defense",
-      "type": "Solicitation",
-      "posted": "2026-11-12",
-      "deadline": "2026-11-24T16:30:00-04:00",
-      "naics": "334412",
-      "state": "?",
-      "notice_id": "e4d0c5be9eca4bcc8048ddee7729b0e9",
-      "nonprofit": false,
-      "nonprofit_match": null
-    },
-    {
-      "title": "CIRCUIT CARD ASSEMB",
-      "agency": "Dept Of Defense",
-      "type": "Solicitation",
-      "posted": "2026-11-12",
-      "deadline": "2027-01-22T16:30:00-04:00",
-      "naics": "334412",
-      "state": "?",
-      "notice_id": "e4ab3dccac944e27a3298b75049bcac5",
-      "nonprofit": false,
-      "nonprofit_match": null
-    },
-    {
-      "title": "59--ISBC VME120",
-      "agency": "Dept Of Defense",
-      "type": "Solicitation",
-      "posted": "2026-11-12",
-      "deadline": "2026-12-11T16:30:00-04:00",
-      "naics": "334412",
-      "state": "?",
-      "notice_id": "e05f5113aa1a4fdba8a31b04586b4467",
-      "nonprofit": false,
-      "nonprofit_match": null
-    },
-    {
-      "title": "Flooring Requirement Contract Solicitation",
-      "agency": "Dept Of Defense",
-      "type": "Solicitation",
-      "posted": "2026-11-12",
-      "deadline": "2026-12-03T15:00:00-06:00",
-      "naics": "238330",
-      "state": "ND",
-      "notice_id": "de28800bc82d4c05ac74059c58ac0eb3",
       "nonprofit": false,
       "nonprofit_match": null
     }
@@ -1598,7 +1595,7 @@
   ],
   "headlines": [
     {
-      "title": "Why MSCI Removed MSTR From Its Indexes \u2013 And What It Means For Bitcoin Stocks - Yahoo Finance",
+      "title": "Jensen Huang to Rejoin Nvidia? Crypto Prediction Markets Weigh the Odds as Colette Kress Emerges as Interim CEO - Yahoo Finance",
       "source": "Yahoo Finance"
     },
     {
@@ -1610,12 +1607,12 @@
       "source": "Britannica"
     },
     {
-      "title": "BTC news: Canaan may sell bitcoin to buy back its own stock after mining-rig sales collapsed 96% - CoinDesk",
-      "source": "CoinDesk"
-    },
-    {
       "title": "Tech stocks and crypto crash against a perfect storm as \u2018Bloody Friday\u2019 sell-off shocks markets - Fast Company",
       "source": "Fast Company"
+    },
+    {
+      "title": "Peter Brandt Sees 30-Year Yield at 7%. Would Bitcoin and Stocks Survive? - Yahoo Finance",
+      "source": "Yahoo Finance"
     },
     {
       "title": "The voice-to-text app that built its own speech model",
@@ -1651,18 +1648,18 @@
   },
   "newsletter_flags": [],
   "track_record": {
-    "wins": 711,
-    "losses": 761,
-    "total": 1472,
-    "win_rate": 48.3
+    "wins": 739,
+    "losses": 793,
+    "total": 1532,
+    "win_rate": 48.2
   },
   "model_error": {
-    "sum_abs_err": 10662.328463785772,
-    "n": 914,
-    "within_5pct": 357,
+    "sum_abs_err": 11791.0071493875,
+    "n": 974,
+    "within_5pct": 367,
     "metric": "return_pct_v1",
-    "mae": 11.67,
-    "within_5pct_rate": 39.1
+    "mae": 12.11,
+    "within_5pct_rate": 37.7
   },
   "calibration": [
     {
@@ -1672,26 +1669,26 @@
     },
     {
       "band": "60-69",
-      "n": 73,
-      "win_rate": 45.2
+      "n": 72,
+      "win_rate": 44.4
     },
     {
       "band": "70-79",
-      "n": 354,
-      "win_rate": 52.0
+      "n": 352,
+      "win_rate": 51.7
     },
     {
       "band": "80+",
-      "n": 132,
-      "win_rate": 58.3
+      "n": 129,
+      "win_rate": 58.9
     }
   ],
   "calibration_v2": [
     {
       "direction": "LONG",
       "band": "50-59",
-      "n": 178,
-      "win_rate": 41.0
+      "n": 180,
+      "win_rate": 41.7
     },
     {
       "direction": "LONG",
@@ -1708,26 +1705,26 @@
     {
       "direction": "LONG",
       "band": "80+",
-      "n": 151,
-      "win_rate": 37.7
+      "n": 148,
+      "win_rate": 37.8
     },
     {
       "direction": "SHORT",
       "band": "50-59",
-      "n": 345,
-      "win_rate": 57.1
+      "n": 370,
+      "win_rate": 58.1
     },
     {
       "direction": "SHORT",
       "band": "60-69",
-      "n": 29,
-      "win_rate": 37.9
+      "n": 28,
+      "win_rate": 35.7
     },
     {
       "direction": "SHORT",
       "band": "70-79",
-      "n": 19,
-      "win_rate": 68.4
+      "n": 17,
+      "win_rate": 64.7
     },
     {
       "direction": "SHORT",
@@ -1738,26 +1735,26 @@
     {
       "direction": null,
       "band": "50-59",
-      "n": 523,
-      "win_rate": 51.6
+      "n": 550,
+      "win_rate": 52.7
     },
     {
       "direction": null,
       "band": "60-69",
-      "n": 98,
-      "win_rate": 34.7
+      "n": 97,
+      "win_rate": 34.0
     },
     {
       "direction": null,
       "band": "70-79",
-      "n": 74,
-      "win_rate": 50.0
+      "n": 72,
+      "win_rate": 48.6
     },
     {
       "direction": null,
       "band": "80+",
-      "n": 481,
-      "win_rate": 53.0
+      "n": 478,
+      "win_rate": 53.1
     }
   ],
   "regime": "RISK_OFF",
@@ -1765,16 +1762,16 @@
   "buy_pct": 26,
   "buy_text": "Conditions favor caution (74%)",
   "regime_v2": "RISK_OFF",
-  "buy_pct_v2": 35,
-  "buy_text_v2": "Conditions favor caution (65%)",
+  "buy_pct_v2": 28,
+  "buy_text_v2": "Conditions favor caution (72%)",
   "regime_v2_components": {
-    "score": -0.2938,
+    "score": -0.4335,
     "values": {
-      "fear_greed": -0.44,
-      "gold": 1.0,
-      "usd_jpy": -0.9514,
-      "btc_trend": -0.54,
-      "breadth": -0.358,
+      "fear_greed": -0.6,
+      "gold": 0.8771,
+      "usd_jpy": -0.9795,
+      "btc_trend": -0.74,
+      "breadth": -0.588,
       "macro": 0.0
     },
     "weights": {
@@ -1787,7 +1784,7 @@
     },
     "omitted": []
   },
-  "kelly_pct": 1.2,
+  "kelly_pct": 1.5,
   "macro": {
     "cpi": {
       "value": 337.476,
@@ -1874,185 +1871,185 @@
     "us2y": "4.73",
     "fedfunds": "4",
     "curve": "0.24",
-    "wti": "99.64"
+    "wti": "89.62"
   },
   "rates_carried": false,
   "rates_carried_from": null,
   "kalshi": {
-    "updated": "2026-11-12T22:59:09.357072+00:00",
+    "updated": "2026-11-13T04:11:13.251738+00:00",
     "watch": [
       {
-        "ticker": "KXBTCD-26NOV1218-T82799.99",
+        "ticker": "KXBTCD-26NOV1300-T82799.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,800 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82699.99",
+        "ticker": "KXBTCD-26NOV1300-T82699.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,700 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82599.99",
+        "ticker": "KXBTCD-26NOV1300-T82599.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,600 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82499.99",
+        "ticker": "KXBTCD-26NOV1300-T82499.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,500 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82399.99",
+        "ticker": "KXBTCD-26NOV1300-T82399.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,400 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82299.99",
+        "ticker": "KXBTCD-26NOV1300-T82299.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,300 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82199.99",
+        "ticker": "KXBTCD-26NOV1300-T82199.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,200 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXBTCD-26NOV1218-T82099.99",
+        "ticker": "KXBTCD-26NOV1300-T82099.99",
         "series": "KXBTCD",
         "lane": "crypto",
-        "title": "Bitcoin price on Nov 12, 2026?",
+        "title": "Bitcoin price on Nov 13, 2026?",
         "sub": "$82,100 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2794.99",
+        "ticker": "KXETHD-26NOV1300-T2794.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,795 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2789.99",
+        "ticker": "KXETHD-26NOV1300-T2789.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,790 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2784.99",
+        "ticker": "KXETHD-26NOV1300-T2784.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,785 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2779.99",
+        "ticker": "KXETHD-26NOV1300-T2779.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,780 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2774.99",
+        "ticker": "KXETHD-26NOV1300-T2774.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,775 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2769.99",
+        "ticker": "KXETHD-26NOV1300-T2769.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,770 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2764.99",
+        "ticker": "KXETHD-26NOV1300-T2764.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,765 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
       },
       {
-        "ticker": "KXETHD-26NOV1218-T2759.99",
+        "ticker": "KXETHD-26NOV1300-T2759.99",
         "series": "KXETHD",
         "lane": "crypto",
-        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "title": "Ethereum price at Nov 13, 2026 at 12am EST?",
         "sub": "$2,760 or above",
-        "close_time": "2026-11-12T23:00:00Z",
+        "close_time": "2026-11-13T05:00:00Z",
         "mid": 0.005,
         "model_p": 0.0,
         "first_mid": 0.005
@@ -2146,105 +2143,105 @@
         "first_mid": 0.015
       }
     ],
-    "watch_total": 90,
+    "watch_total": 91,
     "paper_open": [],
     "paper_stats": {
-      "crowd_n": 374,
-      "crowd_brier": 0.1171,
-      "crowd_fav_accuracy": 82.6,
-      "model_n": 26,
-      "model_w": 16,
+      "crowd_n": 377,
+      "crowd_brier": 0.1095,
+      "crowd_fav_accuracy": 83.8,
+      "model_n": 23,
+      "model_w": 13,
       "model_l": 10,
-      "model_pnl": 875.86
+      "model_pnl": 469.3
     },
     "graded_recent": [
       {
         "kind": "crowd",
-        "ticker": "KXETHD-26NOV1217-T1849.99",
-        "title": "Ethereum price at Nov 12, 2026 at 5pm EST?",
+        "ticker": "KXETHD-26NOV1218-T2759.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
         "series": "KXETHD",
-        "crowd_mid": 0.99,
-        "crowd_src": "first-seen",
-        "outcome": 1,
-        "brier": 0.0001,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T71499.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.745,
+        "crowd_mid": 0.005,
         "crowd_src": "first-seen",
         "outcome": 0,
-        "brier": 0.555,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
       },
       {
         "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T71749.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.675,
-        "crowd_src": "first-seen",
-        "outcome": 0,
-        "brier": 0.4556,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T71999.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.595,
-        "crowd_src": "first-seen",
-        "outcome": 0,
-        "brier": 0.354,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T72499.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.425,
-        "crowd_src": "first-seen",
-        "outcome": 0,
-        "brier": 0.1806,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T72249.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.515,
-        "crowd_src": "first-seen",
-        "outcome": 0,
-        "brier": 0.2652,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXBTCD-26NOV1217-T72749.99",
-        "title": "Bitcoin price on Nov 12, 2026?",
-        "series": "KXBTCD",
-        "crowd_mid": 0.805,
-        "crowd_src": "first-seen",
-        "outcome": 0,
-        "brier": 0.648,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
-      },
-      {
-        "kind": "crowd",
-        "ticker": "KXETHD-26NOV1217-T1889.99",
-        "title": "Ethereum price at Nov 12, 2026 at 5pm EST?",
+        "ticker": "KXETHD-26NOV1218-T2764.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
         "series": "KXETHD",
-        "crowd_mid": 0.98,
+        "crowd_mid": 0.005,
         "crowd_src": "first-seen",
-        "outcome": 1,
-        "brier": 0.0004,
-        "settled": "2026-11-12T22:59:09.357072+00:00"
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2769.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2774.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2779.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2784.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2789.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
+      },
+      {
+        "kind": "crowd",
+        "ticker": "KXETHD-26NOV1218-T2794.99",
+        "title": "Ethereum price at Nov 12, 2026 at 6pm EST?",
+        "series": "KXETHD",
+        "crowd_mid": 0.005,
+        "crowd_src": "first-seen",
+        "outcome": 0,
+        "brier": 0.0,
+        "settled": "2026-11-13T04:11:13.251738+00:00"
       }
     ]
   },
@@ -2257,7 +2254,7 @@
       "price": 0,
       "confidence": 70,
       "reason": "Regime: \ud83d\udd34 Conditions favor caution \u2014 fear, strong USD (dollar strength), jobless claims rising.",
-      "timestamp": "2026-11-12T22:59:15.385566+00:00"
+      "timestamp": "2026-11-13T04:12:21.418544+00:00"
     },
     {
       "type": "CONTRACT",
@@ -2267,7 +2264,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$51.27B award \u2192 HUMANA GOVERNMENT BUSINESS INC (Department of Defense).",
-      "timestamp": "2026-11-12T22:59:15.385593+00:00"
+      "timestamp": "2026-11-13T04:12:21.418575+00:00"
     },
     {
       "type": "CONTRACT",
@@ -2277,7 +2274,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$48.06B award \u2192 LOCKHEED MARTIN CORP [LMT] (Department of Energy).",
-      "timestamp": "2026-11-12T22:59:15.385600+00:00"
+      "timestamp": "2026-11-13T04:12:21.418583+00:00"
     },
     {
       "type": "CONTRACT",
@@ -2287,7 +2284,7 @@
       "confidence": 85,
       "asset_class": "contract",
       "reason": "$44.09B award \u2192 NATIONAL TECHNOLOGY & ENGINEERING SOLUTIONS OF SANDIA, LLC (Department of Energy).",
-      "timestamp": "2026-11-12T22:59:15.385609+00:00"
+      "timestamp": "2026-11-13T04:12:21.418591+00:00"
     }
   ],
   "long_term": {
