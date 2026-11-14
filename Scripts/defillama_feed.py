@@ -349,16 +349,20 @@ def fetch_current(fetch_json):
     return row
 
 
-def fetch_daily_changes(fetch_json):
+def fetch_daily_changes(fetch_json, now_ts=None):
     """7d/24h changes from the two heavy history endpoints
     (stablecoin charts + TVL history). Called at most once a day by
     the caller — these series are ~3,300 daily points each. Returns
     {'total_chg_7d_pct', 'total_chg_24h_pct', 'tvl_chg_7d_pct',
-    'tvl_chg_24h_pct', 'error'}. Never raises."""
+    'tvl_chg_24h_pct', 'error'}. Never raises. now_ts is injectable
+    for tests (defaults to wall-clock time); the fake series in the
+    tests is pinned to 2026-11-07, so the test passes its own NOW —
+    without it the 7d leg goes stale once real time drifts past the
+    fake series end + slack (first failed 2026-11-14)."""
     out = {'total_chg_7d_pct': None, 'total_chg_24h_pct': None,
            'tvl_chg_7d_pct': None, 'tvl_chg_24h_pct': None,
            'error': None}
-    now_ts = time.time()
+    now_ts = now_ts if now_ts is not None else time.time()
     try:
         series = parse_stablecoin_charts(fetch_json(STABLECOIN_CHARTS_URL))
         out.update(supply_changes(series, now_ts))
@@ -403,7 +407,7 @@ def fetch_snapshot(fetch_json, supply_hist, now_ts=None):
                'stable_count': None, 'tvl_total': None,
                'top_chains': [], 'error': str(e)[:120]}
     try:
-        daily = fetch_daily_changes(fetch_json)
+        daily = fetch_daily_changes(fetch_json, now_ts)
     except Exception as e:
         daily = {'total_chg_7d_pct': None, 'total_chg_24h_pct': None,
                  'tvl_chg_7d_pct': None, 'tvl_chg_24h_pct': None,

@@ -204,7 +204,10 @@ def test_fetch_daily_changes_with_fake_fetch():
                     for i in range(30, -1, -1)]
         raise AssertionError('unexpected url ' + url)
 
-    out = dl.fetch_daily_changes(fake)
+    # The fake series is pinned to NOW (2026-11-07); pass it in —
+    # fetch_daily_changes defaults to wall-clock time, which has
+    # drifted past the fake series end + slack.
+    out = dl.fetch_daily_changes(fake, NOW)
     assert out['error'] is None
     assert out['total_chg_7d_pct'] is not None
     assert out['tvl_chg_7d_pct'] is not None
