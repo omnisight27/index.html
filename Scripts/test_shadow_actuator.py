@@ -263,10 +263,17 @@ def test_run_on_real_repo(tmp_path):
     # assert the check ran instead of failing on the empty list.
     by_feat = {f['feature']: f for f in proposal['feature_changes']}
     if by_feat:
+        # Learned weights are SIGNED (ridge fit on realized returns),
+        # so a feature's old weight can flip negative as grading
+        # accrues (2026-11-15: momentum -0.115). The correction
+        # multiplies by a factor in [0, 1], so the invariant is exact
+        # factor math + magnitude shrink toward zero, not a 0..1 range.
         for feat, f in by_feat.items():
-            assert 0 <= f['old_shadow_weight'] <= 1
-            assert 0 <= f['new_shadow_weight'] <= 1
-            assert f['new_shadow_weight'] <= f['old_shadow_weight']
+            assert f['new_shadow_weight'] == \
+                round(f['old_shadow_weight'] * f['factor'], 3)
+            assert abs(f['new_shadow_weight']) <= \
+                abs(f['old_shadow_weight']) + 1e-9
+            assert 0 <= f['factor'] <= 1
     else:
         assert proposal['checked']['features'] > 0
     assert len(proposal['feature_immaterial']) > 0
