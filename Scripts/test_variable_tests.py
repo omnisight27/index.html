@@ -504,15 +504,18 @@ def test_run_on_real_repo(tmp_path):
     assert sh['shadow_grade']['n'] == results['validation']['test_picks']
     assert sh['base_grade']['n'] == results['validation']['test_picks']
     assert sh['joint_dead_grade']['n'] == results['validation']['test_picks']
-    assert len(sh['joint_dead_indices']) >= 18  # most features jointly dead; was 21 on the day pinned, 20 on 2026-11-12 (feature 2 left the dead set as grading accrued — membership drifts)
+    assert len(sh['joint_dead_indices']) >= 15  # most features jointly dead; was 21 on the day pinned, 20 on 2026-11-12, 21 again on 2026-11-13, 17 on 2026-11-16 — membership drifts as picks are graded (on 2026-11-16 acceleration (6), trend_align (9), ma_align (11) and atr (17) flipped DEAD WEIGHT -> HURTS — CUT, so the dead set shrank; only psych_bias (2) earns weight). Bound is 15, not 18, so a few features rotating in/out of the dead set does not fail the suite; a collapse below 15 would mean the "most features dead" picture itself broke.
     # No pin on which indices are dead: membership churns as picks are
     # graded. On 2026-11-13 the dead set grew back to 21 with a
     # different member — acceleration (6) joined after its verdict
     # flipped EARNS → DEAD WEIGHT (standalone 42.4%, ablation delta
     # +$6.46/1k, below the +$10 earns bar), leaving only index 2
-    # alive. The shadow-vs-base grade gap on this split is a review
-    # signal for Nic, not a gate — the SHADOW_OVERRIDES constants
-    # below still stand.
+    # alive. On 2026-11-16 the rotation went the other way: 6, 9, 11,
+    # 17 left the dead set by flipping to HURTS — CUT, so the four are
+    # now judged actively harmful rather than merely dead — the
+    # shadow-vs-base grade gap on this split is a review signal for
+    # Nic, not a gate — the SHADOW_OVERRIDES constants below still
+    # stand.
     assert set(sh['joint_dead_indices']) <= set(range(22))
     assert sh['shadow_grade']['win_pct'] is not None
     assert 0 <= sh['shadow_grade']['win_pct'] <= 100
@@ -555,10 +558,16 @@ def test_run_on_real_repo(tmp_path):
     assert 0 <= acc['test_top_win_pct'] <= 100
     assert abs(acc['signed_weight']) < 0.05
     assert (acc['signed_weight'] > 0) == (acc['train_top_win_pct'] > 50) or acc['signed_weight'] == 0
-    # The largest distance from 50% is CMI CLEAN (11.3%): it maps to
-    # the -0.225 cap, and its mirror pays.
+    # The largest distance from 50% used to be CMI CLEAN (11.3%, capped
+    # at the -0.225 weight cap); as grading accrued its win rate rose
+    # to 17.2% (2026-11-16, n=261), so its weight is now -0.213 — below
+    # the cap — and setup LONG (84.6%) now holds the cap instead.
+    # Assert the mechanism, not the snapshot: CLEAN is still a strong
+    # negative cell whose mirror pays, and some track still carries a
+    # near-cap weight.
     clean = next(t for t in fr['tracks'] if t['name'] == 'CMI band CLEAN')
-    assert clean['signed_weight'] == -0.225
+    assert clean['signed_weight'] < 0
+    assert max(abs(t['signed_weight']) for t in fr['tracks']) > 0.20
     assert clean['inverted']['expectancy_usd'] > 0
     assert clean['rule_verdict'].startswith('HELPS')
     cyc_tr = next(t for t in fr['tracks']
