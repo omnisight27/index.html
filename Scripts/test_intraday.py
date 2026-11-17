@@ -1095,6 +1095,77 @@ def test_gate_stats_aggregation():
     assert st['graded'] == 5 and st['wins'] == 2 and st['losses'] == 2
 
 
+# --- Proof Book headline is all-time (2026-11-17) --------------------------
+# The visible ledger caps at 100 entries, but the scenario cells are
+# already all-time (ledger + cumulative). The headline aggregates were
+# ledger-only, so the page said "0 calls graded, $0 P&L" while the
+# cell table showed 1,463 graded. Passing cumulative folds the
+# rolled-off counters into the top-level and by-kind aggregates.
+
+def _closed_rec(kind, status, pnl):
+    return {'kind': kind, 'status': status, 'paper_pnl': pnl}
+
+
+def test_proof_stats_without_cumulative_is_ledger_only():
+    rec = [_closed_rec('pattern', 'won', 10.0),
+           _closed_rec('pattern', 'lost', -20.0),
+           {'kind': 'signal', 'status': 'open', 'paper_pnl': None}]
+    st = intraday.proof_stats(rec)
+    assert st['graded'] == 2 and st['wins'] == 1 and st['losses'] == 1
+    assert st['open'] == 1 and st['paper_pnl_total'] == -10.0
+    assert st['win_rate'] == 50.0
+
+
+def test_proof_stats_with_cumulative_is_all_time():
+    rec = [_closed_rec('pattern', 'won', 10.0),
+           {'kind': 'signal', 'status': 'open', 'paper_pnl': None}]
+    cum = {'pattern|LONG|na|risk_off': {'graded': 100, 'wins': 20,
+                                        'losses': 70, 'expired': 10,
+                                        'never_triggered': 0,
+                                        'paper_pnl_total': -500.0},
+           'signal|SHORT|80+|risk_off': {'graded': 5, 'wins': 4,
+                                          'losses': 1, 'expired': 0,
+                                          'never_triggered': 0,
+                                          'paper_pnl_total': 25.0}}
+    st = intraday.proof_stats(rec, cum)
+    # Ledger 1 graded + cumulative 105 = 106 all-time.
+    assert st['graded'] == 106 and st['wins'] == 25 and st['losses'] == 71
+    assert st['expired'] == 10
+    assert st['paper_pnl_total'] == -465.0
+    assert st['win_rate'] == pytest.approx(25 / 96 * 100, abs=0.05)
+    # Open stays ledger-only: cumulative holds closed outcomes only.
+    assert st['open'] == 1
+    # By-kind folds the matching cumulative rows too.
+    assert st['by_kind']['pattern']['graded'] == 101
+    assert st['by_kind']['pattern']['paper_pnl_total'] == -490.0
+    assert st['by_kind']['signal']['graded'] == 5
+    assert st['by_kind']['signal']['wins'] == 4
+    # Ledger-scoped blocks are untouched by cumulative.
+    assert st['codeword_gate']['evaluated'] == 0
+
+
+def test_proof_stats_headline_matches_cells():
+    # Invariant the page depends on: top-level aggregates equal the
+    # sum of the merged scenario cells (proof-cells.py's "Book" line).
+    rec = [_closed_rec('mover', 'won', 30.0),
+           _closed_rec('mover', 'lost', -15.0),
+           {'kind': 'mover', 'status': 'open', 'paper_pnl': None,
+            'direction': 'LONG', 'band': 'na', 'regime': 'risk_off'}]
+    cum = {'mover|LONG|na|risk_off': {'graded': 10, 'wins': 3,
+                                       'losses': 6, 'expired': 1,
+                                       'never_triggered': 0,
+                                       'paper_pnl_total': -40.0}}
+    st = intraday.proof_stats(rec, cum)
+    cells = intraday.proof_cells(rec, cum)
+    assert st['graded'] == sum(c['graded'] for c in cells)
+    assert st['wins'] == sum(c['wins'] for c in cells)
+    assert st['losses'] == sum(c['losses'] for c in cells)
+    assert st['expired'] == sum(c['expired'] for c in cells)
+    assert st['open'] == sum(c['open'] for c in cells)
+    assert st['paper_pnl_total'] == pytest.approx(
+        sum(c['paper_pnl_total'] for c in cells))
+
+
 # --- Ride the win (Nic 2026-10-30) ------------------------------------------
 
 def _open_plain(entry=100.0, tp=103.0, sl=98.0, exit_h=3.0, asset='RIDE'):

@@ -2421,7 +2421,19 @@ def _proof_post_exit_stats(record):
                                     if pe.get('recovered')),
     }
 
-def proof_stats(record):
+def proof_stats(record, cumulative=None):
+    """Top-level Proof Book aggregates. The visible ledger is capped
+    at 100 entries, so ledger-only totals understate the book the
+    moment anything rolls off: the scenario cells (proof_cells) are
+    already all-time because they merge the ledger with `cumulative`,
+    but these headline numbers were not — the page said "0 calls
+    graded, $0 P&L" while the cell table below it showed 1,463
+    graded. When `cumulative` is passed, the rolled-off counters are
+    folded into the top-level and by-kind aggregates (open stays
+    ledger-only: cumulative holds closed outcomes only, so no closed
+    outcome is ever double-counted). post_exit and codeword_gate stay
+    ledger-scoped by design — they need per-record fields the
+    cumulative rows do not carry."""
     def agg(entries):
         closed = [e for e in entries if e.get('status') in ('won', 'lost', 'expired')]
         wins = sum(1 for e in closed if e['status'] == 'won')
@@ -2440,6 +2452,20 @@ def proof_stats(record):
     stats['by_kind'] = {k: agg([e for e in record if e.get('kind') == k])
                         for k in ('signal', 'mover', 'setup',
                                   'pattern', 'pattern_confluence')}
+    if cumulative:
+        def _fold(target, row):
+            for f in ('graded', 'wins', 'losses', 'expired'):
+                target[f] += row.get(f, 0)
+            target['paper_pnl_total'] = round(
+                target['paper_pnl_total'] + row.get('paper_pnl_total', 0), 2)
+            wl = target['wins'] + target['losses']
+            target['win_rate'] = round(
+                target['wins'] / wl * 100, 1) if wl else None
+        for key, row in cumulative.items():
+            _fold(stats, row)
+            parts = str(key).split('|')
+            if len(parts) == 4 and parts[0] in stats['by_kind']:
+                _fold(stats['by_kind'][parts[0]], row)
     stats['pattern_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['cycle_scoreboard'] = None  # filled by main() (needs cumulative)
     stats['cmi_scoreboard'] = None  # filled by main() (needs cumulative)
@@ -4206,7 +4232,7 @@ def main():
         stock_record, cap=STOCK_RECORD_CAP)
     stock_cumulative = proof_roll_cumulative(
         prior_stock_cumulative, stock_dropped)
-    pstats = proof_stats(proof)
+    pstats = proof_stats(proof, cumulative)
     pstats['cells'] = proof_cells(proof, cumulative)
     pstats['flagged_cells'] = proof_flagged_cells(pstats['cells'])
     pstats['pattern_scoreboard'] = pattern_scoreboard(
