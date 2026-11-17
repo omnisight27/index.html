@@ -81,6 +81,22 @@
         status.textContent = 'Synced ' + n + ' position' + (n === 1 ? '' : 's') + ' ✓ ' + new Date().toLocaleTimeString();
       }).catch(function (e) { status.textContent = 'Sync failed: ' + e.message; });
     });
+    function autoSync() {
+  api('GET', '/portfolio/coinbase')
+    .then(function (positions) {
+      var n = window.OmniPortfolioSync.applyCoinbase(positions);
+      status.textContent =
+        'Auto-synced ' + n + ' position' +
+        (n === 1 ? '' : 's') +
+        ' ✓ ' + new Date().toLocaleTimeString();
+    })
+    .catch(function () {
+      // silent failure; manual sync still works
+    });
+}
+
+// Run one minute after page load, then every minute
+setInterval(autoSync, 60000);
     document.getElementById('cb-unlink').addEventListener('click', function () {
       status.textContent = 'Unlinking…';
       api('DELETE', '/link/coinbase').then(function () { render(); })
