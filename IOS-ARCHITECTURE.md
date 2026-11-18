@@ -2,29 +2,31 @@
 
 ## Vision
 
-# OmniSight Intelligence Operating System
+OmniSight™
+The Intelligence Operating System™
+See It Before It Happens™
 
-**See It Before It Happens™**
+OmniSight™ is an Intelligence Operating System that continuously gathers, connects, scores, and learns from information across global data sources to help people and organizations anticipate events, evaluate opportunities, reduce risk, and take informed action.
 
-OmniSight is an Intelligence Operating System designed to transform information into foresight and foresight into action.
+By combining artificial intelligence, predictive modeling, economic analysis, behavioral science, knowledge mapping, and adaptive learning, OmniSight transforms information into intelligence and intelligence into action.
 
-By continuously collecting, connecting, and analyzing information from across digital, economic, governmental, commercial, and human systems, OmniSight identifies patterns, relationships, risks, and opportunities before they become obvious.
+OmniSight is a continuously learning Intelligence Operating System that transforms information into understanding, understanding into prediction, and prediction into action. It works across digital, economic, governmental, commercial, and human systems, identifying patterns, relationships, risks, and opportunities before they become obvious.
 
 Unlike traditional software that reports what has already happened, OmniSight is designed to understand what is happening now, forecast what is likely to happen next, and recommend actions that improve outcomes.
 
-At its core, OmniSight combines intelligence gathering, knowledge mapping, predictive analytics, adaptive learning, and decision support into a single operating environment.
+OmniSight is not a search engine, dashboard, or chatbot. It is an Intelligence Operating System for the future of decision-making.
+
+Every signal is scored.
 
 Every prediction is measured.
 
-Every outcome is tracked.
+Every outcome becomes a learning opportunity.
 
-Every result becomes part of a continuously improving intelligence network.
+OmniSight™ exists to help humanity make better decisions by turning global information into practical intelligence.
 
-The objective is not merely to provide information, but to create understanding. Not merely to generate insights, but to drive action. Not merely to analyze the past, but to help shape the future.
+OmniSight's mission is simple:
 
-OmniSight exists to help individuals, organizations, and institutions make better decisions with greater confidence through continuously evolving intelligence.
-
-**See It Before It Happens™**
+See It Before It Happens™
 
 ## The learning loop (the whole system in six steps)
 
@@ -248,8 +250,36 @@ three into something nobody else has.
 - **OmniSight™** — the product. The Intelligence Operating System.
 - **See It Before It Happens™** — the promise.
 - **NexIntel™** — the reasoning and intelligence engine.
-- **Freedom GP$™, NicNacs Analytics, Contract Intelligence, Market
-  Intelligence, Personal Intelligence** — applications on the OS.
+
+Applications on the OS:
+
+```
+OmniSight™
+The Intelligence Operating System™
+
+├── NexIntel™
+│   Intelligence & reasoning core
+│
+├── Freedom GP$™
+│   Financial Intelligence
+│   Debt payoff
+│   Net worth
+│   Cash flow
+│   Financial forecasting
+│
+├── ContractSight™
+│   Government opportunity intelligence
+│
+├── MarketSight™
+│   Market & business intelligence
+│
+├── RiskSight™
+│   Threat and risk prediction
+│
+└── PersonalSight™
+    Personal intelligence assistant
+```
+
 - Note: the **IOS™** mark needs attorney clearance before it is asserted —
   it collides with Apple's iOS. Trademark registrations have not been
   verified; ™ here is a brand claim, not a confirmed registration.
