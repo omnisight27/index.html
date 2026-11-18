@@ -2,21 +2,29 @@
 
 ## Vision
 
+# OmniSight Intelligence Operating System
+
+**See It Before It Happens™**
+
 OmniSight is an Intelligence Operating System designed to transform information into foresight and foresight into action.
 
-By continuously observing global data sources, mapping relationships, scoring opportunities and risks, forecasting outcomes, and learning from real-world results, OmniSight helps individuals, businesses, organizations, and governments make better decisions with greater confidence.
+By continuously collecting, connecting, and analyzing information from across digital, economic, governmental, commercial, and human systems, OmniSight identifies patterns, relationships, risks, and opportunities before they become obvious.
 
-Unlike traditional analytics platforms that explain what happened, OmniSight focuses on understanding what is happening, predicting what is likely to happen next, and recommending the actions most likely to achieve desired outcomes.
+Unlike traditional software that reports what has already happened, OmniSight is designed to understand what is happening now, forecast what is likely to happen next, and recommend actions that improve outcomes.
 
-Its mission is simple:
+At its core, OmniSight combines intelligence gathering, knowledge mapping, predictive analytics, adaptive learning, and decision support into a single operating environment.
 
-**See it before it happens. Understand it before others do. Act with confidence.**
+Every prediction is measured.
 
-Every prediction, recommendation, and outcome becomes part of a continuously improving intelligence network that grows smarter over time through feedback, learning, and adaptation.
+Every outcome is tracked.
 
-OmniSight is not a search engine, dashboard, or chatbot.
+Every result becomes part of a continuously improving intelligence network.
 
-It is an Intelligence Operating System for the future of decision-making.
+The objective is not merely to provide information, but to create understanding. Not merely to generate insights, but to drive action. Not merely to analyze the past, but to help shape the future.
+
+OmniSight exists to help individuals, organizations, and institutions make better decisions with greater confidence through continuously evolving intelligence.
+
+**See It Before It Happens™**
 
 ## The learning loop (the whole system in six steps)
 
