@@ -83,6 +83,34 @@ WORLD EVENTS (again — the pipeline is a loop, not a line)
 - First live buy: **still uncalled.** Buy bar is 60% (test only), $500 size,
   hard stops. **The system never places an order. Nic executes.**
 
+## The moat
+
+Not AI. Not data. Not dashboards. The moat is:
+
+```
+Prediction Accuracy
++
+Continuous Learning
++
+Relationship Mapping
++
+Actionable Recommendations
+```
+
+Each part, honestly:
+
+- **Prediction Accuracy** — the Proof Book. 35.0% overall, 84.6% on
+  accumulation setups. The number is the moat, and it has to climb.
+- **Continuous Learning** — the F correction loop. Built and running.
+- **Relationship Mapping** — the knowledge graph. **Missing.** This is the
+  piece the moat is waiting on: without it, the system scores signals but
+  does not understand what is connected to what.
+- **Actionable Recommendations** — picks, alerts, F-buy push-through. Built;
+  the system recommends, Nic executes.
+
+Three of the four are live. Relationship mapping is what turns the other
+three into something nobody else has.
+
 ## What is missing (in order)
 
 1. **Knowledge graph.** Entities, relationships, events — the layer that turns
