@@ -1,0 +1,392 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OmniSight Dashboard | NexIntel AI Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="dashboard-body">
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <h2 class="sidebar-title">OmniSight</h2>
+    <nav>
+<ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#nexintel">NexIntel</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#picks">Picks</a></li>
+    <li><a href="#alerts">Alerts</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#contracts">Contract Intel</a></li>
+    <li><a href="#grants">Grants</a></li>
+    <li><a href="#economy">Economy</a></li>
+    <li><a href="#land">Land</a></li>
+    <li><a href="#learn">Learn</a></li>
+    <li><a href="#freedom">Freedom GP$</a></li>
+    <li><a href="#genealogy">Genealogy</a></li>
+    <li><a href="#profile">Profile</a></li>
+</ul>
+    </nav>
+  </aside>
+
+  <!-- Main Dashboard Content -->
+  <main class="dashboard-main">
+
+    <!-- Header -->
+    <header class="dashboard-header">
+      <h1>OmniSight Intelligence Dashboard</h1>
+<section id="nexintel" class="dashboard-section">
+
+    <h2>NexIntel Feed</h2>
+
+    <div class="feed-card">
+        <h3>Critical</h3>
+        <p>Hilton Amex Paid Off. Debt route recalculated.</p>
+    </div>
+
+    <div class="feed-card">
+        <h3>Opportunity</h3>
+        <p>Grant opportunities available for review.</p>
+    </div>
+</section>
+
+<section id="picks" class="dashboard-section">
+
+    <h2>Picks</h2>
+
+    <div class="card">
+        <h3>Top Contract Opportunity</h3>
+        <p>Government contract opportunities, spending signals, and agency forecasts will appear here.</p>
+    </div>
+
+    <div class="card">
+        <h3>Top Grant Opportunity</h3>
+        <p>Current grant matches, future eligibility, and funding opportunities will appear here.</p>
+    </div>
+
+    <div class="card">
+        <h3>Top Property Opportunity</h3>
+        <p>Waiting for Land Engine.</p>
+    </div>
+
+</section>
+    <div class="feed-card">
+        <h3>Forecast</h3>
+        <p>Current route remains active and on target.</p>
+    </div>
+
+</section>
+<section id="alerts" class="dashboard-section">
+
+    <h2>Alerts</h2>
+
+    <div class="card">
+        <h3>Critical Alerts</h3>
+        <p>No critical alerts detected.</p>
+    </div>
+
+    <div class="card">
+        <h3>Important Alerts</h3>
+        <p>No important alerts detected.</p>
+    </div>
+<section id="portfolio" class="dashboard-section">
+
+    <h2>Portfolio</h2>
+
+    <div class="card">
+        <h3>Total Assets</h3>
+        <p>Waiting for Portfolio Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Total Investments</h3>
+        <p>Waiting for Portfolio Engine.</p>
+    </div>
+
+</section>
+</section>
+<section id="picks" class="dashboard-section">
+
+    <h2>Picks</h2>
+
+    <div class="card">
+        <h3>Top Contract Opportunity</h3>
+        <p>Waiting for Contract Intel Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Top Grant Opportunity</h3>
+        <p>Waiting for Grants Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Top Property Opportunity</h3>
+        <p>Waiting for Land Engine.</p>
+    </div>
+
+</section>
+NexIntel Feed
+Critical
+Hilton Amex Paid Off. Debt route recalculated.
+
+Opportunity
+Grant opportunities available for review.
+
+Forecast
+Current route remains active and on target.
+      <p>Private Beta — Internal Build Only</p>
+    </header>
+
+    <!-- Engine Status Section -->
+    <section id="engines" class="dashboard-section">
+      <h2>Engine Status</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Govgistics Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Government contracts, awards, sector signals.</p>
+        </div>
+        <div class="card">
+          <h3>Money Max Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Cash-flow, debt, liquidity windows.</p>
+        </div>
+        <div class="card">
+          <h3>Coinbase Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Crypto flows, order books, pressure.</p>
+        </div>
+        <div class="card">
+          <h3>Amazon & eBay Engines</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Consumer demand, pricing, scarcity.</p>
+        </div>
+        <div class="card">
+          <h3>Macro Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>GDP, inflation, war risk, rates.</p>
+        </div>
+        <div class="card">
+          <h3>On-Chain Engine</h3>
+          <p>Status: <strong>Active</strong></p>
+          <p>Whale moves, exchange flows, liquidity stress.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Predictions Section -->
+    <section id="predictions" class="dashboard-section">
+      <h2>NexIntel Predictions</h2>
+      <div class="prediction-box">
+        <h3>Market Trend</h3>
+        <p>Confidence: <strong>82%</strong></p>
+        <p>Signal: <strong>Uptrend</strong></p>
+      </div>
+
+      <div class="prediction-box">
+        <h3>Crypto Flow Pressure</h3>
+        <p>Confidence: <strong>74%</strong></p>
+        <p>Signal: <strong>Accumulation Phase</strong></p>
+      </div>
+
+      <div class="prediction-box">
+        <h3>Liquidity Wave</h3>
+        <p>Confidence: <strong>68%</strong></p>
+        <p>Signal: <strong>Incoming Liquidity Boost</strong></p>
+      </div>
+    </section>
+
+    <!-- Macro Regime Section -->
+    <section id="macro" class="dashboard-section">
+      <h2>Macro Regime</h2>
+      <div class="macro-box">
+        <p>Current Regime: <strong>Moderate Inflation</strong></p>
+        <p>Rate Pressure: <strong>Stable</strong></p>
+        <p>Unemployment Trend: <strong>Neutral</strong></p>
+      </div>
+    </section>
+
+    <!-- Liquidity Section -->
+    <section id="liquidity" class="dashboard-section">
+      <h2>Liquidity Overview</h2>
+      <div class="liquidity-box">
+        <p>Liquidity Window: <strong>Open</strong></p>
+        <p>Stress Level: <strong>Low</strong></p>
+        <p>Money Max Score: <strong>7.4 / 10</strong></p>
+      </div>
+    </section>
+
+    <!-- Risk Filters Section -->
+    <section id="risk" class="dashboard-section">
+      <h2>Risk Filters</h2>
+      <div class="risk-box">
+        <p>Volatility Filter: <strong>Pass</strong></p>
+        <p>Macro Filter: <strong>Pass</strong></p>
+        <p>Liquidity Filter: <strong>Pass</strong></p>
+      </div>
+    </section>
+<section id="contracts" class="dashboard-section">
+
+    <h2>Contract Intel</h2>
+
+    <div class="card">
+        <h3>Active Opportunities</h3>
+        <p>Waiting for Contract Intel Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Agency Spending Signals</h3>
+        <p>Waiting for Contract Intel Engine.</p>
+    </div>
+
+</section>
+
+<section id="grants" class="dashboard-section">
+
+    <h2>Grants</h2>
+
+    <div class="card">
+        <h3>Eligible Now</h3>
+        <p>Waiting for Grants Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Eligible Soon</h3>
+        <p>Waiting for Grants Engine.</p>
+    </div>
+
+</section>
+
+<section id="economy" class="dashboard-section">
+
+    <h2>Economy</h2>
+
+    <div class="card">
+        <h3>Economic Signals</h3>
+        <p>Waiting for Economy Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Market Forecast</h3>
+        <p>Waiting for Economy Engine.</p>
+    </div>
+
+</section>
+<section id="contracts" class="dashboard-section">
+
+    <h2>Contract Intel</h2>
+
+    <div class="card">
+        <h3>Active Opportunities</h3>
+        <p>Waiting for Contract Intel Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Agency Spending Signals</h3>
+        <p>Waiting for Contract Intel Engine.</p>
+    </div>
+
+</section>
+
+<section id="grants" class="dashboard-section">
+
+    <h2>Grants</h2>
+
+    <div class="card">
+        <h3>Eligible Now</h3>
+        <p>Waiting for Grants Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Eligible Soon</h3>
+        <p>Waiting for Grants Engine.</p>
+    </div>
+
+</section>
+
+<section id="economy" class="dashboard-section">
+
+    <h2>Economy</h2>
+
+    <div class="card">
+        <h3>Economic Signals</h3>
+        <p>Waiting for Economy Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Market Forecast</h3>
+        <p>Waiting for Economy Engine.</p>
+    </div>
+
+</section>
+<section id="land" class="dashboard-section">
+
+    <h2>Land</h2>
+
+    <div class="card">
+        <h3>Top Property Opportunities</h3>
+        <p>Waiting for Land Engine.</p>
+    </div>
+
+    <div class="card">
+        <h3>Growth Corridors</h3>
+        <p>Waiting for Land Engine.</p>
+    </div>
+
+</section>
+
+<section id="learn" class="dashboard-section">
+
+    <h2>Learn</h2>
+
+    <div class="card">
+        <h3>Recommended Learning</h3>
+        <p>Waiting for Learn Engine.</p>
+    </div>
+
+</section>
+
+<section id="freedom" class="dashboard-section">
+
+    <h2>Freedom GP$</h2>
+
+    <div class="card">
+        <h3>Financial Route</h3>
+        <p>Waiting for Freedom GP$ integration.</p>
+    </div>
+
+    <div class="card">
+        <h3>Debt Freedom Progress</h3>
+        <p>Waiting for Freedom GP$ integration.</p>
+    </div>
+
+</section>
+
+<section id="genealogy" class="dashboard-section">
+
+    <h2>Genealogy</h2>
+
+    <div class="card">
+        <h3>Family Research</h3>
+        <p>Waiting for Genealogy Engine.</p>
+    </div>
+
+</section>
+
+<section id="profile" class="dashboard-section">
+
+    <h2>Profile</h2>
+
+    <div class="card">
+        <h3>User Profile</h3>
+        <p>Waiting for Profile Engine.</p>
+    </div>
+
+</section>
+  </main>
+
+</body>
+</html>

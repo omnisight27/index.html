@@ -1,0 +1,6 @@
+if success_score >= 80:
+    confidence += 5
+
+if success_score <= 40:
+    confidence -= 5
+0 <= confidence <= 100

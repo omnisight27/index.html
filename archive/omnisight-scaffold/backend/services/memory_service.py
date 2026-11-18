@@ -1,0 +1,14 @@
+from backend.supabase_client import supabase
+
+
+class MemoryService:
+    def get_memories(self):
+        response = supabase.table("memories").select("*").execute()
+        return response.data
+
+    def create_memory(self, data):
+        response = supabase.table("memories").insert(data).execute()
+        return response.data
+
+
+memory_service = MemoryService()
