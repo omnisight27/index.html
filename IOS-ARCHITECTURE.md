@@ -29,6 +29,20 @@ World Events — the cycle starts again, smarter each time
 
 The loop never ends. Each pass feeds back into the world it observes.
 
+In short:
+
+```
+Prediction
+   ↓
+Outcome
+   ↓
+Error
+   ↓
+Adjustment
+   ↓
+Better Prediction
+```
+
 Without this loop, OmniSight is another analytics dashboard. With it, it is a
 living intelligence system. This loop already runs: it is F, the correction
 function (`Scripts/decide.py`, weights in `data/corrected_weights.json`).
