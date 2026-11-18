@@ -13,6 +13,11 @@
   var body = document.getElementById('cb-body');
   if (!body) return;
 
+  // Auto-sync timer handle. renderLinked() runs on every login/logout, so the
+  // timer is cleared before a new one starts — otherwise each re-render
+  // stacks another timer and fires duplicate syncs.
+  var autoSyncTimer = null;
+
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
   function backendUrl(path) {
     return window.OMNISIGHT_CONFIG.BACKEND_URL.replace(/\/+$/, '') + path;
@@ -38,6 +43,7 @@
   function note(html) { body.innerHTML = '<p class="hint">' + html + '</p>'; }
 
   function render() {
+    if (autoSyncTimer) { clearInterval(autoSyncTimer); autoSyncTimer = null; }
     if (!window.OMNISIGHT_CONFIGURED || !window.OmniAuth || !window.OmniAuth.configured) {
       note('Account linking isn\'t set up yet. The site owner still needs to finish the ' +
            'backend setup (see the deploy checklist). Manual tracking below works exactly as always — ' +
@@ -82,21 +88,27 @@
       }).catch(function (e) { status.textContent = 'Sync failed: ' + e.message; });
     });
     function autoSync() {
-  api('GET', '/portfolio/coinbase')
-    .then(function (positions) {
-      var n = window.OmniPortfolioSync.applyCoinbase(positions);
-      status.textContent =
-        'Auto-synced ' + n + ' position' +
-        (n === 1 ? '' : 's') +
-        ' ✓ ' + new Date().toLocaleTimeString();
-    })
-    .catch(function () {
-      // silent failure; manual sync still works
-    });
-}
+      api('GET', '/portfolio/coinbase')
+        .then(function (positions) {
+          var n = window.OmniPortfolioSync.applyCoinbase(positions);
+          // Look the status line up fresh: renderLinked rebuilds this card,
+          // so an element captured earlier may no longer be on the page.
+          var statusEl = document.getElementById('cb-status');
+          if (statusEl) {
+            statusEl.textContent =
+              'Auto-synced ' + n + ' position' +
+              (n === 1 ? '' : 's') +
+              ' ✓ ' + new Date().toLocaleTimeString();
+          }
+        })
+        .catch(function () {
+          // silent failure; manual sync still works
+        });
+    }
 
-// Run one minute after page load, then every minute
-setInterval(autoSync, 60000);
+    // One timer only, every 5 minutes. Cleared in render() before a new one
+    // starts, so re-renders never stack timers.
+    autoSyncTimer = setInterval(autoSync, 300000);
     document.getElementById('cb-unlink').addEventListener('click', function () {
       status.textContent = 'Unlinking…';
       api('DELETE', '/link/coinbase').then(function () { render(); })
