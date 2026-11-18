@@ -1,13 +1,22 @@
 # OmniSight — Intelligence Operating System (IOS) Architecture
 
-**OmniSight™ is an Intelligence Operating System that turns global information
-into foresight, and foresight into action.**
+## Vision
 
-**See It Before It Happens™**
+OmniSight is an Intelligence Operating System designed to transform information into foresight and foresight into action.
 
-Not a dashboard. Not a search engine. Not a chatbot. An operating system for
-thinking, understanding, predicting, deciding, and acting. Every prediction is
-measured. Every outcome is tracked. Every result makes the system smarter.
+By continuously observing global data sources, mapping relationships, scoring opportunities and risks, forecasting outcomes, and learning from real-world results, OmniSight helps individuals, businesses, organizations, and governments make better decisions with greater confidence.
+
+Unlike traditional analytics platforms that explain what happened, OmniSight focuses on understanding what is happening, predicting what is likely to happen next, and recommending the actions most likely to achieve desired outcomes.
+
+Its mission is simple:
+
+**See it before it happens. Understand it before others do. Act with confidence.**
+
+Every prediction, recommendation, and outcome becomes part of a continuously improving intelligence network that grows smarter over time through feedback, learning, and adaptation.
+
+OmniSight is not a search engine, dashboard, or chatbot.
+
+It is an Intelligence Operating System for the future of decision-making.
 
 ## The learning loop (the whole system in six steps)
 
@@ -72,6 +81,80 @@ IMPROVED INTELLIGENCE
      ↓
 WORLD EVENTS (again — the pipeline is a loop, not a line)
 ```
+
+## The layers
+
+```
+GLOBAL DATA LAYER
+────────────────────
+
+News
+Markets
+Government
+Economics
+Crypto
+Business
+Social Signals
+
+        ↓
+
+KNOWLEDGE LAYER
+────────────────────
+
+Entities
+Relationships
+Events
+Trends
+Context
+
+        ↓
+
+INTELLIGENCE LAYER
+────────────────────
+
+Scoring
+Forecasting
+Correlation
+Risk Analysis
+Opportunity Analysis
+
+        ↓
+
+LEARNING LAYER
+────────────────────
+
+Predictions
+Outcomes
+Error Tracking
+Weight Adjustments
+Confidence Calibration
+
+        ↓
+
+ACTION LAYER
+────────────────────
+
+Recommendations
+Automation
+Alerts
+Tasks
+Execution
+
+        ↓
+
+PERSONAL LAYER
+────────────────────
+
+Goals
+Preferences
+Memory
+Behavior
+Adaptation
+```
+
+Status: Data, Intelligence, Learning and Action layers are live; Knowledge is
+missing; Personal is partial (profile, preferences, Money GPS goals). See the
+stage table below for the file-by-file proof.
 
 ## Each stage, mapped to what actually exists (verified 2026-11-18)
 
