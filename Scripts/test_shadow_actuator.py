@@ -230,7 +230,13 @@ def test_run_on_real_repo(tmp_path):
            (out_dir / 'correction-log.jsonl').read_text().splitlines()]
     live_entries = [e for e in log if e['scope'] == 'live']
     assert len(live_entries) == 1
-    assert live_entries[0]['kind'] == 'live-weights'
+    # The gate verdict is logged every run; the kind matches it.
+    gate = proposal['promotion_gate']
+    assert gate['candidate_exp_usd'] is not None
+    assert gate['current_exp_usd'] is not None
+    expected_kind = ('live-weights' if gate['promoted']
+                     else 'live-weights-blocked')
+    assert live_entries[0]['kind'] == expected_kind
     assert live_entries[0]['outcome'] is None  # graded on later runs
     assert all(e['t'] == 1 for e in log)
     # Every changed cell carries its distance to 95%.
@@ -303,6 +309,25 @@ def test_distance_to_95():
     assert sa.distance_to_95(None) is None
 
 
+def test_promotion_gate():
+    # Promotes only when the candidate beats current OOS, same slice.
+    assert sa.promotion_gate({'fifty_rule_exp_usd': 15.0,
+                              'current_exp_usd': 12.27,
+                              'n_test_picks': 466})['promoted'] is True
+    assert sa.promotion_gate({'fifty_rule_exp_usd': -3.58,
+                              'current_exp_usd': 12.27,
+                              'n_test_picks': 466})['promoted'] is False
+    # Equal does not promote — the candidate must BEAT current.
+    assert sa.promotion_gate({'fifty_rule_exp_usd': 12.27,
+                              'current_exp_usd': 12.27,
+                              'n_test_picks': 466})['promoted'] is False
+    # Missing numbers fail closed.
+    assert sa.promotion_gate({'fifty_rule_exp_usd': None,
+                              'current_exp_usd': 12.27})['promoted'] is False
+    assert sa.promotion_gate({})['promoted'] is False
+    assert sa.promotion_gate(None)['promoted'] is False
+
+
 def _fifty_results(tmp_path):
     results = _fake_results(tmp_path)
     results['fifty_rule']['weights'] = [0.01 * i for i in range(22)]
@@ -345,9 +370,15 @@ def test_diff_state_logs_every_change_with_evidence(tmp_path):
     assert len(feats) == 22  # first run establishes every weight
     assert all(e['t'] == 1 and e['outcome'] is None for e in entries)
     assert all(e['evidence']['distance_to_95'] is not None for e in feats)
-    live = [e for e in entries if e['kind'] == 'live-weights']
-    assert len(live) == 1 and live[0]['scope'] == 'live'
+    live = [e for e in entries if e['scope'] == 'live']
+    assert len(live) == 1
+    # Fixture gates BLOCKED: candidate -3.58 does not beat current 12.27,
+    # so the live file is untouched and the verdict is logged instead.
+    assert live[0]['kind'] == 'live-weights-blocked'
+    assert live[0]['new_value'] is None
     assert live[0]['evidence']['fifty_rule_exp_usd'] == -3.58
+    assert live[0]['evidence']['current_exp_usd'] == 12.27
+    assert 'does not beat' in live[0]['evidence']['gate_reason']
 
 
 def test_diff_state_second_run_only_logs_moves(tmp_path):
@@ -355,13 +386,15 @@ def test_diff_state_second_run_only_logs_moves(tmp_path):
     proposal = sa.propose(results)
     state1 = sa.build_state(1, results, proposal, {'c': 1.0, 'd': 1.0},
                             50.0, None)
-    # Identical grades at t=2: no feature/track moves, only the live entry.
+    # Identical grades at t=2: no feature/track moves, only the gate
+    # verdict entry (fixture still gates BLOCKED).
     state2 = sa.build_state(2, results, proposal, {'c': 1.0, 'd': 1.0},
                             50.0, state1)
     entries = sa.diff_state(state1, state2, 2, results, proposal, [])
     assert [e for e in entries if e['kind'] == 'feature'] == []
     assert [e for e in entries if e['kind'] == 'track'] == []
-    assert len([e for e in entries if e['kind'] == 'live-weights']) == 1
+    assert len([e for e in entries
+                if e['kind'] == 'live-weights-blocked']) == 1
 
 
 def test_grade_prior_corrections_helped_and_hurt(tmp_path):

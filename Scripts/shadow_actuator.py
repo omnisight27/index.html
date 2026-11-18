@@ -14,11 +14,17 @@ graded evidence." (variable audit §O.) At each grading run this step
 reads the latest graded ledgers and APPLIES corrections automatically
 — no per-correction approval, no review-only hold (Nic Nov 11: "No
 make the action to correct I don't need to approve if it correct or
-incorrect"). A correction applies whether it turns out right or wrong:
+incorrect"). A correction applies whether it turns out right or wrong IN SHADOW:
 the grades judge it, the log shows it, and the next iteration corrects
 again — including REVERSING a wrong correction when the grades say so.
 A wrong correction is not a failure; the loop learns from being wrong
-too.
+too. The LIVE weight file is different: since Nic Nov 18 it carries a
+PROMOTION GATE — a candidate goes live only when its out-of-sample
+expectancy beats the current live weights' expectancy on the same test
+slice. A blocked candidate stays in shadow and can be promoted by a
+later run when the grades say so. The gate never blocks shadow
+learning, and it never blocks a candidate for being under 95% (95%
+is a read, never a gate).
 
 What one iteration does (F(t) -> F(t+1)):
   1. Recomputes the 50%-rule signed weights from the latest grades and
@@ -68,9 +74,13 @@ Down-weight math (weights proportional to graded performance):
     them up.
 
 GUARDS (the loop's guards, updated for the settled scope):
-  (a) corrections apply automatically — IN SHADOW and LIVE, no
-      per-correction approval (Nic: autonomous correction includes
-      the live weights/gates);
+  (a) corrections apply automatically IN SHADOW — no per-correction
+      approval (Nic: autonomous correction includes the live
+      weights/gates); the LIVE weight file additionally carries the
+      promotion gate (Nic Nov 18): a candidate goes live only when
+      its out-of-sample expectancy beats the current live weights'
+      expectancy on the same test slice. A blocked candidate stays in
+      shadow; the next iteration can promote it.
   (b) the 50% rule and the n>=20 minimum govern every weight change;
   (c) the actuator moves weights ONLY through this loop and logs every
       correction with its graded outcome — right and wrong both visible;
@@ -373,6 +383,39 @@ def distance_to_95(win_pct):
     return round(TARGET_ACCURACY_PCT - win_pct, 1)
 
 
+def promotion_gate(proof):
+    """Promotion gate (Nic Nov 18): the candidate weights go LIVE only
+    when their out-of-sample expectancy beats the current live
+    weights' expectancy on the SAME test slice. The proof block
+    carries both numbers from one harness run, so the comparison is
+    apples to apples. Shadow still learns every run — only the live
+    file is gated. Fail closed: missing numbers block promotion.
+    95% is never an input here; the gate is expectancy only."""
+    proof = proof or {}
+    cand = proof.get('fifty_rule_exp_usd')
+    cur = proof.get('current_exp_usd')
+    n = proof.get('n_test_picks')
+    if cand is None or cur is None:
+        return {'promoted': False,
+                'candidate_exp_usd': cand, 'current_exp_usd': cur,
+                'n_test_picks': n,
+                'reason': ('insufficient proof — missing expectancy '
+                           f'(candidate {cand}, current {cur}); '
+                           'promotion blocked')}
+    if cand > cur:
+        return {'promoted': True,
+                'candidate_exp_usd': cand, 'current_exp_usd': cur,
+                'n_test_picks': n,
+                'reason': (f'candidate {cand:+.2f} $/1k beats current '
+                           f'{cur:+.2f} $/1k (n={n}) — promoted')}
+    return {'promoted': False,
+            'candidate_exp_usd': cand, 'current_exp_usd': cur,
+            'n_test_picks': n,
+            'reason': (f'candidate {cand:+.2f} $/1k does not beat '
+                       f'current {cur:+.2f} $/1k (n={n}) — held in '
+                       f'shadow')}
+
+
 # ------------------------------------------------------------------ F(t) state
 
 def state_file_paths(out_dir):
@@ -554,11 +597,18 @@ def _track_evidence(results, proposal, name):
     return None
 
 
-def diff_state(prev, state, t, results, proposal, applied_gate):
+def diff_state(prev, state, t, results, proposal, applied_gate,
+               gate=None):
     """Every change from F(t-1) to F(t) as correction-log entries.
     First run (no prev): every weight/multiplier is a change from the
     train-fit baseline the loop replaces. Each entry carries its graded
-    evidence and a null outcome — the outcome is graded on later runs."""
+    evidence and a null outcome — the outcome is graded on later runs.
+    The live-scope entry records the promotion gate's verdict every
+    run: 'live-weights' when the candidate is promoted (the live file
+    is rewritten), 'live-weights-blocked' when the gate holds it in
+    shadow (the live file is untouched)."""
+    if gate is None:
+        gate = promotion_gate(state.get('proof') or {})
     entries = []
     ts = state['timestamp']
     fr = results.get('fifty_rule') or {}
@@ -623,22 +673,40 @@ def diff_state(prev, state, t, results, proposal, applied_gate):
                                   'caution gate moves when the shadow '
                                   "line's move is itself graded as helping")},
             'outcome': None, 'outcome_t': None, 'outcome_evidence': None})
-    # The live weight file is rewritten every run from the same state —
-    # one entry per run so any bad live correction is visible and
-    # reversible by the next iteration.
-    entries.append({
-        't': t, 'timestamp': ts, 'scope': 'live', 'kind': 'live-weights',
-        'target': 'repo/data/corrected_weights.json',
-        'old_value': prev_w,
-        'new_value': state['weights'],
-        'evidence': {
-            'fifty_rule_exp_usd': state['proof']['fifty_rule_exp_usd'],
-            'current_exp_usd': state['proof']['current_exp_usd'],
-            'n_test_picks': state['proof']['n_test_picks'],
-            'note': ('live scoring now uses these weights; the OOS grade '
-                     'above is the evidence — if it is worse than current, '
-                     'the next iteration corrects again')},
-        'outcome': None, 'outcome_t': None, 'outcome_evidence': None})
+    # One live-scope entry per run, recording the promotion gate's
+    # verdict: promoted -> the live file is rewritten from this state;
+    # blocked -> the live file is untouched and the candidate stays in
+    # shadow until a later run's grades promote it.
+    if gate.get('promoted'):
+        entries.append({
+            't': t, 'timestamp': ts, 'scope': 'live', 'kind': 'live-weights',
+            'target': 'repo/data/corrected_weights.json',
+            'old_value': prev_w,
+            'new_value': state['weights'],
+            'evidence': {
+                'fifty_rule_exp_usd': state['proof']['fifty_rule_exp_usd'],
+                'current_exp_usd': state['proof']['current_exp_usd'],
+                'n_test_picks': state['proof']['n_test_picks'],
+                'gate_reason': gate.get('reason'),
+                'note': ('live scoring now uses these weights; the OOS '
+                         'grade above is the evidence — the candidate '
+                         'beat current out of sample')},
+            'outcome': None, 'outcome_t': None, 'outcome_evidence': None})
+    else:
+        entries.append({
+            't': t, 'timestamp': ts, 'scope': 'live',
+            'kind': 'live-weights-blocked',
+            'target': 'repo/data/corrected_weights.json',
+            'old_value': prev_w,
+            'new_value': None,
+            'evidence': {
+                'fifty_rule_exp_usd': state['proof']['fifty_rule_exp_usd'],
+                'current_exp_usd': state['proof']['current_exp_usd'],
+                'n_test_picks': state['proof']['n_test_picks'],
+                'gate_reason': gate.get('reason'),
+                'note': ('live file untouched — the candidate stays in '
+                         'shadow until it beats current out of sample')},
+            'outcome': None, 'outcome_t': None, 'outcome_evidence': None})
     return entries
 
 
@@ -832,10 +900,19 @@ def render_report(p):
     t = p.get('f_t')
     L.append('# Shadow actuator — corrections APPLIED (F(t))')
     L.append('')
+    gate = p.get('promotion_gate')
+    if gate is None:
+        live_line = ('The promotion gate was not evaluated for this '
+                     'render (propose-only).')
+    elif gate.get('promoted'):
+        live_line = ('The promotion gate PROMOTED this candidate, so the '
+                     'live weights were rewritten from this state.')
+    else:
+        live_line = ('The promotion gate BLOCKED this candidate, so the '
+                     'live weights were NOT changed.')
     L.append(f"Generated {p['generated_utc']} (UTC). APPLIED at t={t} — "
              'F(t+1) = correct(F(t), grades): this run APPLIED the '
-             'corrections below to the shadow state and, per the settled '
-             'scope, to the live weights (repo/data/corrected_weights.json). '
+             'corrections below to the shadow state. ' + live_line + ' '
              'No per-correction approval — the grades judge each change, '
              'the correction log shows right and wrong, and the next '
              'iteration corrects again. The system NEVER places an order, '
@@ -853,6 +930,20 @@ def render_report(p):
     L.append('- Every correction is logged with its graded outcome '
              '(correction-log.jsonl); a wrong correction is reversed by '
              'the next iteration, never hidden.')
+    L.append('')
+    L.append('## Promotion gate (live weights only — Nic Nov 18)')
+    L.append('')
+    if gate is None:
+        L.append('- Not evaluated in this render (propose-only).')
+    elif gate.get('promoted'):
+        L.append(f"- **PROMOTED**: {gate.get('reason', '')}. The live "
+                 'weight file was rewritten from this state.')
+    else:
+        L.append(f"- **BLOCKED**: {gate.get('reason', '')}. The live "
+                 'weight file was NOT changed — the candidate stays in '
+                 'shadow until a later run promotes it.')
+    L.append('- The gate is expectancy only, on the same test slice. '
+             '95% is never an input.')
     L.append('')
     if p.get('applied_corrections') is not None:
         applied = p['applied_corrections']
@@ -1055,16 +1146,21 @@ def main():
         prev_term, prev_caution, adjustments)
     # F(t): weights from the fresh grades, folded with the gate adjust.
     state = build_state(t, results, proposal, term_mult, caution, prev)
-    entries = diff_state(prev, state, t, results, proposal, applied_gate)
+    # Promotion gate (Nic Nov 18): the candidate goes LIVE only when
+    # its OOS expectancy beats current on the same test slice. Shadow
+    # still learns every run; only the live file is gated.
+    gate = promotion_gate(state.get('proof') or {})
+    entries = diff_state(prev, state, t, results, proposal, applied_gate,
+                         gate=gate)
     # Grade the prior corrections from the FRESH grades, then log the new ones.
     log = load_correction_log(paths['correction_log'])
     log = grade_prior_corrections(log, results, t)
     log.extend(entries)
     save_correction_log(paths['correction_log'], log)
-    # Live weight state (settled scope: autonomous correction includes
-    # live). NEVER places an order — scoring weights only; Nic executes.
+    # Live weight state — GATED (Nic Nov 18). NEVER places an order —
+    # scoring weights only; Nic executes.
     live_path = None
-    if not args.no_live:
+    if gate['promoted'] and not args.no_live:
         live_path = write_live_weights(args.repo, state)
     # F(t) snapshot, versioned by t — any t can be read back.
     with open(paths['f_state'], 'a') as f:
@@ -1077,6 +1173,7 @@ def main():
     proposal['prior_outcomes'] = [e for e in log
                                   if e.get('outcome') is not None]
     proposal['gate_adjustments'] = applied_gate
+    proposal['promotion_gate'] = gate
     proposal['next_t_preview'] = next_t_preview(results, proposal)
     proposal['live_weights_path'] = live_path
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
@@ -1099,6 +1196,10 @@ def main():
           f'{hurt} hurt so far')
     if live_path:
         print(f'live weights written: {live_path}')
+    elif gate['promoted']:
+        print(f"live weights NOT written (--no-live): {gate['reason']}")
+    else:
+        print(f"live weights held: {gate['reason']}")
     return 0
 
 
