@@ -75,8 +75,10 @@
       '<p>✅ Coinbase linked — key <strong>' + esc(st.key_name_masked || '') + '</strong>' +
       (st.updated_at ? ' · linked ' + esc(String(st.updated_at).slice(0, 10)) : '') + '</p>' +
       '<button class="btn" id="cb-sync" type="button">⟳ Sync from Coinbase</button> ' +
-      '<button class="btn" id="cb-unlink" type="button">Unlink</button>' +
+      '<button class="btn" id="cb-unlink" type="button">Unlink</button> ' +
+      '<button class="btn ghost" id="cb-debug" type="button">Show what Coinbase returns</button>' +
       '<div class="hint" id="cb-status" style="margin-top:8px"></div>' +
+      '<div id="cb-debug-out" style="margin-top:8px"></div>' +
       '<p class="hint">Syncing replaces the units on matching rows with your live Coinbase balances ' +
       '(rows are marked ⟳ Synced). Your avg costs stay as you entered them, and you can edit everything afterward.</p>';
     var status = document.getElementById('cb-status');
@@ -113,6 +115,24 @@
       status.textContent = 'Unlinking…';
       api('DELETE', '/link/coinbase').then(function () { render(); })
         .catch(function (e) { status.textContent = 'Unlink failed: ' + e.message; });
+    });
+    // Diagnostic: show the raw accounts Coinbase returns, before any
+    // merging or dropping — so a coin that never reaches your holdings
+    // shows up here as dropped instead of silently vanishing.
+    document.getElementById('cb-debug').addEventListener('click', function () {
+      var out = document.getElementById('cb-debug-out');
+      out.innerHTML = '<p class="hint">Asking Coinbase what it sees…</p>';
+      api('GET', '/portfolio/coinbase/debug').then(function (d) {
+        var rows = (d.accounts || []).map(function (a) {
+          var type = String(a.type || '').replace('ACCOUNT_TYPE_', '');
+          return '<tr><td><strong>' + esc(a.currency) + '</strong></td><td>' + esc(a.name) + '</td><td>' + esc(type) + '</td><td>' + esc(String(a.available)) + '</td><td>' + esc(String(a.hold)) + '</td><td>' + (a.included ? '✅ in sync' : '❌ dropped — zero balance') + '</td></tr>';
+        }).join('');
+        var pos = (d.positions || []).map(function (p) {
+          return esc(p.symbol) + ' ' + esc(String(p.units)) + (p.staked ? ' (staked)' : '');
+        }).join(' · ');
+        out.innerHTML = '<table class="report-table"><tr><th>Coin</th><th>Account</th><th>Type</th><th>Available</th><th>Hold</th><th>Sync?</th></tr>' + rows + '</table>' +
+          '<p class="hint">Merged into ' + (d.positions || []).length + ' position' + ((d.positions || []).length === 1 ? '' : 's') + ': ' + (pos || 'none') + '. Anything marked dropped never reaches your holdings — that is where a missing coin hides.</p>';
+      }).catch(function (e) { out.innerHTML = '<p class="hint">Diagnostic failed: ' + esc(e.message) + '</p>'; });
     });
   }
 

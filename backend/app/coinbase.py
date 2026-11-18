@@ -231,6 +231,31 @@ class CoinbaseClient:
         return price
 
     # -- normalization -------------------------------------------------------
+    def debug_accounts(self) -> list[dict]:
+        """Raw accounts as Coinbase returns them, trimmed to what the
+        diagnostic shows: currency, name, type, available, hold, and
+        whether the balance reaches the merge (available + hold > 0).
+        Zero-balance accounts are LISTED, not hidden — a staked
+        position Coinbase reports with zero available balance shows up
+        here as dropped, which is exactly what the diagnostic is for.
+        No keys, no secrets, no UUIDs."""
+        out = []
+        for acct in self.fetch_accounts():
+            symbol = (acct.get("currency") or "").upper()
+            if not symbol:
+                continue
+            avail = _parse_float((acct.get("available_balance") or {}).get("value")) or 0.0
+            hold = _parse_float((acct.get("hold") or {}).get("value")) or 0.0
+            out.append({
+                "currency": symbol,
+                "name": acct.get("name") or "",
+                "type": acct.get("type") or "",
+                "available": avail,
+                "hold": hold,
+                "included": (avail + hold) > 0,
+            })
+        return out
+
     def portfolio(self) -> list[dict]:
         """Normalize accounts to [{symbol, units, price_usd, value_usd,
         staked, staked_units, avg_cost_usd}]. Units include amounts on hold

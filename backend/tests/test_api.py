@@ -136,6 +136,7 @@ def test_auth_required(client):
     tc, _ = client
     assert tc.get("/link/status").status_code == 401
     assert tc.get("/portfolio/coinbase").status_code == 401
+    assert tc.get("/portfolio/coinbase/debug").status_code == 401
     assert tc.post("/link/coinbase", json={"key_name": "x" * 5, "private_key": "y" * 30}).status_code == 401
 
 
@@ -200,6 +201,25 @@ def test_portfolio_normalization(client):
 
     usd = positions["USD"]
     assert usd["units"] == 150.25 and usd["value_usd"] == 150.25
+
+
+def test_portfolio_debug_shows_raw_accounts(client):
+    tc, _ = client
+    link_ok(client)
+    r = tc.get("/portfolio/coinbase/debug", headers=user_headers())
+    assert r.status_code == 200, r.text
+    body = r.json()
+    accts = {a["name"]: a for a in body["accounts"]}
+    assert set(accts) == {"BTC Wallet", "ETH Wallet", "Ethereum Staking",
+                          "AVAX Wallet", "USD Wallet"}
+    # The staking account's balance reaches the merge.
+    assert accts["Ethereum Staking"]["included"] is True
+    assert accts["Ethereum Staking"]["available"] == 2.0
+    # The zero-balance account is LISTED as dropped, not hidden.
+    assert accts["AVAX Wallet"]["included"] is False
+    assert accts["AVAX Wallet"]["available"] == 0.0
+    # Merged positions ride along for comparison.
+    assert {p["symbol"] for p in body["positions"]} == {"BTC", "ETH", "USD"}
 
 
 def test_portfolio_empty_account(client):

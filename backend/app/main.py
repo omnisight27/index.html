@@ -5,6 +5,7 @@ Endpoints (all except /health require a Supabase JWT bearer token):
   POST   /link/coinbase        store a user's Coinbase CDP key (encrypted)
   GET    /link/status          is a Coinbase key linked? (masked name only)
   GET    /portfolio/coinbase   normalized balances from Coinbase, read-only
+  GET    /portfolio/coinbase/debug   raw Coinbase accounts + merged positions
   DELETE /link/coinbase        remove stored credentials
 
 Run locally:  uvicorn app.main:app --reload --port 8000
@@ -120,6 +121,28 @@ def create_app(store=None, coinbase_client_factory=None) -> FastAPI:
             return client.portfolio()
         except CoinbaseError as e:
             raise HTTPException(status_code=502, detail=str(e))
+
+    @app.get("/portfolio/coinbase/debug")
+    def coinbase_portfolio_debug(user_id: str = Depends(current_user)):
+        """Diagnostic: what Coinbase actually returns, before any merging
+        or dropping. Same auth as /portfolio/coinbase. Shows every account
+        (currency, name, type, available, hold, included?) next to the
+        merged positions — so a staked balance Coinbase reports as zero
+        shows up as dropped instead of silently vanishing."""
+        row = get_store().get(user_id, PROVIDER)
+        if not row:
+            raise HTTPException(status_code=400, detail="Coinbase account not linked")
+        try:
+            creds = security.decrypt_credentials(row["credentials_enc"])
+        except security.ConfigError as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        client = make_coinbase(creds["key_name"], creds["private_key"])
+        try:
+            accounts = client.debug_accounts()
+            positions = client.portfolio()
+        except CoinbaseError as e:
+            raise HTTPException(status_code=502, detail=str(e))
+        return {"accounts": accounts, "positions": positions}
 
     @app.delete("/link/coinbase")
     def unlink_coinbase(user_id: str = Depends(current_user)):

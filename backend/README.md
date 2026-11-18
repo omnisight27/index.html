@@ -12,6 +12,7 @@ root; this folder deploys separately (Render) and is ignored by Pages.
 | `POST /link/coinbase` | Supabase JWT | store a Coinbase CDP key, Fernet-encrypted |
 | `GET /link/status` | Supabase JWT | linked? + masked key name |
 | `GET /portfolio/coinbase` | Supabase JWT | normalized balances `[{symbol, units, price_usd, value_usd, staked, staked_units}]` |
+| `GET /portfolio/coinbase/debug` | Supabase JWT | raw Coinbase accounts `[{currency, name, type, available, hold, included}]` + merged positions — shows dropped (zero-balance) accounts instead of hiding them |
 | `DELETE /link/coinbase` | Supabase JWT | delete stored credentials |
 
 Coinbase access is **read-only by construction**: the client only ever calls
