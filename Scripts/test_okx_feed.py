@@ -202,6 +202,23 @@ def test_fetch_coin_all_down_fails_open():
     assert row['error'] == 'all OKX legs failed'
 
 
+def test_fetch_coin_no_swap_is_not_a_feed_failure():
+    """OKX 51001 on every leg = the coin has no USDT-SWAP (verified
+    live 2026-11-19: PEARL, LUNC, APEPE, HASH, VET). That is a
+    listing gap, so it reads differently from a dead feed."""
+    fetch = _fake_fetch({
+        'funding-rate-history': SAMPLE_ERROR,
+        'funding-rate': SAMPLE_ERROR,
+        'open-interest': SAMPLE_ERROR,
+        'long-short-account-ratio': SAMPLE_ERROR,
+    })
+    row = okx_feed.fetch_coin(fetch, 'PEARL', pace_s=0)
+    assert row['funding_rate'] is None
+    assert row['oi_usd'] is None
+    assert row['ls_ratio'] is None
+    assert row['error'] == 'no OKX USDT-SWAP for this symbol'
+
+
 def test_fetch_all_caps_and_btc_first():
     fetch = _fake_fetch({
         'funding-rate-history': SAMPLE_FUNDING_HIST,

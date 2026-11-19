@@ -238,7 +238,10 @@ def fetch_coin(fetch_json, asset, pace_s=PACE_S):
     long/short ratio. Each endpoint is independent — a failed L/S
     call drops only the ratio, never the funding. Returns a dict
     with None fields for anything missing, plus 'error' (None when
-    at least the funding leg landed). Never raises."""
+    at least the funding leg landed). A coin with no USDT-SWAP on
+    OKX (funding leg returns code 51001) reads 'no OKX USDT-SWAP
+    for this symbol' — a listing gap, distinct from 'all OKX legs
+    failed', which means the feed itself was unreachable. Never raises."""
     row = {'asset': (asset or '').upper(),
            'funding_rate': None, 'ann_pct': None, 'funding_score': None,
            'funding_z': None, 'oi': None, 'oi_usd': None,
@@ -247,8 +250,10 @@ def fetch_coin(fetch_json, asset, pace_s=PACE_S):
     if not inst:
         row['error'] = 'no instrument'
         return row
+    fund_raw = None  # kept so a 51001 can be told apart from a dead feed
     try:
-        fund = parse_funding(fetch_json(FUNDING_URL.format(inst=inst)))
+        fund_raw = fetch_json(FUNDING_URL.format(inst=inst))
+        fund = parse_funding(fund_raw)
     except Exception as e:
         fund = None
         row['error'] = f'funding: {str(e)[:80]}'
@@ -283,7 +288,16 @@ def fetch_coin(fetch_json, asset, pace_s=PACE_S):
         row['ls_ratio'] = ls['ratio']
     if row['funding_rate'] is None and row['oi_usd'] is None \
             and row['ls_ratio'] is None and row['error'] is None:
-        row['error'] = 'all OKX legs failed'
+        # OKX 51001 = "instrument doesn't exist": the coin has no
+        # USDT-SWAP on OKX (verified live 2026-11-19 for PEARL, LUNC,
+        # APEPE, HASH, VET). That is a listing gap, not a feed outage,
+        # so it gets its own error string — the generic 'all OKX legs
+        # failed' is reserved for a genuinely dead/unreachable feed.
+        if isinstance(fund_raw, dict) \
+                and str(fund_raw.get('code')) == '51001':
+            row['error'] = 'no OKX USDT-SWAP for this symbol'
+        else:
+            row['error'] = 'all OKX legs failed'
     return row
 
 
