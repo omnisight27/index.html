@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sovereign Dashboard — Freedom GP$ Engine v1 MVP | OmniSight</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Freedom GP$ Engine v1 MVP — architecture demonstration. The complete ledger, state vector, opportunity center, knowledge vault, validation center, and OmniSight Assistant, shown with illustrative demo data." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .demo-banner { background: rgba(245, 158, 11, 0.12); border: 1px solid var(--warning); border-radius: 8px; padding: 16px 20px; margin: 0 0 32px; }
+    .demo-banner strong { color: var(--warning); }
+    .demo-banner p { margin: 4px 0; color: var(--text-light); font-size: 15px; }
+    .num { font-size: 34px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+    .pill { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px; }
+    .pill-exp { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .pill-open { background: rgba(0, 217, 255, 0.15); color: var(--accent); }
+    .pill-dismissed { background: rgba(156, 163, 175, 0.15); color: var(--text-muted); }
+    .pill-resolved { background: rgba(16, 185, 129, 0.15); color: var(--primary); }
+    .bar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; margin: 6px 0 2px; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--primary)); }
+    .qa { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 0 0 20px; }
+    .qa-q { font-weight: 700; color: var(--text); margin: 0 0 4px; }
+    .qa-a { color: var(--text-light); margin: 0; }
+    .demo-tag { font-size: 12px; color: var(--warning); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    .flow { font-family: monospace; font-size: 14px; color: var(--text-light); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; overflow-x: auto; }
+    .cap-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .cap-row h4 { margin: 0; }
+    .cap-row span { color: var(--text-muted); font-size: 14px; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div id="ticker-tape" class="ticker-tape"></div>
+  <div id="picks-tape" class="ticker-tape picks-tape"></div>
+
+  <header class="nav">
+    <div class="nav-brand">OmniSight</div>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </header>
+
+  <section class="hero hero-home">
+    <p class="eyebrow">Freedom GP$ Engine v1 MVP · Architecture Demonstration</p>
+    <h1>The Sovereign <span class="grad">Dashboard.</span></h1>
+    <p class="hero-sub">The first window into the Freedom GP$ engine. The complete ledger, the state vector, the opportunities, the vault, and the validation center — on one page, with OmniSight answering in plain English.</p>
+    <div class="hero-cta">
+      <a class="btn primary" href="#ledger">See the ledger →</a>
+      <a class="btn ghost" href="#assistant">Ask OmniSight</a>
+    </div>
+    <p class="hero-status"><span class="pulse-dot"></span>Engine v1 MVP complete · 6 sprints · 223 tests passing · 5 milestone tags</p>
+  </section>
+
+  <main class="section">
+    <div class="demo-banner" role="note">
+      <p><strong>DEMONSTRATION — NOT LIVE DATA.</strong></p>
+      <p>Everything on this page is an architecture demonstration. The figures shown are <strong>illustrative example data</strong>, invented to show how the system works — they are not a real ledger, not a real person's money, and not live data. The only real facts here are the public MVP facts: 6 sprints, 223 tests passing, 5 milestone tags, the 9 model names, and their validation levels. The live engine is not yet deployed.</p>
+    </div>
+
+    <p class="eyebrow">Engine v1 MVP complete</p>
+    <h2>Seven capabilities. One system.</h2>
+    <p class="section-lead">Freedom GP$ is the measurement engine. OmniSight is the decision engine. The Sovereign Dashboard is the user experience layer. NexIntel is the intelligence layer. What was six separate ideas is now one architecture.</p>
+
+    <div class="grid">
+      <div class="card"><p class="num">6</p><h4>Sprints</h4><p>Identity + State Vector, Knowledge Vault, Knowledge Graph, Opportunity Engine, Validation Engine, Sovereign Dashboard + OmniSight Assistant.</p></div>
+      <div class="card"><p class="num">223</p><h4>Tests passing</h4><p>0 failed. Every sprint shipped with its acceptance tests green, verified independently on each commit.</p></div>
+      <div class="card"><p class="num">5</p><h4>Milestone tags</h4><p>v0.1-foundation, v0.2-graph, v0.3-opportunity, v0.4-validation, v0.5-mvp — the whole build, on GitHub, tagged at every step.</p></div>
+      <div class="card"><p class="num">7</p><h4>Capabilities</h4><p>Identity, State Vector, Memory, Relationships, Discovery, Validation, Experience. The engine can now measure itself — and show its work.</p></div>
+    </div>
+
+    <p class="section-lead" style="margin-top: 28px;">How it fits together:</p>
+    <p class="flow">User → Sovereign Dashboard → OmniSight Assistant → Engine Services → Knowledge Graph → Validation Layer</p>
+    <p class="hint">No direct database access. Every interaction flows through the engine's services — the dashboard reads what the engine already knows, nothing more.</p>
+
+    <section id="ledger" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Complete Ledger</p>
+      <h2>See the ledger.</h2>
+      <p class="section-lead">Five capitals, one ledger. <span class="demo-tag">Illustrative demo scores — not real money.</span> These are example 0–100 index scores for a demo ledger, shown so you can see how the ledger reads. No dollars, no real accounts, no real person.</p>
+      <div class="grid">
+        <div class="card"><div class="cap-row"><h4>Financial Capital</h4><span>▲ rising</span></div><p class="num">62</p><div class="bar"><div class="bar-fill" style="width: 62%"></div></div><p class="hint">Money, assets, and the debts against them — measured, not guessed.</p></div>
+        <div class="card"><div class="cap-row"><h4>Human Capital</h4><span>▲ rising</span></div><p class="num">74</p><div class="bar"><div class="bar-fill" style="width: 74%"></div></div><p class="hint">Skills, certifications, and health — what a person can do.</p></div>
+        <div class="card"><div class="cap-row"><h4>Social Capital</h4><span>→ flat</span></div><p class="num">58</p><div class="bar"><div class="bar-fill" style="width: 58%"></div></div><p class="hint">Relationships, reputation, and community — who a person can reach.</p></div>
+        <div class="card"><div class="cap-row"><h4>Resource Capital</h4><span>▼ falling</span></div><p class="num">41</p><div class="bar"><div class="bar-fill" style="width: 41%"></div></div><p class="hint">Tools, property, and access — what a person can use.</p></div>
+        <div class="card"><div class="cap-row"><h4>Legacy Capital</h4><span>▲ rising</span></div><p class="num">66</p><div class="bar"><div class="bar-fill" style="width: 66%"></div></div><p class="hint">What outlives the ledger — records, plans, and what gets passed on.</p></div>
+        <div class="card"><h4>What the ledger is for</h4><p>Most apps show one number. Freedom GP$ measures the whole life ledger — visible and shadow — so nothing a person owns, knows, or owes hides from the plan.</p><p class="hint">Trend arrows only. No new scoring on this page.</p></div>
+      </div>
+    </section>
+
+    <section id="state-vector" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">State Vector Explorer</p>
+      <h2>Ω(t) — the system, in ten numbers.</h2>
+      <p class="section-lead">The state vector is the measurement. Ten components, tracked over time, so change is visible instead of felt. <span class="demo-tag">Illustrative demo values.</span></p>
+      <div class="card">
+        <table class="report-table">
+          <thead><tr><th>Component</th><th>What it is</th><th>Demo value</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td><strong>F</strong></td><td>Financial capital</td><td>62</td><td>▲ +3</td></tr>
+            <tr><td><strong>H</strong></td><td>Human capital</td><td>74</td><td>▲ +2</td></tr>
+            <tr><td><strong>S</strong></td><td>Social capital</td><td>58</td><td>→ 0</td></tr>
+            <tr><td><strong>R</strong></td><td>Resource capital</td><td>41</td><td>▼ −2</td></tr>
+            <tr><td><strong>L</strong></td><td>Legacy capital</td><td>66</td><td>▲ +1</td></tr>
+            <tr><td><strong>T</strong></td><td>Time</td><td>55</td><td>▲ +1</td></tr>
+            <tr><td><strong>M</strong></td><td>Money flow</td><td>60</td><td>▲ +4</td></tr>
+            <tr><td><strong>I</strong></td><td>Information</td><td>71</td><td>▲ +2</td></tr>
+            <tr><td><strong>E</strong></td><td>Energy / effort</td><td>48</td><td>▼ −1</td></tr>
+            <tr><td><strong>O</strong></td><td>Opportunity</td><td>53</td><td>▲ +5</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">Ω(t) = [F, H, S, R, L, T, M, I, E, O]. Latest changes and history live in the engine — this table is one demo snapshot, not a live feed.</p>
+      </div>
+    </section>
+
+    <section id="opportunities" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Opportunity Center</p>
+      <h2>See the opportunities.</h2>
+      <p class="section-lead">The Opportunity Engine asks three questions: what is missing, what should be connected, what creates value next? Every opportunity carries its source, its confidence, its evidence, and its reason — everything is explainable. <span class="demo-tag">Illustrative examples.</span></p>
+
+      <h3>Open <span class="pill pill-open">3 open</span></h3>
+      <div class="grid">
+        <div class="card"><h4>Skill without evidence</h4><p><span class="pill pill-open">Skill Opportunity</span> · Confidence 0.90</p><p><strong>Demo skill:</strong> Public Speaking — recorded, but no supporting evidence on file.</p><p><strong>Source:</strong> Detector 1 — skills with no evidence.</p><p><strong>Evidence:</strong> None on record.</p><p><strong>Reason:</strong> A skill with no evidence cannot be trusted or used. Add evidence, and the gap closes.</p></div>
+        <div class="card"><h4>Legacy asset without a preservation plan</h4><p><span class="pill pill-open">Legacy Opportunity</span> · Confidence 0.90</p><p><strong>Demo asset:</strong> Family Recipe Collection — no preservation status set.</p><p><strong>Source:</strong> Detector 5 — legacy assets with no preservation status.</p><p><strong>Evidence:</strong> The asset record itself.</p><p><strong>Reason:</strong> A legacy asset with no plan is a legacy at risk. Set the plan, and the opportunity resolves.</p></div>
+        <div class="card"><h4>Disconnected knowledge cluster</h4><p><span class="pill pill-open">Relationship Opportunity</span> · Confidence 0.80</p><p><strong>Demo cluster:</strong> 3 unlinked notes — connected to each other, connected to nothing else.</p><p><strong>Source:</strong> Detector 6 — disconnected graph clusters.</p><p><strong>Evidence:</strong> The graph gap itself.</p><p><strong>Reason:</strong> Knowledge that connects to nothing cannot be used. Link it, and the cluster joins the ledger.</p></div>
+      </div>
+
+      <h3 style="margin-top: 28px;">Dismissed <span class="pill pill-dismissed">1 dismissed</span></h3>
+      <div class="grid">
+        <div class="card"><h4>Certification with evidence, no utilization</h4><p><span class="pill pill-dismissed">Knowledge Opportunity</span> · Confidence 0.70 · Dismissed</p><p><strong>Demo certification:</strong> First-Aid Certificate — evidence on file, connected to nothing else.</p><p><strong>Source:</strong> Detector 3 — certifications with evidence but no utilization.</p><p><strong>Evidence:</strong> Certificate scan on file.</p><p><strong>Reason:</strong> The gap closed — the certification was linked to a skill. The opportunity auto-dismissed with a note, and the audit trail kept the record.</p></div>
+      </div>
+
+      <h3 style="margin-top: 28px;">Resolved <span class="pill pill-resolved">1 resolved</span></h3>
+      <div class="grid">
+        <div class="card"><h4>Knowledge asset with no relationships</h4><p><span class="pill pill-resolved">Knowledge Opportunity</span> · Confidence 0.85 · Resolved</p><p><strong>Demo asset:</strong> Old Project Notes — sat alone in the vault, linked to nothing.</p><p><strong>Source:</strong> Detector 4 — knowledge assets with no relationships.</p><p><strong>Evidence:</strong> The asset record and its new links.</p><p><strong>Reason:</strong> The notes were linked to a skill and a family record. The opportunity was marked realized — the system never marks one realized on its own.</p></div>
+      </div>
+      <p class="hint">Detection never duplicates: re-running the detectors creates nothing new while an open opportunity already exists for the same gap. When a gap closes, its opportunity dismisses itself — and says why.</p>
+    </section>
+
+    <section id="vault" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Knowledge Vault</p>
+      <h2>See what you know.</h2>
+      <p class="section-lead">The vault is memory with a receipt: every record carries its lineage and its evidence, and every change is audited. Searchable, filterable, auditable in the live engine. <span class="demo-tag">Illustrative examples.</span></p>
+      <div class="grid">
+        <div class="card"><h4>Knowledge Assets</h4><p>Demo asset: Career History Notes. Demo asset: Old Project Notes. Each one linked to the records it supports — or flagged when it links to nothing.</p></div>
+        <div class="card"><h4>Skills</h4><p>Demo skill: Public Speaking (no evidence — see Opportunity Center). Demo skill: Woodworking (evidence on file, linked to a certification).</p></div>
+        <div class="card"><h4>Certifications</h4><p>Demo certification: First-Aid Certificate (evidence on file). A certification with no evidence at all is flagged, too — that is a different gap from evidence without use.</p></div>
+        <div class="card"><h4>Family Records</h4><p>Demo record: Family Timeline. The ledger is a family ledger — records carry who they belong to and where they came from.</p></div>
+        <div class="card"><h4>Legacy Assets</h4><p>Demo asset: Family Recipe Collection (no preservation plan — see Opportunity Center). Legacy is a capital, not an afterthought.</p></div>
+        <div class="card"><h4>Evidence</h4><p>Demo evidence: Certificate scan — on file, linked to the First-Aid Certificate. Evidence is what turns a claim into a record.</p></div>
+      </div>
+    </section>
+
+    <section id="validation" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Validation Center</p>
+      <h2>See the uncertainty.</h2>
+      <p class="section-lead">Most apps hide uncertainty. Freedom GP$ exposes it. Every model lives in a registry with a validation level — and right now, honestly, every one of them is Experimental. That is a real fact from the registry, not a demo figure.</p>
+      <div class="card">
+        <table class="report-table">
+          <thead><tr><th>Model</th><th>Validation level</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>GP$ Index</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Prosperity Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Trust Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Opportunity Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Hidden Asset Multiplier</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Stinnes Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Asset Flipper Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Anti-Fragility Index</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+            <tr><td>Regulatory Friction Score</td><td><span class="pill pill-exp">Experimental</span></td><td>Active</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">Validation levels: Conceptual → Prototype → Experimental → Validated → Institutional. No score has reached Validated. The registry is the single source of truth for every score's formula, version, and status — which finally settles every future disagreement between specifications.</p>
+      </div>
+
+      <div class="grid" style="margin-top: 18px;">
+        <div class="card"><h4>Predictions</h4><p>A prediction is a hypothesis, stored before the outcome exists. The engine records what it expects, when it expects it, and how confident it is — then waits for reality to answer.</p></div>
+        <div class="card"><h4>Outcomes</h4><p>An outcome is the actual result, recorded later and linked to its prediction. One outcome per prediction — a second one is refused, because replacing the first would rewrite history.</p></div>
+        <div class="card"><h4>Calibration Error</h4><p><strong>CE = Observed − Predicted.</strong> The error is computed by the engine, never typed in by hand. <span class="demo-tag">Illustrative example:</span> predicted 100, observed 96, CE = −4. That is the machinery that turns guesses into measurements.</p></div>
+        <div class="card"><h4>Drift</h4><p>When a metric moves away from its baseline, the engine records it: baseline, current, change, status. Normal up to 5%, warning to 20%, critical past that. Foundational only — the advanced analytics come later, after real data exists.</p></div>
+      </div>
+    </section>
+
+    <section id="assistant" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">OmniSight Assistant</p>
+      <h2>Ask it. It shows its work.</h2>
+      <p class="section-lead">OmniSight answers in plain English, from the engine's own records, with the evidence attached. Nothing predictive yet — only explainability. And when it cannot answer, it says so plainly instead of guessing. <span class="demo-tag">Example answers, using the demo data above.</span></p>
+
+      <div class="qa"><p class="qa-q">“Show my opportunities.”</p><p class="qa-a">Three open: a skill without evidence (Public Speaking, confidence 0.90), a legacy asset without a preservation plan (Family Recipe Collection, 0.90), and a disconnected knowledge cluster (3 unlinked notes, 0.80).</p></div>
+      <div class="qa"><p class="qa-q">“What changed in my ledger?”</p><p class="qa-a">Since the last snapshot: Opportunity rose 5, Money flow rose 4, Financial rose 3 — and Resource fell 2. The full history is in the State Vector Explorer.</p></div>
+      <div class="qa"><p class="qa-q">“What legacy assets lack preservation?”</p><p class="qa-a">One: the Family Recipe Collection. No preservation status is set. Set the plan and the opportunity resolves.</p></div>
+      <div class="qa"><p class="qa-q">“Show skills without evidence.”</p><p class="qa-a">One: Public Speaking. Recorded, with no supporting evidence on file. The Opportunity Center has the full record.</p></div>
+      <div class="qa"><p class="qa-q">“Show certifications without evidence.”</p><p class="qa-a">None on this demo ledger. The First-Aid Certificate has its evidence on file — a certification with evidence but no use is a different gap, and the engine tracks that separately.</p></div>
+      <div class="qa"><p class="qa-q">“What models are experimental?”</p><p class="qa-a">All nine: GP$ Index, Prosperity Score, Trust Score, Opportunity Score, Hidden Asset Multiplier, Stinnes Score, Asset Flipper Score, Anti-Fragility Index, Regulatory Friction Score. None has reached Validated.</p></div>
+      <div class="qa"><p class="qa-q">“Why was this opportunity created?”</p><p class="qa-a">The Public Speaking opportunity was created by Detector 1 — skills with no evidence. The skill exists in the vault; no evidence record links to it. Confidence 0.90.</p></div>
+      <div class="qa"><p class="qa-q">“What evidence supports this record?”</p><p class="qa-a">The First-Aid Certificate is supported by one evidence record: the certificate scan, on file and linked to the certificate.</p></div>
+    </section>
+
+    <section id="status" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Validation Status</p>
+      <h2>Where validation stands today.</h2>
+      <p class="section-lead">Experimental across the board. That is not a failure — it is the honest starting line. “Experimental” means the formula and bands are defined and the engine computes them on illustrative inputs. No real-world validation data exists yet. The machinery to collect it is built. What comes next is evidence.</p>
+      <div class="grid">
+        <div class="card"><h4>What exists</h4><p>Model Registry, Score Registry, Prediction Registry, Outcome Registry, Calibration Registry, Drift Registry — all operational, all audited, all in the engine.</p></div>
+        <div class="card"><h4>What does not exist yet</h4><p>Real users. Real predictions. Real outcomes. Real calibration. The engine has never measured a real ledger — and it will not pretend otherwise.</p></div>
+        <div class="card"><h4>What turns it into science</h4><p>Users, actions, outcomes, measurements, validation. The first real Opportunity that leads to a measurable improvement in a real user's ledger will be worth more than every document, sprint, and specification that came before it.</p></div>
+      </div>
+    </section>
+
+    <section id="roadmap" class="section" style="padding: 0 0 40px;">
+      <p class="eyebrow">Roadmap</p>
+      <h2>What comes next.</h2>
+      <p class="section-lead">Two tracks, in order. First let people see it. Then let people use it.</p>
+      <div class="grid">
+        <div class="card">
+          <h4>Track A — Public Presence</h4>
+          <p><strong>Now:</strong> this page — the Sovereign Dashboard preview on OmniSight.</p>
+          <p><strong>Next:</strong> an “Engine v1 MVP Complete” page, a standing Validation Status section, and the roadmap kept current.</p>
+          <p><strong>Goal:</strong> let people see it.</p>
+        </div>
+        <div class="card">
+          <h4>Track B — Production Launch</h4>
+          <p>Azure subscription. PostgreSQL deployment. Secrets management. Domain routing. Public API deployment. Dashboard deployment.</p>
+          <p><strong>Goal:</strong> let people use it.</p>
+        </div>
+        <div class="card">
+          <h4>Then — the validation phase</h4>
+          <p>Real users. Real data. Real predictions. Real outcomes. Real validation. Not more features, not Engine v2, not new scores — evidence.</p>
+          <p><strong>Goal:</strong> the first validated Freedom GP$ metric.</p>
+        </div>
+      </div>
+      <p class="hint" style="margin-top: 24px;">The static dashboard proves “the system exists.” The live deployment proves “the system works.” Source: the engine on GitHub — <a href="https://github.com/omnisight27/freedom-gps-engine-v1">github.com/omnisight27/freedom-gps-engine-v1</a> · tag v0.5-mvp · 223 tests passing.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© OmniSight — NexIntel AI Engine · Educational only, not financial advice.</p>
+    <p class="hint">Freedom GP$ Engine v1 MVP — Architecture Demonstration. Illustrative demo data only; not a real ledger.</p>
+  </footer>
+  <script src="ticker-tape.js"></script>
+  <script src="nav.js"></script>
+  <script src="link-guard.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js?v=3"></script>
+  <script src="data-stamp.js"></script>
+</body>
+</html>
