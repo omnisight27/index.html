@@ -2950,6 +2950,17 @@ def main():
                 (json.load(f) or {}).get('okx_oi_history') or {}
     except Exception:
         pass
+    # OKX unlisted-symbol skip store (2026-11-20): {ASSET: ts of the
+    # last 51001 verification}. Coins in it are skipped for 7 days
+    # (see okx_feed.unlisted_due) instead of re-probing 4 endpoints
+    # that always come back "instrument doesn't exist".
+    prior_okx_unlisted = {}
+    try:
+        with open(os.path.join(DATA_DIR, 'intraday.json')) as f:
+            prior_okx_unlisted = \
+                (json.load(f) or {}).get('okx_unlisted') or {}
+    except Exception:
+        pass
     # DeFiLlama stablecoin/TVL track, Phase 1: the USDT+USDC supply
     # history (no per-asset history endpoint exists — the store warms
     # up over the first week) and the day-cache for the heavy history
@@ -3709,7 +3720,9 @@ def main():
     # (diagnostic-only; it must never trip the circuit breaker).
     okx_map = {}
     okx_oi_hist = prior_okx_oi_history
+    okx_unlisted = prior_okx_unlisted
     okx_diag = {'coins_requested': 0, 'coins_with_funding': 0,
+                'coins_skipped_unlisted': 0,
                 'dispersion': {}, 'error': None}
     if okx_feed is not None:
         try:
@@ -3721,7 +3734,16 @@ def main():
                         _syms.append(_s)
             _syms = _syms[:okx_feed.MAX_COINS_PER_RUN]
             okx_diag['coins_requested'] = len(_syms)
-            okx_map = okx_feed.fetch_all(fetch_json, _syms)
+            # Confirmed-unlisted coins (51001 within the last 7d)
+            # are skipped, not re-probed: same all-None row, zero
+            # requests. Expired entries re-probe, so a later OKX
+            # listing is picked up.
+            _skip = okx_feed.unlisted_due(prior_okx_unlisted, run_ts)
+            okx_diag['coins_skipped_unlisted'] = len(
+                _skip.intersection(_syms))
+            okx_map = okx_feed.fetch_all(fetch_json, _syms, skip=_skip)
+            okx_unlisted = okx_feed.record_unlisted(
+                prior_okx_unlisted, okx_map, run_ts, skipped=_skip)
             okx_oi_hist = okx_feed.update_oi_history(
                 prior_okx_oi_history, okx_map, run_ts)
             _disp = okx_feed.dispersion_map(okx_map, fund_map)
@@ -3749,6 +3771,7 @@ def main():
             okx_diag['error'] = str(e)[:200]
             okx_map = {}
             okx_oi_hist = prior_okx_oi_history
+            okx_unlisted = prior_okx_unlisted
             print(f'  [warn] OKX feed failed (fail-open): {e}')
 
     # --- Deribit options track, Phase 1 (display-only research) ---
@@ -4293,6 +4316,7 @@ def main():
         'okx': okx_map,
         'okx_diag': okx_diag,
         'okx_oi_history': okx_oi_hist,
+        'okx_unlisted': okx_unlisted,
         # DeFiLlama stablecoin/TVL track, Phase 1 (display-only
         # research): current supplies + TVL, the day-cached 7d/24h
         # changes, the USDT+USDC change from the cross-run store,

@@ -72,6 +72,18 @@ MIN_HISTORY_FOR_Z = 10   # fewer history rows -> z is None ("no data")
 OI_MAX_POINTS = 30       # hourly OI observations kept per coin (~30h)
 PACE_S = 0.12            # pacing between OKX calls (limit: 20 req / 2s)
 
+# Unlisted-symbol skip cache (2026-11-20): a coin whose funding leg
+# 51001s has no USDT-SWAP, so re-probing it costs 4 requests × the
+# pacing on every run for a row that is always all-None. The
+# cross-run store (intraday.json['okx_unlisted'], {ASSET: ts of the
+# last 51001 verification}) lets fetch_all skip it while the record
+# is fresh. TTL 7 days: after expiry the coin is re-probed, so an
+# OKX listing that appears later is picked up. A skipped coin still
+# gets the same all-None row + 'no OKX USDT-SWAP' error, so diag
+# counts and card display are unchanged — only the requests stop.
+UNLISTED_TTL_SECS = 7 * 24 * 3600
+UNLISTED_ERROR = 'no OKX USDT-SWAP for this symbol'
+
 # Crowdedness score scale — SAME as funding.py so OKX and Kraken
 # scores are directly comparable (15% annualized = normal, 0 score).
 BASELINE_ANN_PCT = 15.0
@@ -295,18 +307,89 @@ def fetch_coin(fetch_json, asset, pace_s=PACE_S):
         # failed' is reserved for a genuinely dead/unreachable feed.
         if isinstance(fund_raw, dict) \
                 and str(fund_raw.get('code')) == '51001':
-            row['error'] = 'no OKX USDT-SWAP for this symbol'
+            row['error'] = UNLISTED_ERROR
         else:
             row['error'] = 'all OKX legs failed'
     return row
 
 
-def fetch_all(fetch_json, assets, pace_s=PACE_S):
+def _unlisted_row(asset):
+    """The all-None row a confirmed-unlisted coin gets — identical
+    shape to a freshly 51001'd fetch_coin row, minus the requests."""
+    return {'asset': (asset or '').upper(),
+            'funding_rate': None, 'ann_pct': None, 'funding_score': None,
+            'funding_z': None, 'oi': None, 'oi_usd': None,
+            'ls_ratio': None, 'error': UNLISTED_ERROR}
+
+
+def unlisted_due(store, now_ts):
+    """Symbols in the skip store whose 51001 verification is still
+    within UNLISTED_TTL_SECS — safe to skip this run. Pure, never
+    raises; a bad store just means everything gets re-probed."""
+    try:
+        now = float(now_ts)
+        return {str(s).upper()
+                for s, ts in (store or {}).items()
+                if now - float(ts) <= UNLISTED_TTL_SECS}
+    except Exception:
+        return set()
+
+
+def record_unlisted(store, okx_map, now_ts, skipped=None):
+    """Fold this run's map into the skip store; returns a NEW dict.
+    A symbol freshly verified 51001 (and not skipped this run) is
+    (re)stamped with now_ts. A skipped symbol keeps its old stamp
+    only while the TTL holds — once expired it drops out, so the
+    next run re-probes it and an OKX listing is picked up. A symbol
+    that now returns data is dropped: it was verified listed. A
+    symbol outside this run's universe is kept while its stamp is
+    fresh. Never raises; on bad input the old store is returned."""
+    try:
+        skipped = {str(s).upper() for s in (skipped or ())}
+        now = float(now_ts)
+        new = {}
+        for sym, ts in (store or {}).items():
+            s = str(sym).upper()
+            try:
+                stamp = float(ts)
+            except (TypeError, ValueError):
+                continue
+            if s in skipped:
+                # Not re-verified this run: keep only while the TTL
+                # holds, so expiry forces a fresh probe next run.
+                if now - stamp <= UNLISTED_TTL_SECS:
+                    new[s] = stamp
+                continue
+            row = (okx_map or {}).get(s)
+            if row is not None:
+                if (row or {}).get('error') == UNLISTED_ERROR:
+                    new[s] = now
+                # else: it returned data this run — verified listed,
+                # so it leaves the skip store.
+            elif now - stamp <= UNLISTED_TTL_SECS:
+                new[s] = stamp
+        for sym, row in (okx_map or {}).items():
+            s = str(sym).upper()
+            if s not in skipped and (row or {}).get('error') \
+                    == UNLISTED_ERROR:
+                new[s] = now
+        return new
+    except Exception:
+        try:
+            return dict(store or {})
+        except Exception:
+            return {}
+
+
+def fetch_all(fetch_json, assets, pace_s=PACE_S, skip=None):
     """{ASSET: row} for the core coins (always) plus the requested
     assets, up to MAX_COINS_PER_RUN total (order kept, BTC first —
     the dispersion anchor). A failed coin still gets a row (all None
-    + error) so the diag counts honestly. Never raises."""
+    + error) so the diag counts honestly. `skip`: symbols from the
+    unlisted store (see unlisted_due) — they get the cached
+    all-None row with no HTTP calls. Never raises."""
     try:
+        skip = {str(s).upper() for s in (skip or ())}
         syms = []
         for a in list(CORE_COINS) + list(assets or []):
             s = (a or '').upper().strip()
@@ -317,6 +400,9 @@ def fetch_all(fetch_json, assets, pace_s=PACE_S):
             syms.insert(0, 'BTC')
         out = {}
         for s in syms[:MAX_COINS_PER_RUN]:
+            if s in skip:
+                out[s] = _unlisted_row(s)
+                continue
             try:
                 out[s] = fetch_coin(fetch_json, s, pace_s=pace_s)
             except Exception as e:

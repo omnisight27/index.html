@@ -219,6 +219,54 @@ def test_fetch_coin_no_swap_is_not_a_feed_failure():
     assert row['error'] == 'no OKX USDT-SWAP for this symbol'
 
 
+def test_fetch_all_skips_unlisted_without_requests():
+    """A symbol in the skip store gets the cached all-None row and
+    costs zero HTTP calls — the 4-endpoint probe is not repeated
+    every run for a coin OKX has already said does not exist."""
+    fetch = _fake_fetch({
+        'funding-rate-history': SAMPLE_FUNDING_HIST,
+        'funding-rate': SAMPLE_FUNDING,
+        'open-interest': SAMPLE_OI,
+        'long-short-account-ratio': SAMPLE_LS,
+    })
+    out = okx_feed.fetch_all(fetch, ['PEARL', 'ETH'],
+                             pace_s=0, skip={'PEARL'})
+    assert all('PEARL' not in u for u in fetch.calls)
+    row = out['PEARL']
+    assert row['funding_rate'] is None and row['oi_usd'] is None
+    assert row['ls_ratio'] is None
+    assert row['error'] == okx_feed.UNLISTED_ERROR
+    assert out['ETH']['funding_rate'] is not None  # others unaffected
+
+
+def test_unlisted_due_respects_ttl():
+    """Only stamps inside the 7-day TTL are due for skipping; an
+    expired stamp means the coin gets re-probed next run."""
+    store = {'FRESH': NOW - 100, 'OLD': NOW - okx_feed.UNLISTED_TTL_SECS - 1}
+    assert okx_feed.unlisted_due(store, NOW) == {'FRESH'}
+    assert okx_feed.unlisted_due({}, NOW) == set()
+    assert okx_feed.unlisted_due(None, NOW) == set()
+
+
+def test_record_unlisted_folds_expires_and_unlists():
+    """Fresh 51001s are stamped; a skipped symbol keeps its old
+    stamp only while fresh (expiry forces a re-probe); a symbol
+    that now returns data leaves the store (verified listed)."""
+    store = {'PEARL': NOW - 100, 'STALE': NOW - okx_feed.UNLISTED_TTL_SECS - 1,
+             'LISTED_NOW': NOW - 100, 'ABSENT': NOW - 100}
+    okx_map = {
+        'PEARL': {'error': okx_feed.UNLISTED_ERROR},
+        'NEWCOIN': {'error': okx_feed.UNLISTED_ERROR},
+        'LISTED_NOW': {'error': None, 'funding_rate': 0.0001},
+    }
+    new = okx_feed.record_unlisted(store, okx_map, NOW, skipped={'PEARL'})
+    assert new['PEARL'] == NOW - 100      # skipped: old stamp kept
+    assert 'STALE' not in new             # expired skip drops out
+    assert 'LISTED_NOW' not in new        # verified listed: dropped
+    assert new['ABSENT'] == NOW - 100     # out of universe: kept fresh
+    assert new['NEWCOIN'] == NOW          # fresh 51001 stamped
+
+
 def test_fetch_all_caps_and_btc_first():
     fetch = _fake_fetch({
         'funding-rate-history': SAMPLE_FUNDING_HIST,
