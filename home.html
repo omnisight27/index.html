@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Screen — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .home-head h1 { margin-bottom: 6px; }
+  .fact-list { margin: 0; }
+  .fact-list dt { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; margin-top: 12px; }
+  .fact-list dt:first-child { margin-top: 0; }
+  .fact-list dd { margin: 2px 0 0; font-size: 20px; font-weight: 600; color: var(--text); }
+  .fact-list dd.small { font-size: 15px; font-weight: 500; }
+  .path { font-size: 17px; line-height: 2; }
+  .path .hop { color: var(--accent); font-weight: 600; }
+  .path .rel { color: var(--text-muted); font-size: 13px; }
+  .diag { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+  .diag b { color: var(--text); }
+  .status-line { font-size: 15px; }
+  .status-line .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); margin-right: 8px; }
+  .status-line .dot.off { background: #c0392b; }
+  .login-card input[type="email"] {
+    width: 100%; box-sizing: border-box; padding: 12px; margin: 0 0 12px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 16px;
+  }
+  .login-card .btn { width: 100%; margin: 0 0 10px; }
+  #login-status { min-height: 20px; font-size: 14px; color: var(--accent); }
+  .session-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .session-bar .who { color: var(--text-light); font-size: 14px; }
+  .note { font-size: 13px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<main class="container home-head">
+  <p class="eyebrow">OmniSight · Understanding Engine v1.0</p>
+  <h1>Am I okay?</h1>
+  <p class="subtitle">The first answer from the knowledge graph — read live from Supabase. Nothing on this page is hard-coded: every number below comes from a query.</p>
+
+  <div class="card">
+    <p class="status-line"><span class="dot off" id="status-dot"></span><span id="graph-status">Connecting to Supabase…</span></p>
+    <p class="diag" id="graph-diag"></p>
+  </div>
+
+  <div class="card session-bar" id="session-bar" style="display:none">
+    <span class="who" id="session-who"></span>
+    <button class="btn" id="sign-out" type="button">Sign out</button>
+  </div>
+
+  <div class="card login-card" id="auth-card" style="display:none">
+    <h2>Sign in to read the graph</h2>
+    <p class="hint">Your numbers are private. Sign in and the graph answers — no account can see them without logging in.</p>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <button class="btn primary" id="login-magic" type="button">Email me a sign-in link</button>
+    <button class="btn" id="login-google" type="button">Continue with Google</button>
+    <div id="login-status" role="status"></div>
+  </div>
+
+  <div class="card" id="facts-card" style="display:none">
+    <h2>The first read</h2>
+    <dl class="fact-list">
+      <dt>Person</dt>
+      <dd id="fact-person">—</dd>
+      <dt>Organization</dt>
+      <dd id="fact-org">—</dd>
+      <dt>Project</dt>
+      <dd id="fact-project">—</dd>
+      <dt>Financial Snapshot</dt>
+      <dd id="fact-networth">—</dd>
+      <dt>Credit Score</dt>
+      <dd id="fact-credit">—</dd>
+    </dl>
+    <p class="note" id="fact-recorded"></p>
+  </div>
+
+  <div class="card" id="path-card" style="display:none">
+    <h2>The first path</h2>
+    <p class="path" id="fact-path"></p>
+    <p class="note">Every hop above is a real relationship row in the graph — the label under each hop is the relationship stored in Supabase.</p>
+  </div>
+
+  <div class="card">
+    <h2>How this works</h2>
+    <p class="note">This page reads <b>people</b>, <b>organizations</b>, <b>projects</b>, <b>relationships</b> and <b>financial_snapshots</b> from Supabase, using the publishable key in <b>config.js</b> and your signed-in session. The JSON files the site already reads stay as the fallback until this connection is proven. The service-role key is never used in the browser.</p>
+  </div>
+</main>
+
+<footer><p>OmniSight — educational only, not financial advice.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=3"></script>
+<script>
+(function () {
+  'use strict';
+
+  var statusEl = document.getElementById('graph-status');
+  var dotEl = document.getElementById('status-dot');
+  var diagEl = document.getElementById('graph-diag');
+  var authCard = document.getElementById('auth-card');
+  var factsCard = document.getElementById('facts-card');
+  var pathCard = document.getElementById('path-card');
+  var sessionBar = document.getElementById('session-bar');
+  var loginStatus = document.getElementById('login-status');
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function money(n) {
+    if (n === null || n === undefined || isNaN(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function setStatus(msg, ok) {
+    statusEl.textContent = msg;
+    dotEl.className = 'dot' + (ok ? '' : ' off');
+  }
+  function show(el, on) { el.style.display = on ? '' : 'none'; }
+
+  if (!window.OMNISIGHT_CONFIGURED) {
+    setStatus('Supabase is not configured on this page yet.', false);
+    diagEl.textContent = 'config.js is missing the project URL or the publishable key.';
+    return;
+  }
+
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.onload = function () {
+    var client;
+    try {
+      client = window.supabase.createClient(
+        window.OMNISIGHT_CONFIG.SUPABASE_URL,
+        window.OMNISIGHT_CONFIG.SUPABASE_ANON_KEY
+      );
+    } catch (e) {
+      setStatus('Could not start the Supabase client.', false);
+      return;
+    }
+
+    function renderSession(user) {
+      show(sessionBar, !!user);
+      show(authCard, !user);
+      if (user) {
+        document.getElementById('session-who').textContent = 'Signed in as ' + (user.email || 'user');
+      }
+    }
+
+    function renderDiag(counts, errors) {
+      var parts = [];
+      Object.keys(counts).forEach(function (t) {
+        parts.push('<b>' + esc(t) + '</b>: ' + counts[t] + ' row' + (counts[t] === 1 ? '' : 's'));
+      });
+      diagEl.innerHTML = parts.join(' · ');
+      if (errors.length) {
+        diagEl.innerHTML += '<br>Errors: ' + esc(errors.join('; '));
+      }
+    }
+
+    function renderFacts(rows) {
+      var person = (rows.people && rows.people[0]) || null;
+      var org = (rows.organizations && rows.organizations[0]) || null;
+      var project = (rows.projects && rows.projects[0]) || null;
+      var snap = (rows.financial_snapshots && rows.financial_snapshots[0]) || null;
+
+      if (!person && !org && !project && !snap) {
+        show(factsCard, false);
+        show(pathCard, false);
+        setStatus('Signed in — the graph returned no rows yet.', false);
+        diagEl.innerHTML += '<br>The connection works, but the read rules are not in place yet. ' +
+          'Run the authenticated-read SQL in the Supabase dashboard, then reload this page.';
+        return;
+      }
+
+      show(factsCard, true);
+      document.getElementById('fact-person').textContent =
+        person ? ((person.first_name || '') + ' ' + (person.last_name || '')).trim() : '—';
+      document.getElementById('fact-org').textContent = org ? org.name : '—';
+      document.getElementById('fact-project').textContent = project ? project.name : '—';
+      document.getElementById('fact-networth').textContent = snap ? money(snap.net_worth) : '—';
+      document.getElementById('fact-credit').textContent = snap ? String(snap.credit_score) : '—';
+      document.getElementById('fact-recorded').textContent = snap && snap.created_at
+        ? 'Recorded ' + new Date(snap.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) +
+          ' · Debt-free ' + (snap.debt_free_date || '—') +
+          ' · Interest saved ' + money(snap.interest_saved)
+        : '';
+
+      // First path, built from real relationship rows: each hop shows the
+      // stored relationship_type under it. The chain order is the benchmark
+      // path; a hop is only drawn when its row exists.
+      var rels = rows.relationships || [];
+      var peopleById = {}, orgsById = {}, projectsById = {};
+      (rows.people || []).forEach(function (p) { peopleById[p.id] = p; });
+      (rows.organizations || []).forEach(function (o) { orgsById[o.id] = o; });
+      (rows.projects || []).forEach(function (p) { projectsById[p.id] = p; });
+      function nameOf(type, id) {
+        if (type === 'person') return peopleById[id] ? ((peopleById[id].first_name || '') + ' ' + (peopleById[id].last_name || '')).trim() : null;
+        if (type === 'organization') return orgsById[id] ? orgsById[id].name : null;
+        if (type === 'project') return projectsById[id] ? projectsById[id].name : null;
+        return null;
+      }
+      var hops = [];
+      rels.forEach(function (r) {
+        var a = nameOf(r.source_type, r.source_id);
+        var b = nameOf(r.target_type, r.target_id);
+        if (a && b) hops.push({ from: a, to: b, rel: r.relationship_type });
+      });
+      // The benchmark path: Nic Long -> Long Solutions LLC -> OmniSight -> Freedom GP$.
+      // Find the rows that make up that chain, in order.
+      var chain = [];
+      function hop(fromName, toName) {
+        for (var i = 0; i < hops.length; i++) {
+          if (hops[i].from === fromName && hops[i].to === toName) return hops[i];
+        }
+        return null;
+      }
+      var p = person ? ((person.first_name || '') + ' ' + (person.last_name || '')).trim() : null;
+      var firstOrg = org ? org.name : null;
+      var firstProj = project ? project.name : null;
+      var freedom = null;
+      (rows.projects || []).forEach(function (pr) { if (pr.name === 'Freedom GP$') freedom = pr.name; });
+      var h1 = p && firstOrg ? hop(p, firstOrg) : null;
+      var h2 = p && firstProj ? hop(p, firstProj) : null;
+      var h3 = firstProj && freedom ? hop(firstProj, freedom) : null;
+      var pathHtml = '';
+      if (p) pathHtml += esc(p);
+      if (h1) pathHtml += ' <span class="hop">→</span> <span class="rel">(' + esc(h1.rel) + ')</span> ' + esc(firstOrg);
+      if (h2) pathHtml += ' <span class="hop">→</span> <span class="rel">(' + esc(h2.rel) + ')</span> ' + esc(firstProj);
+      if (h3) pathHtml += ' <span class="hop">→</span> <span class="rel">(' + esc(h3.rel) + ')</span> ' + esc(freedom);
+      if (pathHtml) {
+        show(pathCard, true);
+        document.getElementById('fact-path').innerHTML = pathHtml;
+      } else {
+        show(pathCard, false);
+      }
+
+      setStatus('Connected — reading the graph. First answer: net worth ' +
+        (snap ? money(snap.net_worth) : '—') + '.', true);
+    }
+
+    function loadGraph() {
+      setStatus('Connected — reading the graph…', true);
+      var counts = {};
+      var errors = [];
+      var rows = {};
+      var queries = [
+        ['people', client.from('people').select('*').order('id').limit(10)],
+        ['organizations', client.from('organizations').select('*').order('id').limit(10)],
+        ['projects', client.from('projects').select('*').order('id').limit(10)],
+        ['relationships', client.from('relationships').select('*').order('id').limit(20)],
+        ['memories', client.from('memories').select('*').order('id').limit(10)],
+        ['financial_snapshots', client.from('financial_snapshots').select('*').order('created_at', { ascending: false }).limit(1)]
+      ];
+      var done = 0;
+      queries.forEach(function (q) {
+        q[1].then(function (r) {
+          counts[q[0]] = (r.data || []).length;
+          if (r.error) errors.push(q[0] + ': ' + r.error.message);
+          rows[q[0]] = r.data || [];
+          done++;
+          if (done === queries.length) {
+            renderDiag(counts, errors);
+            renderFacts(rows);
+          }
+        }).catch(function (e) {
+          counts[q[0]] = 0;
+          errors.push(q[0] + ': ' + (e && e.message ? e.message : 'request failed'));
+          rows[q[0]] = [];
+          done++;
+          if (done === queries.length) {
+            renderDiag(counts, errors);
+            renderFacts(rows);
+          }
+        });
+      });
+    }
+
+    client.auth.getSession().then(function (r) {
+      var user = (r.data && r.data.session) ? r.data.session.user : null;
+      renderSession(user);
+      if (user) { loadGraph(); }
+      else {
+        setStatus('Connected to Supabase — sign in to read the graph.', true);
+        diagEl.textContent = 'The connection works. Sign in and the five facts below load from the graph, not from a file.';
+      }
+    });
+    client.auth.onAuthStateChange(function (_event, session) {
+      var user = session ? session.user : null;
+      renderSession(user);
+      if (user) { loadGraph(); }
+      else {
+        show(factsCard, false);
+        show(pathCard, false);
+        setStatus('Connected to Supabase — sign in to read the graph.', true);
+        diagEl.textContent = 'The connection works. Sign in and the five facts below load from the graph, not from a file.';
+      }
+    });
+
+    document.getElementById('login-magic').addEventListener('click', function () {
+      var email = document.getElementById('login-email').value.trim();
+      if (!email) { loginStatus.textContent = 'Type your email first.'; return; }
+      loginStatus.textContent = 'Sending…';
+      client.auth.signInWithOtp({
+        email: email,
+        options: { emailRedirectTo: window.location.origin + window.location.pathname }
+      }).then(function (r) {
+        loginStatus.textContent = r.error ? ('Error: ' + r.error.message)
+          : 'Check your email — tap the link to finish signing in.';
+      }).catch(function () {
+        loginStatus.textContent = 'Could not reach the sign-in service. Check your connection and try again.';
+      });
+    });
+    document.getElementById('login-google').addEventListener('click', function () {
+      client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+    });
+    document.getElementById('sign-out').addEventListener('click', function () {
+      client.auth.signOut();
+    });
+  };
+  s.onerror = function () {
+    setStatus('Could not load the Supabase library. Check your connection and reload.', false);
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
