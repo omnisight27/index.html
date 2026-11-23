@@ -117809,7 +117809,9 @@
           "exit": 0.012047,
           "return_pct": -193.3,
           "win": false,
-          "abs_error": 243.3
+          "abs_error": 243.3,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko returned $0.0041 for A7A5 (ruble stablecoin, true price ~$0.012) on 2026-11-20/21, so the entry price was wrong and the graded return (-193%) is impossible \u2014 a SHORT cannot lose 193% on an asset that never moved. Same fake-grade class as the CVX collisions excluded 2026-10-25/28/30. Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "AKE",
@@ -119827,7 +119829,9 @@
           "exit": 0.012047,
           "return_pct": -193.58,
           "win": false,
-          "abs_error": 243.58
+          "abs_error": 243.58,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko returned $0.0041 for A7A5 (ruble stablecoin, true price ~$0.012) on 2026-11-20/21, so the entry price was wrong and the graded return (-193%) is impossible \u2014 a SHORT cannot lose 193% on an asset that never moved. Same fake-grade class as the CVX collisions excluded 2026-10-25/28/30. Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "APEPE",
@@ -120938,7 +120942,9 @@
           },
           "conf_raw": 54,
           "calib_band": "50-59",
-          "conf_v2": 61
+          "conf_v2": 61,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko returned $0.0041 for A7A5 (ruble stablecoin, true price ~$0.012) on 2026-11-20/21, so the entry price was wrong and the graded return (-193%) is impossible \u2014 a SHORT cannot lose 193% on an asset that never moved. Same fake-grade class as the CVX collisions excluded 2026-10-25/28/30. Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "AKE",
@@ -121920,7 +121926,9 @@
           },
           "conf_raw": 57,
           "calib_band": "50-59",
-          "conf_v2": 62
+          "conf_v2": 62,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko returned $0.0041 for A7A5 (ruble stablecoin, true price ~$0.012) on 2026-11-20/21, so the entry price was wrong and the graded return (-193%) is impossible \u2014 a SHORT cannot lose 193% on an asset that never moved. Same fake-grade class as the CVX collisions excluded 2026-10-25/28/30. Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "AKE",
@@ -130881,17 +130889,17 @@
   ],
   "stats": {
     "wins": 910,
-    "losses": 969,
-    "total": 1879,
-    "win_rate": 48.4
+    "losses": 967,
+    "total": 1877,
+    "win_rate": 48.5
   },
   "error": {
-    "sum_abs_err": 20807.290057290153,
-    "n": 1321,
+    "sum_abs_err": 20320.41,
+    "n": 1319,
     "within_5pct": 394,
     "metric": "return_pct_v1",
-    "mae": 15.75,
-    "within_5pct_rate": 29.8
+    "mae": 15.41,
+    "within_5pct_rate": 29.9
   },
   "calibration": [
     {
@@ -131210,6 +131218,21 @@
           "kelly": 0.115
         }
       }
+    },
+    {
+      "date": "2026-11-23T11:10:37.898962+00:00",
+      "action": "removed 2 fake losses from graded record; excluded 2 ungraded legs (A7A5 feed-glitch prices)",
+      "reason": "Feed glitch: CoinGecko returned $0.0041 for A7A5 (ruble stablecoin, true price ~$0.012) on 2026-11-20/21, so the entry price was wrong and the graded return (-193%) is impossible \u2014 a SHORT cannot lose 193% on an asset that never moved. Same fake-grade class as the CVX collisions excluded 2026-10-25/28/30. Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing.",
+      "picks_removed": 4,
+      "assets": [
+        "A7A5"
+      ],
+      "runs": [
+        "2026-11-20T14:38:09.232941+00:00",
+        "2026-11-20T23:31:01.225846+00:00",
+        "2026-11-21T00:36:57.213755+00:00",
+        "2026-11-21T04:51:18.726681+00:00"
+      ]
     }
   ],
   "calibration_v2": [
