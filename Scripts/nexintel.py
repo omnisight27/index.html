@@ -1490,7 +1490,12 @@ def think(data, history):
                        'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL',
                        # Second wave, same morning: SG-FORGE euro/dollar stables
                        # (EURCV/USDCV), Origin Dollar (OUSD) and Web 3 Dollar (USD3)
-                       'EURCV', 'USDCV', 'OUSD', 'USD3'}
+                       'EURCV', 'USDCV', 'OUSD', 'USD3',
+                       # Ruble stablecoin (2026-11-24 review): sanctioned/delisted,
+                       # CoinGecko headline price unreliable — stepped $0.012 -> $0.0041
+                       # -> $0.012 -> $0.0018 on Nov 20-23 while the live Uniswap pool
+                       # held the peg; 6 fake grades excluded 2026-11-23/24.
+                       'A7A5'}
     listings = data.get('listings', {})
     import venues as _venues
     def tradable_on(sym):

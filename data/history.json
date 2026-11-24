@@ -120142,7 +120142,9 @@
           "exit": 0.00177393,
           "return_pct": -85.62,
           "win": false,
-          "abs_error": 135.62
+          "abs_error": 135.62,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko's headline price for A7A5 stepped to $0.00177 on 2026-11-23 while the live Uniswap V2 pool kept trading at the $0.012 peg (DexScreener $0.01173, 33 txns/24h; CoinGecko's own ticker last $0.011737) \u2014 the exit price is an aggregator artifact on $7/day CoinGecko volume, not an executable market. The LONG's -85.62% and SHORT's +85.14% never happened in any tradable market. Same fake-grade class as the 4 A7A5 legs excluded 2026-11-23 (bad $0.0041 entries). Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         }
       ],
       "shorts": [
@@ -122327,7 +122329,9 @@
           "exit": 0.00177393,
           "return_pct": 85.14,
           "win": true,
-          "abs_error": 35.14
+          "abs_error": 35.14,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko's headline price for A7A5 stepped to $0.00177 on 2026-11-23 while the live Uniswap V2 pool kept trading at the $0.012 peg (DexScreener $0.01173, 33 txns/24h; CoinGecko's own ticker last $0.011737) \u2014 the exit price is an aggregator artifact on $7/day CoinGecko volume, not an executable market. The LONG's -85.62% and SHORT's +85.14% never happened in any tradable market. Same fake-grade class as the 4 A7A5 legs excluded 2026-11-23 (bad $0.0041 entries). Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "DRV",
@@ -132186,17 +132190,17 @@
     }
   ],
   "stats": {
-    "wins": 932,
-    "losses": 995,
-    "total": 1927,
+    "wins": 931,
+    "losses": 994,
+    "total": 1925,
     "win_rate": 48.4
   },
   "error": {
-    "sum_abs_err": 21926.00335696237,
-    "n": 1369,
+    "sum_abs_err": 21755.24335696237,
+    "n": 1367,
     "within_5pct": 395,
     "metric": "return_pct_v1",
-    "mae": 16.02,
+    "mae": 15.91,
     "within_5pct_rate": 28.9
   },
   "calibration": [
@@ -132531,6 +132535,51 @@
         "2026-11-21T00:36:57.213755+00:00",
         "2026-11-21T04:51:18.726681+00:00"
       ]
+    },
+    {
+      "date": "2026-11-24T11:12:07.889103+00:00",
+      "action": "removed 2 fake grades from graded record (A7A5 exit-price glitch)",
+      "reason": "Feed glitch: CoinGecko's headline price for A7A5 stepped to $0.00177 on 2026-11-23 while the live Uniswap V2 pool kept trading at the $0.012 peg (DexScreener $0.01173, 33 txns/24h; CoinGecko's own ticker last $0.011737) \u2014 the exit price is an aggregator artifact on $7/day CoinGecko volume, not an executable market. The LONG's -85.62% and SHORT's +85.14% never happened in any tradable market. Same fake-grade class as the 4 A7A5 legs excluded 2026-11-23 (bad $0.0041 entries). Legs stay in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing.",
+      "picks_removed": 2,
+      "assets": [
+        "A7A5"
+      ],
+      "runs": [
+        "2026-11-21T13:55:34.780762+00:00",
+        "2026-11-21T22:37:07.885582+00:00"
+      ],
+      "before": {
+        "stats": {
+          "wins": 932,
+          "losses": 995,
+          "total": 1927,
+          "win_rate": 48.4
+        },
+        "error": {
+          "sum_abs_err": 21926.00335696237,
+          "n": 1369,
+          "within_5pct": 395,
+          "metric": "return_pct_v1",
+          "mae": 16.02,
+          "within_5pct_rate": 28.9
+        }
+      },
+      "after": {
+        "stats": {
+          "wins": 931,
+          "losses": 994,
+          "total": 1925,
+          "win_rate": 48.4
+        },
+        "error": {
+          "sum_abs_err": 21755.24335696237,
+          "n": 1367,
+          "within_5pct": 395,
+          "metric": "return_pct_v1",
+          "mae": 15.91,
+          "within_5pct_rate": 28.9
+        }
+      }
     }
   ],
   "calibration_v2": [
