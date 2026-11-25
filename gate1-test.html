@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gate 1 Test — OmniSight</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .gate-status { font-size: 16px; line-height: 1.6; }
+  .gate-status .dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--accent); margin-right:8px; }
+  .gate-status .dot.off { background:#c0392b; }
+  .gate-table { margin-top: 16px; }
+  .gate-table h3 { margin-bottom: 6px; }
+  .gate-result { font-weight: 700; }
+  .gate-result.pass { color: var(--accent); }
+  .gate-result.fail { color: #e0655a; }
+  pre.gate-json { white-space: pre-wrap; word-break: break-word; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.5; max-height: 420px; overflow: auto; }
+  .login-card input[type="email"] { width:100%; box-sizing:border-box; padding:12px; margin:0 0 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:16px; }
+  .login-card .btn { width:100%; margin:0 0 10px; }
+  #login-status { min-height:20px; font-size:14px; color:var(--accent); }
+  .note { font-size:13px; color:var(--text-muted); }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-brand">OmniSight</div>
+  <button class="nav-toggle" aria-label="Menu">☰</button>
+  <nav class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="picks.html">Picks</a>
+      <a href="alerts.html">Alerts</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="govgistics.html">Contract Intel</a>
+      <a href="hub.html">Hub</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+</header>
+
+<main class="container">
+  <p class="eyebrow">OmniSight · Gate 1 Verification</p>
+  <h1>Gate 1 authenticated read test</h1>
+  <p class="subtitle">This page uses your signed-in Supabase session to read the Step 2 tables: feed_registry, insights, recommendations, and scores.</p>
+
+  <div class="card">
+    <p class="gate-status"><span class="dot off" id="status-dot"></span><span id="gate-status">Connecting to Supabase…</span></p>
+    <p class="note" id="gate-summary"></p>
+  </div>
+
+  <div class="card login-card" id="auth-card" style="display:none">
+    <h2>Sign in to run Gate 1</h2>
+    <p class="hint">Sign in with Google or an email link. The test runs only with an authenticated session.</p>
+    <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+    <button class="btn primary" id="login-google" type="button">Continue with Google</button>
+    <button class="btn" id="login-magic" type="button">Email me a sign-in link</button>
+    <div id="login-status" role="status"></div>
+  </div>
+
+  <div class="card" id="results-card" style="display:none">
+    <h2>Step 2 authenticated reads</h2>
+    <p class="note">Expected: gate1_test_feed · GATE1-RUN-001 test insight · GATE1-RUN-001 test recommendation (open) · Gate1 score 50.</p>
+    <div id="gate-results"></div>
+  </div>
+</main>
+
+<footer><p>OmniSight — Gate 1 verification only.</p></footer>
+<script src="nav.js"></script>
+<script src="link-guard.js"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=3"></script>
+<script src="gate1-test.js"></script>
+</body>
+</html>
