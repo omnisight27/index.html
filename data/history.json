@@ -119992,7 +119992,9 @@
           "exit": 0.00177393,
           "return_pct": 85.14,
           "win": true,
-          "abs_error": 35.14
+          "abs_error": 35.14,
+          "excluded": true,
+          "excluded_reason": "Feed glitch: CoinGecko's headline price for A7A5 stepped to $0.00177 on 2026-11-23 while the live Uniswap V2 pool kept trading at the $0.012 peg (DexScreener $0.01173, 33 txns/24h; CoinGecko's own ticker last $0.011737) \u2014 the exit price is an aggregator artifact on $7/day CoinGecko volume, not an executable market. This Nov 22 SHORT matured Nov 25 and graded +85.14% at that same $0.00177393 exit after the Nov 24 correction had excluded the two Nov 21 legs with the identical exit. Same fake-grade class as the 6 A7A5 legs excluded 2026-11-23/24. Leg stays in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing."
         },
         {
           "asset": "DRV",
@@ -132402,24 +132404,29 @@
     }
   ],
   "stats": {
-    "wins": 958,
+    "wins": 957,
     "losses": 1007,
-    "total": 1965,
-    "win_rate": 48.8
+    "total": 1964,
+    "win_rate": 48.7
   },
   "error": {
-    "sum_abs_err": 23041.772579991095,
-    "n": 1407,
+    "sum_abs_err": 23006.632579991096,
+    "n": 1406,
     "within_5pct": 396,
     "metric": "return_pct_v1",
-    "mae": 16.38,
-    "within_5pct_rate": 28.1
+    "mae": 16.36,
+    "within_5pct_rate": 28.2
   },
   "calibration": [
     {
       "band": "50-59",
+<<<<<<< Updated upstream
       "n": 55,
       "win_rate": 29.1
+=======
+      "n": 64,
+      "win_rate": 34.4
+>>>>>>> Stashed changes
     },
     {
       "band": "60-69",
@@ -132792,6 +132799,50 @@
           "within_5pct_rate": 28.9
         }
       }
+    },
+    {
+      "date": "2026-11-25T11:06:00+00:00",
+      "action": "removed 1 fake grade from graded record (A7A5 exit-price glitch, Nov 22 leg graded Nov 25)",
+      "reason": "Feed glitch: CoinGecko's headline price for A7A5 stepped to $0.00177 on 2026-11-23 while the live Uniswap V2 pool kept trading at the $0.012 peg (DexScreener $0.01173; CoinGecko's own ticker last $0.011737) \u2014 the exit price is an aggregator artifact, not an executable market. The Nov 22 SHORT (projected exit Nov 25) graded +85.14% at the identical $0.00177393 exit after the Nov 24 correction excluded the two Nov 21 legs; remember() still graded pre-block A7A5 picks because the blocklist lived only in think(). Same fake-grade class as the 6 A7A5 legs excluded 2026-11-23/24. Leg stays in the file with excluded=true for audit; excluded legs are skipped by scoring, calibration, weight training, geometry, and Kelly sizing. Recurrence fix: BLOCKED_SYMBOLS moved to module level and remember() now excludes ungraded blocked-symbol picks instead of scoring them.",
+      "picks_removed": 1,
+      "assets": [
+        "A7A5"
+      ],
+      "runs": [
+        "2026-11-22T04:08:54.938545+00:00"
+      ],
+      "before": {
+        "stats": {
+          "wins": 958,
+          "losses": 1007,
+          "total": 1965,
+          "win_rate": 48.8
+        },
+        "error": {
+          "sum_abs_err": 23041.772579991095,
+          "n": 1407,
+          "within_5pct": 396,
+          "metric": "return_pct_v1",
+          "mae": 16.38,
+          "within_5pct_rate": 28.1
+        }
+      },
+      "after": {
+        "stats": {
+          "wins": 957,
+          "losses": 1007,
+          "total": 1964,
+          "win_rate": 48.7
+        },
+        "error": {
+          "sum_abs_err": 23006.632579991096,
+          "n": 1406,
+          "within_5pct": 396,
+          "metric": "return_pct_v1",
+          "mae": 16.36,
+          "within_5pct_rate": 28.2
+        }
+      }
     }
   ],
   "calibration_v2": [
@@ -132828,8 +132879,8 @@
     {
       "direction": "SHORT",
       "band": "60-69",
-      "n": 8,
-      "win_rate": 12.5
+      "n": 7,
+      "win_rate": 0.0
     },
     {
       "direction": "SHORT",
@@ -132852,8 +132903,13 @@
     {
       "direction": null,
       "band": "60-69",
+<<<<<<< Updated upstream
       "n": 55,
       "win_rate": 29.1
+=======
+      "n": 61,
+      "win_rate": 31.1
+>>>>>>> Stashed changes
     },
     {
       "direction": null,

@@ -95,6 +95,48 @@ def test_flat_short_window_but_real_30d_move_can_pick():
     assert 'SLOW' in picked, f'real 30d mover wrongly filtered: {picked}'
 
 
+def test_blocked_pick_is_excluded_not_graded(tmp_path=None):
+    # Regression (2026-11-25): A7A5 was blocked from new picks on Nov 24,
+    # but a Nov 22 A7A5 pick matured Nov 25 and remember() graded it at
+    # the $0.00177 feed-glitch exit (+85.14% fake win) because the
+    # blocklist lived only in think(). remember() must exclude an
+    # ungraded blocked-symbol pick instead of scoring it, while a
+    # normal pick in the same run still grades.
+    import json
+    import tempfile
+    from pathlib import Path
+    if tmp_path is None:
+        tmp_path = Path(tempfile.mkdtemp())
+    def pick(asset, price):
+        return {'asset': asset, 'price': price, 'market': 'crypto',
+                'coin_id': asset.lower(), 'confidence': 52, 'conf_raw': 60,
+                'thesis': {'direction': 'SHORT', 'expected_return_pct': 50.0,
+                           'projected_exit': '2000-01-01'}}
+    run = {'date': '2026-11-22T04:08:54+00:00', 'scored': False,
+           'longs': [], 'shorts': [pick('A7A5', 0.011936), pick('BTC', 100.0)]}
+    hist = {'picks': [run], 'stats': {'wins': 0, 'losses': 0, 'total': 0},
+            'error': {'sum_abs_err': 0.0, 'n': 0, 'within_5pct': 0,
+                      'metric': 'return_pct_v1'}}
+    (tmp_path / 'history.json').write_text(json.dumps(hist))
+    orig = nexintel.DATA_DIR
+    nexintel.DATA_DIR = str(tmp_path)
+    try:
+        data = {'crypto': {'a7a5': {'symbol': 'A7A5', 'usd': 0.00177393},
+                           'btc': {'symbol': 'BTC', 'usd': 90.0}},
+                'stocks': {}}
+        signals = {'longs': [], 'shorts': [],
+                   'psychology': {'fear_greed': 50}, 'regime': 'NEUTRAL'}
+        out = nexintel.remember(data, signals)
+    finally:
+        nexintel.DATA_DIR = orig
+    a7a5, btc = out['picks'][0]['shorts']
+    assert a7a5.get('excluded') is True and 'return_pct' not in a7a5, a7a5
+    assert btc['return_pct'] == 10.0 and btc['win'] is True, btc
+    assert out['stats'] == {'wins': 1, 'losses': 0, 'total': 1, 'win_rate': 100.0}
+    assert out['error']['n'] == 1
+    assert out['picks'][0]['scored'] is True
+
+
 if __name__ == '__main__':
     for name, fn in sorted(list(globals().items())):
         if name.startswith('test_') and callable(fn):

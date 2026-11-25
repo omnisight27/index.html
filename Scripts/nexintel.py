@@ -32,6 +32,26 @@ STOCK_SYMBOLS = ['SPY', 'QQQ', 'DIA', 'IWM',                      # indices
                  'CRM', 'ORCL', 'AMD', 'NFLX', 'DIS', 'INTC', 'COIN', 'MSTR', 'PLTR',  # mega-caps + crypto-adjacent
                  'NRR', 'SCHD']  # crypto + dividend ETFs
 
+# Symbols that are cash, not trades — never picked (think()) and never
+# graded into the track record (remember()). Module-level so both paths
+# share one list: the 2026-11-24 A7A5 block stopped new picks, but a
+# Nov 22 A7A5 pick matured on Nov 25 and remember() still graded it at
+# the $0.00177 feed-glitch exit (+85.14% fake win) because the block
+# lived only inside think().
+BLOCKED_SYMBOLS = {'XMR',  # not tradable on Coinbase (delisted)
+                   # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
+                   'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC',
+                   # Pegged / money-market tokens that leaked into the 2026-10-25 longs (all ~$1, no upside)
+                   'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL',
+                   # Second wave, same morning: SG-FORGE euro/dollar stables
+                   # (EURCV/USDCV), Origin Dollar (OUSD) and Web 3 Dollar (USD3)
+                   'EURCV', 'USDCV', 'OUSD', 'USD3',
+                   # Ruble stablecoin (2026-11-24 review): sanctioned/delisted,
+                   # CoinGecko headline price unreliable — stepped $0.012 -> $0.0041
+                   # -> $0.012 -> $0.0018 on Nov 20-23 while the live Uniswap pool
+                   # held the peg; 6 fake grades excluded 2026-11-23/24.
+                   'A7A5'}
+
 def _retryable_fetch_error(e):
     """Retry timeouts, DNS/connection blips, 429s and 5xx — not other 4xx."""
     if isinstance(e, urllib.error.HTTPError):
@@ -1483,19 +1503,7 @@ def think(data, history):
     print(f"  kelly = {kelly:.3f} (win_rate={wr:.2f})")
 
     # --- Score crypto with w·x (ensemble: regression + geometry + regime) ---
-    BLOCKED_SYMBOLS = {'XMR',  # not tradable on Coinbase (delisted)
-                       # Stablecoins are cash, not trades — never pick or alert them (USDT incident 2026-10-23)
-                       'USDT', 'USDC', 'DAI', 'TUSD', 'FDUSD', 'PYUSD', 'USDP', 'GUSD', 'FRAX', 'USDD', 'LUSD', 'SUSD', 'USDE', 'CRVUSD', 'EURC',
-                       # Pegged / money-market tokens that leaked into the 2026-10-25 longs (all ~$1, no upside)
-                       'RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL',
-                       # Second wave, same morning: SG-FORGE euro/dollar stables
-                       # (EURCV/USDCV), Origin Dollar (OUSD) and Web 3 Dollar (USD3)
-                       'EURCV', 'USDCV', 'OUSD', 'USD3',
-                       # Ruble stablecoin (2026-11-24 review): sanctioned/delisted,
-                       # CoinGecko headline price unreliable — stepped $0.012 -> $0.0041
-                       # -> $0.012 -> $0.0018 on Nov 20-23 while the live Uniswap pool
-                       # held the peg; 6 fake grades excluded 2026-11-23/24.
-                       'A7A5'}
+    # BLOCKED_SYMBOLS is module-level (shared with remember()).
     listings = data.get('listings', {})
     import venues as _venues
     def tradable_on(sym):
@@ -2282,6 +2290,24 @@ def remember(data, signals):
                 continue  # removed from the graded record — never re-score
             if p.get('return_pct') is not None:
                 continue  # graded in an earlier partial pass — don't double-count
+            if (p.get('asset') or '').upper() in BLOCKED_SYMBOLS:
+                # Blocked pegged/stablecoin picks are cash, not trades.
+                # A pick made before its symbol was blocked (A7A5 picked
+                # Nov 22, blocked Nov 24, matured Nov 25) must not grade
+                # against a feed-glitch price into the record. Exclude
+                # it for audit instead of scoring it; already-graded
+                # legs keep their grades (handled above).
+                p['excluded'] = True
+                p['excluded_reason'] = (
+                    'Blocked pegged/stablecoin symbol: excluded from grading '
+                    'in remember() so a pre-block pick cannot enter the '
+                    'record at a feed-glitch price (A7A5 Nov 22 pick graded '
+                    'Nov 25 at the $0.00177 aggregator step, +85.14% fake '
+                    'win; same fake-grade class as the 6 A7A5 legs excluded '
+                    '2026-11-23/24). Leg stays in the file with excluded=true '
+                    'for audit; excluded legs are skipped by scoring, '
+                    'calibration, weight training, geometry, and Kelly sizing.')
+                continue
             if not _pick_matured(p):
                 pending = True  # horizon not reached yet — grade on a later run
                 continue
