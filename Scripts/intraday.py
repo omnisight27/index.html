@@ -1608,9 +1608,11 @@ _PEGGED_NAME_MARKERS = ('WRAPPED', 'STABLECOIN', 'STABLE COIN', 'TETHER',
 
 def is_pegged_or_wrapped(c):
     """True when a markets-payload coin is a stablecoin, pegged token
-    or wrapped/staked derivative — cash or a peg, not a trade. Three
+    or wrapped/staked derivative — cash or a peg, not a trade. Four
     checks: a known wrapped symbol, a peg/wrapped marker in the name,
-    or the behavior rule (sits within 2% of $1.00 with a 7d range
+    a USD marker in the symbol trading near $1 (a depeg wobble moves a
+    stablecoin past the flat rule — APXUSD at $0.972, 2026-11-27), or
+    the behavior rule (sits within 2% of $1.00 with a 7d range
     under 1% — a flat $1 coin cannot signal anyway, so the rule is
     nearly free). Pure function — no network."""
     sym = (c.get('symbol') or '').upper()
@@ -1620,6 +1622,8 @@ def is_pegged_or_wrapped(c):
     if any(m in name for m in _PEGGED_NAME_MARKERS):
         return True
     price = c.get('current_price') or 0
+    if 'USD' in sym and price and abs(price - 1.0) < 0.05:
+        return True
     spark = [p for p in ((c.get('sparkline_in_7d') or {}).get('price') or [])
              if p]
     if price and abs(price - 1.0) / 1.0 < 0.02 and len(spark) >= 24:
@@ -2818,6 +2822,12 @@ def _scan_coin(c, charts_by_sym, fund_map, fund_hist, oi_hist, macro_snap,
     sym = (c['symbol'] or '').upper()
     if sym in blocked:
         return None
+    # Pegged/wrapped guard for the LIVE scan too (2026-11-27 review):
+    # the shadow tail already gated on is_pegged_or_wrapped, but the
+    # live top-200 scan relied on the symbol blocklist alone, so a new
+    # stablecoin (USDG) could signal until someone named it.
+    if is_pegged_or_wrapped(c):
+        return None
     mcap = c.get('market_cap') or 0
     if mcap < min_mcap:
         return None
@@ -3110,7 +3120,10 @@ def main():
                # CoinGecko headline price unreliable — stepped $0.012 -> $0.0041
                # -> $0.012 -> $0.0018 on Nov 20-23 while the live Uniswap pool
                # held the peg; 6 fake grades excluded 2026-11-23/24.
-               'A7A5'}
+               'A7A5',
+               # 2026-11-27 review: USDG (Global Dollar, $1.00) reached
+               # the accumulation list; APXUSD reached the daily longs.
+               'USDG', 'USD1', 'USDS', 'USAT', 'APXUSD'}
     # Exchange listings — which coins Nic can actually trade (Coinbase +
     # Crypto.com) plus the widened sim-reporting venues (Kraken, OKX).
     # `tradable` stays Coinbase/Crypto.com only (live gate); `venues`
@@ -3161,7 +3174,11 @@ def main():
     # funding call into a silent no-op every run (fail-open swallowed it).
     scanned = [c for c in universe
                if (c.get('market_cap') or 0) >= 100_000_000
-               and (c['symbol'] or '').upper() not in BLOCKED]
+               and (c['symbol'] or '').upper() not in BLOCKED
+               # Movers/watch/accumulation read `scanned` — keep pegged
+               # tokens out behaviorally, not just by name (USDG sat in
+               # the 2026-11-27 accumulation list at $1.00).
+               and not is_pegged_or_wrapped(c)]
     # Feed #2: Binance funding rates — crowded-long detection. One bulk
     # public call; any failure yields {} and the engine runs unchanged.
     fund_map = {}

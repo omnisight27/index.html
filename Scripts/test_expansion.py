@@ -463,6 +463,46 @@ def test_pegged_behavior_rule_flat_dollar_only():
         _tail_coin(sym='FLAT50', price=50.0, spark=[50.0] * 168))
 
 
+def test_pegged_usd_marker_rule():
+    # 2026-11-27: USDG (Global Dollar) sat in the accumulation list at
+    # $1.00 and APXUSD reached the daily longs at $0.972 — a depeg
+    # wobble clears the flat-$1 behavior rule, so a USD-marked symbol
+    # near $1 is pegged on the marker alone. Far from $1, the marker
+    # does not bind.
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='USDG', name='Global Dollar', price=1.0,
+                   spark=[1.0] * 168))
+    assert intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='QQQUSD', price=0.972,
+                   spark=[0.972 + 0.02 * ((i % 7) - 3) for i in range(168)]))
+    assert not intraday.is_pegged_or_wrapped(
+        _tail_coin(sym='QQQUSD', price=2.50,
+                   spark=[2.50 + 0.1 * ((i % 7) - 3) for i in range(168)]))
+
+
+def test_scan_coin_skips_pegged_live():
+    # The live top-200 scan must apply the pegged guard itself, not
+    # rely on the caller's blocklist: a flat $1.00 USDG under a
+    # blocklist that does not name it returns None before any chart
+    # is retained, while an ordinary coin at the same mcap gets past
+    # the guard (its chart lands in charts_by_sym whether or not it
+    # signals).
+    prices = chart_for([0.5] * 24)['prices']
+    usdg = coin('global-dollar', 'USDG')
+    usdg['current_price'] = 1.0
+    usdg['sparkline_in_7d'] = {'price': [1.0] * 168}
+    charts = {}
+    assert scan(usdg, stub_chart(None), charts=charts, blocked={'XMR'},
+                prices=prices) is None
+    assert charts == {}
+    normal = coin('aaa', 'AAA')
+    normal['current_price'] = 50.0
+    charts = {}
+    scan(normal, stub_chart(None), charts=charts, blocked={'XMR'},
+         prices=prices)
+    assert 'AAA' in charts
+
+
 def test_tail_coin_eligible_gates():
     ok, why = intraday.tail_coin_eligible(_tail_coin(), {'XMR'})
     assert (ok, why) == (True, None)

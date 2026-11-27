@@ -50,7 +50,12 @@ BLOCKED_SYMBOLS = {'XMR',  # not tradable on Coinbase (delisted)
                    # CoinGecko headline price unreliable — stepped $0.012 -> $0.0041
                    # -> $0.012 -> $0.0018 on Nov 20-23 while the live Uniswap pool
                    # held the peg; 6 fake grades excluded 2026-11-23/24.
-                   'A7A5'}
+                   'A7A5',
+                   # 2026-11-27 review: USDG (Global Dollar, $1.00) reached
+                   # the intraday accumulation list and APXUSD (apxUSD,
+                   # $0.972) reached the daily longs — neither was named.
+                   # USD1/USDS/USAT are the same fiat-peg class.
+                   'USDG', 'USD1', 'USDS', 'USAT', 'APXUSD'}
 
 def _retryable_fetch_error(e):
     """Retry timeouts, DNS/connection blips, 429s and 5xx — not other 4xx."""
@@ -1587,6 +1592,13 @@ def think(data, history):
         windows = [info.get('usd_1h_change') or 0, chg24, chg7d,
                    info.get('usd_14d_change') or 0, info.get('usd_30d_change') or 0]
         if max(abs(w) for w in windows) < 1.0:
+            continue
+        # Peg-marker filter: a USD-marked token trading near $1 is a
+        # stablecoin even when a depeg wobble moves it past the flat-coin
+        # filter above (APXUSD leaked into the 2026-11-27 longs at
+        # $0.972 with a +2.2% 7d window). The 5% band keeps a genuinely
+        # repriced token eligible; a pegged one never leaves it for long.
+        if 'USD' in sym.upper() and price and abs(price - 1.0) < 0.05:
             continue
         # Feed-artifact guard: a redenomination / migration print (QFI,
         # 2026-11-12) is not a trade — skip before it can dominate scoring.

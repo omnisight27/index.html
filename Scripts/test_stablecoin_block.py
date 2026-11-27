@@ -11,7 +11,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import nexintel
 
 PEGGED = ['RLUSD', 'U', 'EURSAFO', 'EUTBL', 'THBILL', 'USDT', 'USDC',
-          'EURCV', 'USDCV', 'OUSD', 'USD3', 'A7A5']
+          'EURCV', 'USDCV', 'OUSD', 'USD3', 'A7A5',
+          # 2026-11-27: USDG reached the intraday accumulation list and
+          # APXUSD the daily longs before either was named.
+          'USDG', 'USD1', 'USDS', 'USAT', 'APXUSD']
 
 
 def _coin(cid, sym, chg24, chg7d, vec):
@@ -93,6 +96,27 @@ def test_flat_short_window_but_real_30d_move_can_pick():
     # corrected F t=1 weights put it short at score -0.0) — what matters
     # is that the flat-coin filter did not drop it.
     assert 'SLOW' in picked, f'real 30d mover wrongly filtered: {picked}'
+
+
+def test_usd_marked_depeg_wobble_never_picked():
+    # Regression (2026-11-27): APXUSD traded at $0.972 with a +2.2% 7d
+    # window — a depeg wobble that clears the <1% flat-coin filter —
+    # and reached the daily longs. A USD-marked token near $1 is a
+    # stablecoin regardless of the wobble; the marker rule must drop
+    # even a symbol no blocklist names yet (QQQUSD here).
+    def wobble(cid, sym, price):
+        return cid, {'symbol': sym, 'name': sym, 'usd': price,
+                     'usd_24h_change': -0.5, 'usd_7d_change': 2.2,
+                     'usd_1h_change': 0.0, 'usd_14d_change': -2.2,
+                     'usd_30d_change': -2.1, 'market_cap': 200_000_000}
+    coins = [_coin('aaa', 'AAA', 12.0, 20.0, [2, 12, 20, 25, 30]),
+             _coin('bbb', 'BBB', 11.0, 18.0, [1, 11, 18, 24, 29]),
+             _coin('ccc', 'CCC', -8.0, -12.0, [-2, -8, -12, -15, -18]),
+             wobble('qqqusd', 'QQQUSD', 0.972)]
+    signals = _think(coins)
+    picked = [p['asset'] for p in signals['longs'] + signals['shorts']]
+    assert 'QQQUSD' not in picked, f'depeg-wobble stable leaked: {picked}'
+    assert signals['longs'] or signals['shorts'], signals
 
 
 def test_blocked_pick_is_excluded_not_graded(tmp_path=None):
